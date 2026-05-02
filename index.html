@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Správy — Všetko na jednom mieste</title>
+  <title>Novinko — Všetky aktuálne správy na jednom mieste</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
@@ -65,6 +65,16 @@
 
     .logo span {
       color: var(--accent);
+    }
+
+    .logo-wrap { display: flex; flex-direction: column; gap: 1px; text-decoration: none; }
+    .logo-tagline {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
     .filters {
@@ -612,7 +622,10 @@
 
 <header>
   <div class="header-inner">
-    <a href="/" class="logo">správy<span>.</span></a>
+    <a href="/" class="logo-wrap">
+      <span class="logo">novinko<span>.</span></span>
+      <span class="logo-tagline">Všetky aktuálne správy na jednom mieste</span>
+    </a>
     <div class="filters">
       <button class="filter-btn active" data-cat="all">Všetko</button>
       <button class="filter-btn cat-sk" data-cat="slovensko">🇸🇰 Slovensko</button>
@@ -657,7 +670,7 @@
 </div>
 
 <footer>
-  správy &mdash; agregátor slovenských a krypto správ &mdash; <span id="lastUpdate"></span>
+  novinko &mdash; všetky aktuálne správy na jednom mieste &mdash; <span id="lastUpdate"></span>
 </footer>
 
 <script>
@@ -793,6 +806,19 @@
     content.innerHTML = html;
   }
 
+  async function fetchOgImages(items) {
+    // Len pre prvých 20 článkov bez obrázka
+    const noImg = items.filter(i => !i.image).slice(0, 20);
+    await Promise.allSettled(noImg.map(async (item) => {
+      try {
+        const res = await fetch(`/.netlify/functions/fetch-og?url=${encodeURIComponent(item.link)}`);
+        const data = await res.json();
+        if (data.image) item.image = data.image;
+      } catch (e) {}
+    }));
+    return items;
+  }
+
   async function loadNews(cat = 'all') {
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('spinning');
@@ -804,6 +830,10 @@
       renderTicker(allItems);
       renderSidebar(allItems);
       renderContent(allItems);
+      // Dofetchni OG obrázky na pozadí a prerender hero karty
+      fetchOgImages(allItems).then(() => {
+        renderContent(allItems);
+      });
       document.getElementById('lastUpdate').textContent = 'Aktualizované: ' + new Date().toLocaleTimeString('sk-SK');
     } catch (e) {
       document.getElementById('content').innerHTML = '<div class="loading"><span>Chyba pri načítavaní správ</span></div>';
