@@ -247,6 +247,31 @@
       min-height: 420px;
     }
 
+    /* Text vždy na obrázku pre featured kartu */
+    .hero-card.featured .card-body {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 28px 32px 32px;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+      z-index: 3;
+    }
+
+    .hero-card.featured {
+      position: relative;
+    }
+
+    .hero-card:not(.featured) .card-body {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px 20px 20px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 60%, transparent 100%);
+      z-index: 3;
+    }
+
+    .hero-card:not(.featured) {
+      position: relative;
+    }
+
     .hero-card:not(.featured) { min-height: 200px; }
 
     .card-img {
