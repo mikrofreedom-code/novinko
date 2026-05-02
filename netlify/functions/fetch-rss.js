@@ -103,11 +103,28 @@ exports.handler = async (event) => {
     })
   );
 
-  const allItems = results
+  // Zoskup podľa zdroja
+  const bySource = {};
+  results
     .filter((r) => r.status === "fulfilled")
     .flatMap((r) => r.value)
-    .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
-    .slice(0, 100);
+    .forEach(item => {
+      if (!bySource[item.source]) bySource[item.source] = [];
+      bySource[item.source].push(item);
+    });
+
+  // Každý zdroj zoraď podľa dátumu
+  Object.values(bySource).forEach(arr => arr.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)));
+
+  // Interleave — striedaj zdroje
+  const allItems = [];
+  const sources = Object.values(bySource);
+  let i = 0;
+  while (allItems.length < 100 && sources.some(s => s.length > 0)) {
+    const src = sources[i % sources.length];
+    if (src.length > 0) allItems.push(src.shift());
+    i++;
+  }
 
   return {
     statusCode: 200,
