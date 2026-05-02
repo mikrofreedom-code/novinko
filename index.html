@@ -156,10 +156,10 @@
 
     /* TICKER */
     .ticker-wrap {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
       overflow: hidden;
-      height: 36px;
+      height: 40px;
       display: flex;
       align-items: center;
     }
@@ -167,34 +167,42 @@
     .ticker-label {
       background: var(--accent);
       color: #000;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0 12px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      padding: 0 16px;
       height: 100%;
       display: flex;
       align-items: center;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       flex-shrink: 0;
       z-index: 1;
+      text-transform: uppercase;
     }
 
     .ticker-track {
       display: flex;
       gap: 0;
-      animation: ticker 40s linear infinite;
+      animation: ticker 50s linear infinite;
       white-space: nowrap;
     }
 
     .ticker-item {
-      font-size: 0.78rem;
-      color: var(--muted);
-      padding: 0 28px;
-      border-right: 1px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #e0e0e0;
+      padding: 0 32px;
+      border-right: 1px solid #333;
       cursor: pointer;
       transition: color 0.2s;
     }
 
-    .ticker-item:hover { color: var(--text); }
+    .ticker-item::before {
+      content: '▸ ';
+      color: var(--accent);
+      font-size: 0.7rem;
+    }
+
+    .ticker-item:hover { color: #fff; }
 
     @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
@@ -607,6 +615,107 @@
       .sidebar { display: none; }
     }
 
+
+    /* GRADIENT CARDS */
+    .cat-gradients {
+      --g-slovensko: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      --g-svet:      linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      --g-ekonomika: linear-gradient(135deg, #134e5e 0%, #1a6b3c 100%);
+      --g-sport:     linear-gradient(135deg, #7f2a00 0%, #c0392b 100%);
+      --g-krypto:    linear-gradient(135deg, #0f0c29 0%, #302b63 60%, #1a1a4e 100%);
+    }
+
+    .card-gradient-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .card-bg-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 9rem;
+      opacity: 0.07;
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+      z-index: 1;
+    }
+
+    .hero-card.featured .card-bg-icon { font-size: 16rem; }
+
+    .card-bg-typo {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 900;
+      color: #fff;
+      opacity: 0.04;
+      line-height: 1.1;
+      pointer-events: none;
+      user-select: none;
+      overflow: hidden;
+      max-height: 55%;
+      z-index: 1;
+    }
+
+    .hero-card.featured .card-bg-typo { font-size: 5rem; }
+
+    .card-gradient-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 75%;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+      z-index: 2;
+    }
+
+    .card-accent-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      z-index: 3;
+    }
+
+    .hero-card .card-body { position: relative; z-index: 3; }
+
+    .cat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 6px;
+    }
+
+    .pill-slovensko { background: rgba(79,195,247,0.2); color: #4fc3f7; border: 1px solid rgba(79,195,247,0.3); }
+    .pill-svet      { background: rgba(162,155,254,0.2); color: #a29bfe; border: 1px solid rgba(162,155,254,0.3); }
+    .pill-ekonomika { background: rgba(76,175,80,0.2); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+    .pill-sport     { background: rgba(255,152,0,0.2); color: #ffb74d; border: 1px solid rgba(255,152,0,0.3); }
+    .pill-krypto    { background: rgba(232,197,71,0.2); color: #e8c547; border: 1px solid rgba(232,197,71,0.3); }
+
+    /* LIST THUMB gradient */
+    .list-thumb-grad {
+      width: 80px;
+      height: 80px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      position: relative;
+      overflow: hidden;
+    }
+
     /* FADE IN */
     .fade-in {
       animation: fadeIn 0.4s ease forwards;
@@ -692,19 +801,19 @@
 
   function cardHTML(item, featured = false) {
     const imgEl = item.image
-      ? `<img class="card-img" src="${item.image}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="card-img" src="${item.image}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : '';
-    const noImgEl = `<div class="card-no-img" style="${item.image ? 'display:none' : ''}">${catIcon(item.category)}</div>`;
+    const noImgEl = item.image ? '' : sourcePlaceholder(item, featured);
 
     return `
       <a href="${item.link}" target="_blank" rel="noopener" class="hero-card ${featured ? 'featured' : ''} fade-in">
         ${imgEl}${noImgEl}
         <div class="card-body">
           <div class="card-meta">
-            <span class="source-badge">${item.source}</span>
-            <span class="cat-badge ${item.category}">${item.category}</span>
+            <span class="cat-pill ${getCatStyle(item.category).pill}">${getCatStyle(item.category).icon} ${item.category}</span>
             <span class="card-time">${timeAgo(item.pubDate)}</span>
           </div>
+          <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:5px">${item.source}</div>
           <div class="card-title">${item.title}</div>
           ${item.description ? `<div class="card-desc">${item.description}</div>` : ''}
         </div>
@@ -713,22 +822,94 @@
 
   function listCardHTML(item) {
     const thumbEl = item.image
-      ? `<img class="list-thumb" src="${item.image}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="list-thumb" src="${item.image}" alt="" loading="lazy" onerror="this.style.display='none'">`
       : '';
-    const noThumb = `<div class="list-no-thumb" style="${item.image ? 'display:none' : ''}">${catIcon(item.category)}</div>`;
+    const cs = getCatStyle(item.category);
+    const noThumb = item.image ? '' : `<div class="list-thumb-grad" style="background:${cs.grad}">
+      <span style="font-size:1.6rem;opacity:0.8">${cs.icon}</span>
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,${cs.line},transparent)"></div>
+    </div>`;
 
     return `
       <a href="${item.link}" target="_blank" rel="noopener" class="list-card fade-in">
         ${thumbEl}${noThumb}
         <div class="list-content">
           <div class="card-meta">
-            <span class="source-badge">${item.source}</span>
-            <span class="cat-badge ${item.category}">${item.category}</span>
+            <span class="cat-pill ${getCatStyle(item.category).pill}" style="font-size:0.6rem;padding:2px 8px">${getCatStyle(item.category).icon} ${item.category}</span>
             <span class="card-time">${timeAgo(item.pubDate)}</span>
           </div>
+          <div style="font-size:0.65rem;color:#555;margin-bottom:3px">${item.source}</div>
           <div class="list-title">${item.title}</div>
         </div>
       </a>`;
+  }
+
+  // Kategória → gradient + ikona + pill farba
+  const CAT_STYLES = {
+    slovensko:  { grad: 'linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)', icon: '🇸🇰', line: '#4fc3f7', pill: 'pill-slovensko' },
+    svet:       { grad: 'linear-gradient(135deg,#0f2027 0%,#203a43 50%,#2c5364 100%)', icon: '🌍', line: '#a29bfe', pill: 'pill-svet' },
+    ekonomika:  { grad: 'linear-gradient(135deg,#134e5e 0%,#1a6b3c 100%)',             icon: '💰', line: '#81c784', pill: 'pill-ekonomika' },
+    sport:      { grad: 'linear-gradient(135deg,#7f2a00 0%,#c0392b 100%)',             icon: '⚽', line: '#ffb74d', pill: 'pill-sport' },
+    krypto:     { grad: 'linear-gradient(135deg,#0f0c29 0%,#302b63 60%,#1a1a4e 100%)', icon: '₿',  line: '#e8c547', pill: 'pill-krypto' },
+  };
+
+  function getCatStyle(cat) {
+    return CAT_STYLES[cat] || { grad: 'linear-gradient(135deg,#1a1a2e,#2a2a2a)', icon: '📰', line: '#555', pill: '' };
+  }
+
+  // Farby a skratky pre každý zdroj
+  const SOURCE_COLORS = {
+    'SME':              { bg: '#e8002d', text: '#fff', abbr: 'SME' },
+    'Aktuality':        { bg: '#d62b2b', text: '#fff', abbr: 'AKT' },
+    'Topky':            { bg: '#ff6600', text: '#fff', abbr: 'TOP' },
+    'Teraz.sk':         { bg: '#1a6bbf', text: '#fff', abbr: 'TAR' },
+    'Hlavné správy':    { bg: '#2c2c2c', text: '#e8c547', abbr: 'HS' },
+    'Denník N':         { bg: '#c0392b', text: '#fff', abbr: 'DN' },
+    'Refresher':        { bg: '#000', text: '#fff', abbr: 'REF' },
+    'Startitup':        { bg: '#00b4d8', text: '#fff', abbr: 'STR' },
+    'Čas.sk':           { bg: '#e63946', text: '#fff', abbr: 'ČAS' },
+    'Pluska':           { bg: '#f72585', text: '#fff', abbr: 'PLU' },
+    'Teraz / Svet':     { bg: '#1a6bbf', text: '#fff', abbr: 'SVT' },
+    'Pravda / Svet':    { bg: '#c0392b', text: '#fff', abbr: 'PRV' },
+    'SITA / Svet':      { bg: '#2d6a4f', text: '#fff', abbr: 'SIT' },
+    'TV Noviny':        { bg: '#1d3557', text: '#fff', abbr: 'TVN' },
+    'BBC World':        { bg: '#bb1919', text: '#fff', abbr: 'BBC' },
+    'Reuters':          { bg: '#ff7b00', text: '#fff', abbr: 'REU' },
+    'Teraz / Ekonomika':{ bg: '#1a6bbf', text: '#fff', abbr: 'EKO' },
+    'HNonline':         { bg: '#003f88', text: '#fff', abbr: 'HN' },
+    'Trend':            { bg: '#2b9348', text: '#fff', abbr: 'TRD' },
+    'SITA / Ekonomika': { bg: '#2d6a4f', text: '#fff', abbr: 'SIT' },
+    'Pravda / Ekonomika':{ bg: '#c0392b', text: '#fff', abbr: 'PRV' },
+    'Živé.sk':          { bg: '#7209b7', text: '#fff', abbr: 'ŽIV' },
+    'Teraz / Šport':    { bg: '#1a6bbf', text: '#fff', abbr: 'ŠPT' },
+    'SITA / Šport':     { bg: '#2d6a4f', text: '#fff', abbr: 'SIT' },
+    'Pravda / Šport':   { bg: '#c0392b', text: '#fff', abbr: 'ŠPT' },
+    'SME / Šport':      { bg: '#e8002d', text: '#fff', abbr: 'SME' },
+    'Čas / Šport':      { bg: '#e63946', text: '#fff', abbr: 'ČAS' },
+    'CoinTelegraph':    { bg: '#2b59c3', text: '#fff', abbr: 'CT' },
+    'CoinDesk':         { bg: '#1a1a2e', text: '#4fc3f7', abbr: 'CD' },
+    'CryptoNews':       { bg: '#0d1b2a', text: '#4fc3f7', abbr: 'CN' },
+    'Decrypt':          { bg: '#111', text: '#e8c547', abbr: 'DEC' },
+    'BeInCrypto':       { bg: '#6c35de', text: '#fff', abbr: 'BIC' },
+    'AMBCrypto':        { bg: '#1a1a2e', text: '#4fc3f7', abbr: 'AMB' },
+    'Bitcoin Magazine': { bg: '#f7931a', text: '#fff', abbr: 'BTC' },
+    'The Block':        { bg: '#000', text: '#fff', abbr: 'BLK' },
+  };
+
+  function getSourceStyle(source) {
+    return SOURCE_COLORS[source] || { bg: '#2a2a2a', text: '#aaa', abbr: source.substring(0,3).toUpperCase() };
+  }
+
+  function sourcePlaceholder(item, large = false) {
+    const cs = getCatStyle(item.category);
+    const size = large ? 'min-height:420px' : 'height:200px';
+    return `<div style="position:relative;${size};width:100%;overflow:hidden">
+      <div class="card-gradient-bg" style="background:${cs.grad}"></div>
+      <div class="card-bg-icon">${cs.icon}</div>
+      <div class="card-bg-typo">${item.title}</div>
+      <div class="card-gradient-overlay"></div>
+      <div class="card-accent-line" style="background:linear-gradient(90deg,${cs.line},transparent)"></div>
+    </div>`;
   }
 
   function renderSidebar(items) {
