@@ -419,67 +419,6 @@
     content.innerHTML = html;
   }
 
-  // Unsplash API
-  const UNSPLASH_KEY = 'ZoISByxPSAqejQ8T366hDSupjGhnlLA4w74f9fyWD40';
-
-  // Stopslová ktoré nevyhľadávame
-  const STOPWORDS = new Set(['ako','ale','alebo','ani','aj','bez','by','čo','do','ho','ich','je','jeho','jej','jej','keď','ktorý','ktorá','ktoré','lebo','len','má','mali','medzi','mi','na','nad','nám','nie','no','o','od','po','pod','pre','pri','s','sa','si','so','sú','tam','tým','ten','tá','to','v','vo','viac','za','zo','že','the','a','an','in','of','to','for','is','are','was','were','has','have','been','will','with','at','by','from','or','and','not','be']);
-
-  function extractKeywords(title) {
-    // Vyčisti titulok
-    const words = title
-      .toLowerCase()
-      .replace(/[.,!?:;'"„"()\[\]{}]/g, '')
-      .split(/\s+/)
-      .filter(w => w.length > 3 && !STOPWORDS.has(w));
-
-    // Vráť prvé 2-3 najdlhšie slová
-    return words
-      .sort((a, b) => b.length - a.length)
-      .slice(0, 2)
-      .join(' ');
-  }
-
-  // Cache pre Unsplash obrázky
-  const unsplashCache = {};
-
-  async function fetchUnsplashImage(title, category) {
-    const keywords = extractKeywords(title);
-    const cacheKey = keywords;
-
-    if (unsplashCache[cacheKey]) return unsplashCache[cacheKey];
-
-    // Fallback kľúčové slová podľa kategórie ak titulok nedá dobré slová
-    const catFallback = {
-      slovensko: 'slovakia news',
-      svet: 'world news',
-      ekonomika: 'economy finance',
-      sport: 'sport',
-      krypto: 'cryptocurrency bitcoin'
-    };
-
-    const query = keywords || catFallback[category] || 'news';
-
-    try {
-      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&client_id=${UNSPLASH_KEY}`);
-      const data = await res.json();
-      const url = data.results?.[0]?.urls?.regular || null;
-      unsplashCache[cacheKey] = url;
-      return url;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  async function enrichWithImages(items) {
-    // Len pre prvých 20 článkov bez obrázka
-    const noImg = items.filter(i => !i.image).slice(0, 20);
-    await Promise.allSettled(noImg.map(async (item) => {
-      const url = await fetchUnsplashImage(item.title, item.category);
-      if (url) item.image = url;
-    }));
-  }
-
   async function loadNews(cat = 'all') {
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('spinning');
@@ -490,8 +429,6 @@
       renderTicker(allItems);
       renderSidebar(allItems);
       renderContent(allItems);
-      // Načítaj Unsplash obrázky na pozadí
-      enrichWithImages(allItems).then(() => renderContent(allItems));
       document.getElementById('lastUpdate').textContent = 'Aktualizované: ' + new Date().toLocaleTimeString('sk-SK');
     } catch (e) {
       document.getElementById('content').innerHTML = '<div class="loading"><span>Chyba pri načítavaní správ</span></div>';
