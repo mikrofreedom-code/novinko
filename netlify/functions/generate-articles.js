@@ -155,8 +155,12 @@ async function appendToSheet(row) {
 
 exports.handler = async (event) => {
   try {
-    if (!ANTHROPIC_API_KEY || !GOOGLE_SHEETS_ID || !GOOGLE_SERVICE_ACCOUNT_KEY) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing environment variables" }) };
+    const missing = [];
+    if (!ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
+    if (!GOOGLE_SHEETS_ID) missing.push("GOOGLE_SHEETS_ID");
+    if (!GOOGLE_SERVICE_ACCOUNT_KEY) missing.push("GOOGLE_SERVICE_ACCOUNT_KEY");
+    if (missing.length > 0) {
+      return { statusCode: 500, body: JSON.stringify({ error: "Missing: " + missing.join(", ") }) };
     }
 
     let lastId = await getLastId();
