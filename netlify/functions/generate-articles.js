@@ -32,14 +32,15 @@ function fetchUrl(url, options = {}) {
 
 function postJson(url, body, headers = {}) {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify(body);
+    const isForm = headers["Content-Type"] === "application/x-www-form-urlencoded";
+    const data = isForm ? body : JSON.stringify(body);
     const urlObj = new URL(url);
     const options = {
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": isForm ? "application/x-www-form-urlencoded" : "application/json",
         "Content-Length": Buffer.byteLength(data),
         ...headers,
       },
