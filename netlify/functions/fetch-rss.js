@@ -1,6 +1,10 @@
 const https = require("https");
 const http = require("http");
 
+// Server-side cache — platí 10 minút
+const CACHE_TTL = 10 * 60 * 1000;
+let cache = {};
+
 const FEEDS = [
   // 🇸🇰 SLOVENSKO
   { url: "https://www.sme.sk/rss", category: "slovensko", source: "SME" },
@@ -94,6 +98,16 @@ function parseRSS(xml, source, category) {
 
 exports.handler = async (event) => {
   const category = event.queryStringParameters?.category || "all";
+
+  // Vráť cache ak je čerstvý
+  if (cache[category] && Date.now() - cache[category].time < CACHE_TTL) {
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "X-Cache": "HIT" },
+      body: JSON.stringify(cache[category].data),
+    };
+  }
+
   const feeds = category === "all" ? FEEDS : FEEDS.filter((f) => f.category === category);
 
   const results = await Promise.allSettled(
@@ -117,7 +131,7 @@ exports.handler = async (event) => {
   Object.values(bySource).forEach(arr => arr.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)));
 
   // Interleave — striedaj zdroje
-  const allItems = [];
+  let allItems = [];
   const sources = Object.values(bySource);
   let i = 0;
   while (allItems.length < 100 && sources.some(s => s.length > 0)) {
@@ -126,9 +140,54 @@ exports.handler = async (event) => {
     i++;
   }
 
+  // Načítaj aj vlastné SK články z Google Sheets
+  try {
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtPtTXs5LQzJ1eULRyirCm_yec1EYGKokkihH2FfgHmh8p7gG9kGpstAPkxJHKtlm2VQcJ_uNh5-Oo/pub?gid=0&single=true&output=csv";
+    const csv = await fetchUrl(sheetUrl);
+    const lines = csv.trim().split("\n").slice(1);
+    const sheetItems = lines
+      .filter(line => line.trim())
+      .map(line => {
+        const cols = [];
+        let current = "";
+        let inQuotes = false;
+        for (let char of line) {
+          if (char === '"') inQuotes = !inQuotes;
+          else if (char === "," && !inQuotes) { cols.push(current); current = ""; }
+          else current += char;
+        }
+        cols.push(current);
+        const [id, title, perex, content, source, date, category] = cols.map(c => c.replace(/^"|"$/g, "").trim());
+        if (!id || !title) return null;
+        return {
+          title,
+          link: `https://novinko.netlify.app/clanok.html?id=${id}`,
+          description: perex || "",
+          pubDate: date || new Date().toISOString(),
+          image: "",
+          source: (source || "").split("|")[0].trim(),
+          category: category || "krypto",
+        };
+      })
+      .filter(Boolean)
+      .reverse(); // najnovšie prvé
+
+    // Pridaj Sheet články na začiatok
+    if (sheetItems.length > 0) {
+      allItems = [...sheetItems, ...allItems].slice(0, 100);
+    }
+  } catch (e) {
+    // Sheet nedostupný — pokračuj bez neho
+  }
+
+  const responseData = { items: allItems, count: allItems.length, fetched: new Date().toISOString() };
+
+  // Ulož do cache
+  cache[category] = { data: responseData, time: Date.now() };
+
   return {
     statusCode: 200,
-    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    body: JSON.stringify({ items: allItems, count: allItems.length, fetched: new Date().toISOString() }),
+    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "X-Cache": "MISS" },
+    body: JSON.stringify(responseData),
   };
 };
