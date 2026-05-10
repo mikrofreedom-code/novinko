@@ -193,6 +193,32 @@
     /* FOOTER */
     footer { border-top: 3px solid var(--accent); padding: 24px clamp(16px, 4vw, 48px); text-align: center; color: var(--muted); font-size: 0.78rem; background: var(--surface); margin-top: 48px; }
 
+
+    /* SKELETON LOADING */
+    .skeleton-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto; gap: 2px;
+      margin-bottom: 40px; background: var(--border);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .skeleton-card { background: var(--surface); position: relative; overflow: hidden; }
+    .skeleton-card.featured { grid-column: 1 / 3; grid-row: 1 / 3; min-height: 420px; }
+    .skeleton-card:not(.featured) { min-height: 200px; }
+    .skeleton-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.04) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .skeleton-bar { background: #e8e5df; border-radius: 3px; margin: 8px 16px; }
+
+    .skeleton-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); overflow: hidden; margin-bottom: 48px; }
+    .skeleton-item { background: var(--surface); padding: 16px; display: flex; gap: 14px; }
+    .skeleton-thumb { width: 80px; height: 80px; background: #e8e5df; border-radius: 3px; flex-shrink: 0; }
+    .skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+
+
     /* FADE IN */
     .fade-in { animation: fadeIn 0.4s ease forwards; opacity: 0; }
     @keyframes fadeIn { to { opacity: 1; } }
@@ -419,9 +445,30 @@
     content.innerHTML = html;
   }
 
+  function renderSkeleton() {
+    const content = document.getElementById('content');
+    const skeletonHero = `<div class="skeleton-grid">
+      <div class="skeleton-card featured"><div class="skeleton-bar" style="height:20px;margin-top:360px;width:60%"></div><div class="skeleton-bar" style="height:14px;width:80%"></div></div>
+      <div class="skeleton-card"><div class="skeleton-bar" style="height:14px;margin-top:140px;width:70%"></div><div class="skeleton-bar" style="height:12px;width:50%"></div></div>
+      <div class="skeleton-card"><div class="skeleton-bar" style="height:14px;margin-top:140px;width:70%"></div><div class="skeleton-bar" style="height:12px;width:50%"></div></div>
+    </div>`;
+    const skeletonList = `<div class="skeleton-list">${Array(6).fill(`
+      <div class="skeleton-item">
+        <div class="skeleton-thumb"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton-bar" style="height:10px;width:40%"></div>
+          <div class="skeleton-bar" style="height:14px;width:90%"></div>
+          <div class="skeleton-bar" style="height:14px;width:75%"></div>
+          <div class="skeleton-bar" style="height:10px;width:30%"></div>
+        </div>
+      </div>`).join('')}</div>`;
+    content.innerHTML = skeletonHero + skeletonList;
+  }
+
   async function loadNews(cat = 'all') {
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('spinning');
+    renderSkeleton();
     try {
       const res = await fetch(`/.netlify/functions/fetch-rss?category=${cat}`);
       const data = await res.json();
