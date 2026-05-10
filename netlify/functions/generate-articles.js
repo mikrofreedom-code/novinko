@@ -2,9 +2,6 @@ const https = require("https");
 const http = require("http");
 
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtPtTXs5LQzJ1eULRyirCm_yec1EYGKokkihH2FfgHmh8p7gG9kGpstAPkxJHKtlm2VQcJ_uNh5-Oo/pub?gid=0&single=true&output=csv";
-const GOOGLE_SHEETS_ID = process.env.GOOGLE_SHEETS_ID;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const GOOGLE_SERVICE_ACCOUNT_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
 const CRYPTO_FEEDS = [
   { url: "https://cointelegraph.com/rss", source: "CoinTelegraph" },
@@ -12,14 +9,14 @@ const CRYPTO_FEEDS = [
   { url: "https://decrypt.co/feed", source: "Decrypt" },
 ];
 
-function fetchUrl(url, options = {}) {
+function fetchUrl(url) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith("https") ? https : http;
     const req = client.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; Novinko/1.0)", ...options.headers }
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; Novinko/1.0)" }
     }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return fetchUrl(res.headers.location, options).then(resolve).catch(reject);
+        return fetchUrl(res.headers.location).then(resolve).catch(reject);
       }
       let data = "";
       res.on("data", (chunk) => (data += chunk));
@@ -30,17 +27,14 @@ function fetchUrl(url, options = {}) {
   });
 }
 
-function postJson(url, body, headers = {}) {
+function httpsPost(hostname, path, body, headers = {}) {
   return new Promise((resolve, reject) => {
-    const isForm = headers["Content-Type"] === "application/x-www-form-urlencoded";
-    const data = isForm ? body : JSON.stringify(body);
-    const urlObj = new URL(url);
+    const data = typeof body === "string" ? body : JSON.stringify(body);
     const options = {
-      hostname: urlObj.hostname,
-      path: urlObj.pathname + urlObj.search,
+      hostname,
+      path,
       method: "POST",
       headers: {
-        "Content-Type": isForm ? "application/x-www-form-urlencoded" : "application/json",
         "Content-Length": Buffer.byteLength(data),
         ...headers,
       },
@@ -48,7 +42,10 @@ function postJson(url, body, headers = {}) {
     const req = https.request(options, (res) => {
       let result = "";
       res.on("data", (chunk) => (result += chunk));
-      res.on("end", () => resolve(JSON.parse(result)));
+      res.on("end", () => {
+        try { resolve(JSON.parse(result)); }
+        catch (e) { resolve(result); }
+      });
     });
     req.on("error", reject);
     req.setTimeout(30000, () => { req.destroy(); reject(new Error("Timeout")); });
@@ -70,7 +67,7 @@ function parseRSS(xml, source) {
       items.push({
         title: title.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim(),
         link: link.trim(),
-        description: description.replace(/<[^>]+]/g, "").replace(/&amp;/g, "&").substring(0, 500).trim(),
+        description: description.replace(/<[^>]+>/g, "").substring(0, 500).trim(),
         source,
       });
     }
@@ -78,26 +75,28 @@ function parseRSS(xml, source) {
   return items.slice(0, 2);
 }
 
-async function generateSKArticle(item) {
-  const data = await postJson(
-    "https://api.anthropic.com/v1/messages",
+async function generateSKArticle(item, apiKey) {
+  const data = await httpsPost(
+    "api.anthropic.com",
+    "/v1/messages",
     {
       model: "claude-haiku-4-5-20251001",
       max_tokens: 1000,
       messages: [{
         role: "user",
-        content: `Si slovenský novinár píšuci o kryptomenách. Na základe týchto faktov napíš ÚPLNE NOVÝ článok v slovenčine vlastnými vetami. Neprekladaj doslovne.
+        content: `Si slovenský novinár. Na základe týchto faktov napíš NOVÝ článok v slovenčine vlastnými vetami. Neprekladaj doslovne.
 
 Titulok: ${item.title}
 Obsah: ${item.description}
 Zdroj: ${item.source}
 
-Odpoveď MUSÍ byť v tomto JSON formáte (bez markdown):
-{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"telo článku v 3-4 odsekoch oddelených \\n\\n"}`
+Odpoveď MUSÍ byť v tomto JSON formáte bez markdown:
+{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
       }]
     },
     {
-      "x-api-key": ANTHROPIC_API_KEY,
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
     }
   );
@@ -122,78 +121,96 @@ async function getLastId() {
   }
 }
 
-async function getAccessToken() {
-  const auth = JSON.parse(GOOGLE_SERVICE_ACCOUNT_KEY);
+async function getAccessToken(serviceAccountKey) {
+  const auth = JSON.parse(serviceAccountKey);
   const jwt = require("jsonwebtoken");
+
+  const now = Math.floor(Date.now() / 1000);
   const token = jwt.sign(
     {
       iss: auth.client_email,
       scope: "https://www.googleapis.com/auth/spreadsheets",
       aud: "https://oauth2.googleapis.com/token",
-      exp: Math.floor(Date.now() / 1000) + 3600,
-      iat: Math.floor(Date.now() / 1000),
+      exp: now + 3600,
+      iat: now,
     },
     auth.private_key,
     { algorithm: "RS256" }
   );
 
-  const tokenData = await postJson(
-    "https://oauth2.googleapis.com/token",
-    `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${token}`,
+  const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${token}`;
+  const tokenData = await httpsPost(
+    "oauth2.googleapis.com",
+    "/token",
+    body,
     { "Content-Type": "application/x-www-form-urlencoded" }
   );
   return tokenData.access_token;
 }
 
-async function appendToSheet(row) {
-  const accessToken = await getAccessToken();
-  await postJson(
-    `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_ID}/values/articles!A:G:append?valueInputOption=RAW`,
+async function appendToSheet(sheetsId, row, serviceAccountKey) {
+  const accessToken = await getAccessToken(serviceAccountKey);
+  const path = `/v4/spreadsheets/${sheetsId}/values/articles!A:G:append?valueInputOption=RAW`;
+  await httpsPost(
+    "sheets.googleapis.com",
+    path,
     { values: [row] },
-    { Authorization: `Bearer ${accessToken}` }
+    {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${accessToken}`,
+    }
   );
 }
 
 exports.handler = async (event) => {
-  try {
-    const missing = [];
-    if (!ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
-    if (!GOOGLE_SHEETS_ID) missing.push("GOOGLE_SHEETS_ID");
-    if (!GOOGLE_SERVICE_ACCOUNT_KEY) missing.push("GOOGLE_SERVICE_ACCOUNT_KEY");
-    if (missing.length > 0) {
-      return { statusCode: 500, body: JSON.stringify({ error: "Missing: " + missing.join(", ") }) };
-    }
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  const GOOGLE_SHEETS_ID = process.env.GOOGLE_SHEETS_ID;
+  const GOOGLE_SERVICE_ACCOUNT_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
+  const missing = [];
+  if (!ANTHROPIC_API_KEY) missing.push("ANTHROPIC_API_KEY");
+  if (!GOOGLE_SHEETS_ID) missing.push("GOOGLE_SHEETS_ID");
+  if (!GOOGLE_SERVICE_ACCOUNT_KEY) missing.push("GOOGLE_SERVICE_ACCOUNT_KEY");
+  if (missing.length > 0) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Missing: " + missing.join(", ") }) };
+  }
+
+  try {
     let lastId = await getLastId();
     let generated = 0;
+    const errors = [];
 
     for (const feed of CRYPTO_FEEDS) {
-      const xml = await fetchUrl(feed.url);
-      const items = parseRSS(xml, feed.source);
+      try {
+        const xml = await fetchUrl(feed.url);
+        const items = parseRSS(xml, feed.source);
 
-      for (const item of items.slice(0, 1)) {
-        const article = await generateSKArticle(item);
-        if (!article || !article.title) continue;
+        for (const item of items.slice(0, 1)) {
+          const article = await generateSKArticle(item, ANTHROPIC_API_KEY);
+          if (!article || !article.title) continue;
 
-        lastId++;
-        const row = [
-          lastId,
-          article.title,
-          article.perex || "",
-          article.content || "",
-          `${feed.source} | ${item.link}`,
-          new Date().toISOString(),
-          "krypto",
-        ];
+          lastId++;
+          const row = [
+            lastId,
+            article.title,
+            article.perex || "",
+            article.content || "",
+            `${feed.source} | ${item.link}`,
+            new Date().toISOString(),
+            "krypto",
+          ];
 
-        await appendToSheet(row);
-        generated++;
+          await appendToSheet(GOOGLE_SHEETS_ID, row, GOOGLE_SERVICE_ACCOUNT_KEY);
+          generated++;
+        }
+      } catch (e) {
+        errors.push(`${feed.source}: ${e.message}`);
       }
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, generated }),
+      body: JSON.stringify({ success: true, generated, errors }),
     };
   } catch (e) {
     return {
