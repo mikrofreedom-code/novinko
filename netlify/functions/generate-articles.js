@@ -5,7 +5,7 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtPtTXs5
 
 const CRYPTO_FEEDS = [
   { url: "https://cointelegraph.com/rss", source: "CoinTelegraph" },
-  { url: "https://coindesk.com/arc/outboundfeeds/rss/", source: "CoinDesk" },
+  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/", source: "CoinDesk" },
   { url: "https://decrypt.co/feed", source: "Decrypt" },
 ];
 
@@ -16,10 +16,11 @@ function fetchUrl(url) {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; Novinko/1.0)" }
     }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return fetchUrl(res.headers.location).then(resolve).catch(reject);
+  const loc = res.headers.location;
+  const nextUrl = loc.startsWith("http") ? loc : new URL(loc, url).href;
+  return fetchUrl(nextUrl).then(resolve).catch(reject);
       }
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
+      let data = "";      res.on("data", (chunk) => (data += chunk));
       res.on("end", () => resolve(data));
     });
     req.on("error", reject);
@@ -84,14 +85,7 @@ async function generateSKArticle(item, apiKey) {
       max_tokens: 1000,
       messages: [{
         role: "user",
-        content: `Si slovenský novinár. Na základe týchto faktov napíš NOVÝ článok v slovenčine vlastnými vetami. Neprekladaj doslovne.
-
-Titulok: ${item.title}
-Obsah: ${item.description}
-Zdroj: ${item.source}
-
-Odpoveď MUSÍ byť v tomto JSON formáte bez markdown:
-{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
+        content: `Si slovenský novinár. Na základe týchto faktov napíš NOVÝ článok v slovenčine vlastnými vetami. Neprekladaj doslovne.\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
       }]
     },
     {
@@ -100,10 +94,10 @@ Odpoveď MUSÍ byť v tomto JSON formáte bez markdown:
       "anthropic-version": "2023-06-01",
     }
   );
-
   const text = data.content?.[0]?.text || "{}";
   try {
-    return JSON.parse(text.trim());
+    const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(clean);
   } catch (e) {
     return null;
   }
@@ -122,7 +116,12 @@ async function getLastId() {
 }
 
 async function getAccessToken(serviceAccountKey) {
-  const auth = JSON.parse(serviceAccountKey);
+  let auth;
+  try {
+    auth = JSON.parse(serviceAccountKey);
+  } catch(e) {
+    throw e;
+  }
   const jwt = require("jsonwebtoken");
 
   const now = Math.floor(Date.now() / 1000);
@@ -151,7 +150,7 @@ async function getAccessToken(serviceAccountKey) {
 async function appendToSheet(sheetsId, row, serviceAccountKey) {
   const accessToken = await getAccessToken(serviceAccountKey);
   const path = `/v4/spreadsheets/${sheetsId}/values/articles!A:G:append?valueInputOption=RAW`;
-  await httpsPost(
+  const result = await httpsPost(
     "sheets.googleapis.com",
     path,
     { values: [row] },
@@ -187,7 +186,7 @@ exports.handler = async (event) => {
 
         for (const item of items.slice(0, 1)) {
           const article = await generateSKArticle(item, ANTHROPIC_API_KEY);
-          if (!article || !article.title) continue;
+	  if (!article || !article.title) continue;
 
           lastId++;
           const row = [
