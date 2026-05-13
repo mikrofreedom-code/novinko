@@ -142,7 +142,7 @@ exports.handler = async (event) => {
 
   // Načítaj aj vlastné SK články z Google Sheets
   try {
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtPtTXs5LQzJ1eULRyirCm_yec1EYGKokkihH2FfgHmh8p7gG9kGpstAPkxJHKtlm2VQcJ_uNh5-Oo/pub?gid=0&single=true&output=csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
     const csv = await fetchUrl(sheetUrl);
     const lines = csv.trim().split("\n").slice(1);
     const sheetItems = lines

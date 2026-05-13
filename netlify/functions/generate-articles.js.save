@@ -149,7 +149,7 @@ async function getAccessToken(serviceAccountKey) {
 
 async function appendToSheet(sheetsId, row, serviceAccountKey) {
   const accessToken = await getAccessToken(serviceAccountKey);
-  const path = `/v4/spreadsheets/${sheetsId}/values/articles!A:G:append?valueInputOption=RAW`;
+  const path = `/v4/spreadsheets/${sheetsId}/values/articles!A:G/append?valueInputOption=RAW`;
   const result = await httpsPost(
     "sheets.googleapis.com",
     path,
@@ -201,6 +201,7 @@ exports.handler = async (event) => {
           ];
 
           const sheetResult = await appendToSheet(GOOGLE_SHEETS_ID, row, GOOGLE_SERVICE_ACCOUNT_KEY);
+          console.log("Sheet result:", JSON.stringify(sheetResult).substring(0, 200));
           generated++;
         }
       } catch (e) {
