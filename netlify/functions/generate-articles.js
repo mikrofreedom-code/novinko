@@ -85,7 +85,7 @@ async function generateSKArticle(item, apiKey) {
       max_tokens: 1000,
       messages: [{
         role: "user",
-        content: `Si slovenský novinár. Na základe týchto faktov napíš NOVÝ článok v slovenčine vlastnými vetami. Neprekladaj doslovne.\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
+        content: `Si skúsený slovenský novinár. Napíš NOVÝ článok v prirodzenej slovenčine. Neprekladaj doslovne, použi vlastné vety.\nPravidlá: Používaj správnu slovenskú gramatiku a prirodzené slovenské výrazy. Anglické slová prekladaj správne (views=zhliadnutí, followers=sledovateľov, trending=trending).\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
       }]
     },
     {
@@ -194,7 +194,7 @@ exports.handler = async (event) => {
             lastId,
             article.title,
             article.perex || "",
-            article.content || "",
+            (article.content || "").replace(/\n/g, " ").replace(/\r/g, ""),
             `${feed.source} | ${item.link}`,
             new Date().toISOString(),
             "krypto",

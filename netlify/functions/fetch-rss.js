@@ -161,7 +161,7 @@ exports.handler = async (event) => {
         if (!id || !title) return null;
         return {
           title,
-          link: `https://novinko.netlify.app/clanok.html?id=${id}`,
+          link: `/clanok.html?id=${id}`,
           description: perex || "",
           pubDate: date || new Date().toISOString(),
           image: "",
