@@ -1,5 +1,9 @@
 [build]
+  publish = "."
   functions = "netlify/functions"
+
+[dev]
+  publish = "."
 
 [[headers]]
   for = "/*"

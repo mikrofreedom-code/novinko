@@ -173,8 +173,9 @@ exports.handler = async (event) => {
       .reverse(); // najnovšie prvé
 
     // Pridaj Sheet články na začiatok
-    if (sheetItems.length > 0) {
-      allItems = [...sheetItems, ...allItems].slice(0, 100);
+    const filteredSheet = category === "all" ? sheetItems : sheetItems.filter(i => i.category === category);
+    if (filteredSheet.length > 0) {
+      allItems = [...filteredSheet, ...allItems].slice(0, 100);
     }
   } catch (e) {
     // Sheet nedostupný — pokračuj bez neho
