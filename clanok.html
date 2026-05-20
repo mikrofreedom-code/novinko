@@ -212,7 +212,7 @@
 
       document.getElementById("articleWrap").innerHTML = `
         <div class="article-meta">
-          <span class="cat-badge">₿ Krypto SK</span>
+          <span class="cat-badge">${article.category || "krypto"}</span>
           <span class="article-source">${sourceName}</span>
           <span class="article-date">${timeAgo(article.date)}</span>
         </div>
