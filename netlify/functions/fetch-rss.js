@@ -68,6 +68,13 @@ function fetchUrl(url) {
   });
 }
 
+
+const SPORT_KEYWORDS = ['futbal', 'hokej', 'tenis', 'basket', 'volejbal', 'atletika', 'plávanie', 'cyklistika', 'zápas', 'liga', 'šampionát', 'turnaj', 'MS', 'ME', 'olymp', 'gól', 'víťaz', 'finál', 'semifinál', 'pohár', 'hráč', 'tréner', 'klub', 'štadión', 'Sport', 'formula', 'F1', 'golf', 'rugby', 'box', 'etapa', 'maratón', 'beh', 'skok', 'plávanie', 'lyžiar', 'snowboard', 'cyklista', 'tenista', 'brankár', 'útočník', 'obranca', 'rozhodca', 'penalty', 'offside', 'dribbling', 'súpiska', 'transfer'];
+
+function isSportArticle(title) {
+  const lower = title.toLowerCase();
+  return SPORT_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+}
 function parseRSS(xml, source, category) {
   const items = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
