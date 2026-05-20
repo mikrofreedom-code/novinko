@@ -3,10 +3,10 @@ const http = require("http");
 
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
 
-const CRYPTO_FEEDS = [
-  { url: "https://cointelegraph.com/rss", source: "CoinTelegraph" },
-  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/", source: "CoinDesk" },
-  { url: "https://decrypt.co/feed", source: "Decrypt" },
+const WORLD_FEEDS = [
+  { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', source: 'BBC World' },
+  { url: 'https://feeds.feedburner.com/euractiv/MXP', source: 'Euractiv' },
+  { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC Business' },
 ];
 
 function fetchUrl(url) {
@@ -85,7 +85,7 @@ async function generateSKArticle(item, apiKey) {
       max_tokens: 1000,
       messages: [{
         role: "user",
-        content: `Si skúsený slovenský novinár. Napíš NOVÝ článok v prirodzenej slovenčine. Neprekladaj doslovne, použi vlastné vety. Titulok MUSÍ byť originálny slovenský - nie preklad, ale vlastný zaujímavý nadpis k téme.\nPravidlá: Používaj správnu slovenskú gramatiku a prirodzené slovenské výrazy. Anglické slová prekladaj správne (views=zhliadnutí, followers=sledovateľov, trending=trending).\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
+        content: `Si skúsený slovenský novinár. Napíš NOVÝ článok v prirodzenej slovenčine. Neprekladaj doslovne, použi vlastné vety. Titulok MUSÍ byť originálny slovenský. Zdôrazni súvislosť so Slovenskom alebo strednou Európou ak je relevantná.\nPravidlá: Používaj správnu slovenskú gramatiku a prirodzené slovenské výrazy. Anglické slová prekladaj správne (views=zhliadnutí, followers=sledovateľov, trending=trending).\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
       }]
     },
     {
@@ -180,7 +180,7 @@ exports.handler = async (event) => {
     let generated = 0;
     const errors = [];
 
-    for (const feed of CRYPTO_FEEDS) {
+    for (const feed of WORLD_FEEDS) {
       try {
         const xml = await fetchUrl(feed.url);
         const items = parseRSS(xml, feed.source);
@@ -197,7 +197,7 @@ exports.handler = async (event) => {
             (article.content || "").replace(/\n/g, " ").replace(/\r/g, ""),
             `${feed.source} | ${item.link}`,
             new Date().toISOString(),
-            "krypto",
+            "svet",
           ];
 
           const sheetResult = await appendToSheet(GOOGLE_SHEETS_ID, row, GOOGLE_SERVICE_ACCOUNT_KEY);

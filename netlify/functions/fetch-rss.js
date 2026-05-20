@@ -165,7 +165,7 @@ exports.handler = async (event) => {
           description: perex || "",
           pubDate: date || new Date().toISOString(),
           image: "",
-          source: (source || "").split("|")[0].trim(),
+          source: "Novinko SK",
           category: category || "krypto",
         };
       })

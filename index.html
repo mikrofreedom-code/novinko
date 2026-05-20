@@ -49,7 +49,7 @@
     }
     .logo-dot { color: var(--accent); }
     .logo-tagline {
-      font-size: 0.6rem; color: #555; letter-spacing: 1.5px;
+      font-size: 0.6rem; color: #999; letter-spacing: 1.5px;
       text-transform: uppercase; font-weight: 400;
       border-left: 1px solid #333; padding-left: 10px; margin-left: 4px;
     }
@@ -375,11 +375,11 @@
     </a>
     <nav class="nav-filters">
       <button class="filter-btn active" data-cat="all">Všetko</button>
-      <button class="filter-btn" data-cat="slovensko">🇸🇰 Slovensko</button>
-      <button class="filter-btn" data-cat="svet">🌍 Svet</button>
-      <button class="filter-btn" data-cat="ekonomika">💰 Ekonomika</button>
-      <button class="filter-btn" data-cat="sport">⚽ Šport</button>
-      <button class="filter-btn" data-cat="krypto">₿ Krypto</button>
+      <button class="filter-btn" data-cat="slovensko">Slovensko</button>
+      <button class="filter-btn" data-cat="svet">Svet</button>
+      <button class="filter-btn" data-cat="ekonomika">Ekonomika</button>
+      <button class="filter-btn" data-cat="sport">Šport</button>
+      <button class="filter-btn" data-cat="krypto">Krypto</button>
     </nav>
     <div class="masthead-right">
       <div class="live-badge">Live</div>
@@ -416,13 +416,13 @@
   </main>
   <aside class="sidebar">
     <div class="sidebar-block">
-      <div class="sidebar-head">🔥 Trending</div>
+      <div class="sidebar-head">Trending</div>
       <div id="trendingList">
         <div class="loading" style="padding:20px 0"><div class="loader" style="width:24px;height:24px;border-width:1px"></div></div>
       </div>
     </div>
     <div class="sidebar-block">
-      <div class="sidebar-head">📊 Podľa kategórie</div>
+      <div class="sidebar-head">Podľa kategórie</div>
       <div id="catStats"></div>
     </div>
   </aside>
@@ -544,7 +544,7 @@
     const cats = { slovensko: 0, svet: 0, ekonomika: 0, sport: 0, krypto: 0 };
     items.forEach(i => { if (cats[i.category] !== undefined) cats[i.category]++; });
     const total = items.length || 1;
-    const catLabels = { slovensko: '🇸🇰 Slovensko', svet: '🌍 Svet', ekonomika: '💰 Ekonomika', sport: '⚽ Šport', krypto: '₿ Krypto' };
+    const catLabels = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto' };
     const catStats = document.getElementById('catStats');
     if (catStats) {
       catStats.innerHTML = Object.entries(cats).map(([cat, count]) => `

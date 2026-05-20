@@ -10,3 +10,12 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+
+[functions."generate-krypto"]
+  schedule = "0 */4 * * *"
+
+[functions."generate-svet"]
+  schedule = "0 */5 * * *"
+
+[functions."breaking-scanner"]
+  schedule = "*/30 * * * *"
