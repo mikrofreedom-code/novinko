@@ -200,6 +200,7 @@ exports.handler = async (event) => {
         const items = parseRSS(xml, feed.source);
 
         for (const item of items.slice(0, 1)) {
+          console.log("Checking:", item.title.substring(0,30));
           const exists = await titleExists(GOOGLE_SHEETS_ID, item.title, GOOGLE_SERVICE_ACCOUNT_KEY);
           if (exists) continue;
           if (exists) continue;
