@@ -202,7 +202,6 @@ exports.handler = async (event) => {
         for (const item of items.slice(0, 1)) {
           const exists = await titleExists(GOOGLE_SHEETS_ID, item.title, GOOGLE_SERVICE_ACCOUNT_KEY);
           if (exists) continue;
-          const exists = await titleExists(GOOGLE_SHEETS_ID, item.title, GOOGLE_SERVICE_ACCOUNT_KEY);
           if (exists) continue;
           const article = await generateSKArticle(item, ANTHROPIC_API_KEY);
 	  if (!article || !article.title) continue;
