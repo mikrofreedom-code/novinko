@@ -195,7 +195,7 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "X-Cache": "MISS" },
+    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "X-Cache": "MISS", "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200" },
     body: JSON.stringify(responseData),
   };
 };
