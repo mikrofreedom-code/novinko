@@ -4,9 +4,8 @@ const http = require("http");
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
 
 const WORLD_FEEDS = [
+  { url: 'https://www.euronews.com/rss?format=mrss&level=theme&name=news', source: 'Euronews' },
   { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', source: 'BBC World' },
-  { url: 'https://feeds.feedburner.com/euractiv/MXP', source: 'Euractiv' },
-  { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC Business' },
 ];
 
 function fetchUrl(url) {
@@ -73,7 +72,7 @@ function parseRSS(xml, source) {
       });
     }
   }
-  return items.slice(0, 2);
+  return items.slice(0, 1);
 }
 
 async function generateSKArticle(item, apiKey) {
@@ -107,7 +106,7 @@ async function generateSKArticle(item, apiKey) {
 async function titleExists(sheetsId, title, serviceAccountKey) {
   try {
     const csv = await fetchUrl(SHEET_CSV_URL);
-    return csv.toLowerCase().includes(title.toLowerCase().substring(0, 30));
+    return csv.toLowerCase().includes(title.toLowerCase().substring(0, 50));
   } catch(e) { return false; }
 }
 

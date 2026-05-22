@@ -3,10 +3,8 @@ const http = require("http");
 
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
 
-const CRYPTO_FEEDS = [
-  { url: "https://cointelegraph.com/rss", source: "CoinTelegraph" },
-  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/", source: "CoinDesk" },
-  { url: "https://decrypt.co/feed", source: "Decrypt" },
+const SPORT_FEEDS = [
+  { url: 'https://www.euronews.com/rss?format=mrss&level=theme&name=sport', source: 'Euronews Sport' },
 ];
 
 function fetchUrl(url) {
@@ -85,7 +83,7 @@ async function generateSKArticle(item, apiKey) {
       max_tokens: 1000,
       messages: [{
         role: "user",
-        content: `Si skúsený slovenský novinár. Napíš NOVÝ článok v prirodzenej slovenčine. Neprekladaj doslovne, použi vlastné vety. Titulok MUSÍ byť originálny slovenský - nie preklad, ale vlastný zaujímavý nadpis k téme.\nPravidlá: Používaj správnu slovenskú gramatiku a prirodzené slovenské výrazy. Anglické slová prekladaj správne (views=zhliadnutí, followers=sledovateľov, trending=trending).\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
+        content: `Si skúsený slovenský novinár. Napíš NOVÝ článok v prirodzenej slovenčine. Neprekladaj doslovne, použi vlastné vety. Titulok MUSÍ byť originálny slovenský. Zdôrazni súvislosť so Slovenskom alebo strednou Európou ak je relevantná.\nPravidlá: Používaj správnu slovenskú gramatiku a prirodzené slovenské výrazy. Anglické slová prekladaj správne (views=zhliadnutí, followers=sledovateľov, trending=trending).\nTitulok: ${item.title}\nObsah: ${item.description}\nZdroj: ${item.source}\nOdpoveď MUSÍ byť v tomto JSON formáte bez markdown:\n{"title":"slovenský titulok","perex":"2-3 vety zhrnutie","content":"3-4 odseky oddelené \\n\\n"}`
       }]
     },
     {
@@ -108,6 +106,13 @@ async function titleExists(sheetsId, title, serviceAccountKey) {
   try {
     const csv = await fetchUrl(SHEET_CSV_URL);
     return csv.toLowerCase().includes(title.toLowerCase().substring(0, 50));
+  } catch(e) { return false; }
+}
+
+async function titleExists(sheetsId, title, serviceAccountKey) {
+  try {
+    const csv = await fetchUrl(SHEET_CSV_URL);
+    return csv.toLowerCase().includes(title.toLowerCase().substring(0, 30));
   } catch(e) { return false; }
 }
 async function getLastId() {
@@ -187,13 +192,14 @@ exports.handler = async (event) => {
     let generated = 0;
     const errors = [];
 
-    for (const feed of CRYPTO_FEEDS) {
+    for (const feed of SPORT_FEEDS) {
       try {
         const xml = await fetchUrl(feed.url);
         const items = parseRSS(xml, feed.source);
 
         for (const item of items.slice(0, 1)) {
           const exists = await titleExists(GOOGLE_SHEETS_ID, item.title, GOOGLE_SERVICE_ACCOUNT_KEY);
+          if (exists) continue;
           if (exists) continue;
           const article = await generateSKArticle(item, ANTHROPIC_API_KEY);
 	  if (!article || !article.title) continue;
@@ -206,7 +212,7 @@ exports.handler = async (event) => {
             (article.content || "").replace(/\n/g, " ").replace(/\r/g, ""),
             `${feed.source} | ${item.link}`,
             new Date().toISOString(),
-            "krypto",
+            "sport",
           ];
 
           const sheetResult = await appendToSheet(GOOGLE_SHEETS_ID, row, GOOGLE_SERVICE_ACCOUNT_KEY);
