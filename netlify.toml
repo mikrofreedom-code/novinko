@@ -19,3 +19,6 @@
 
 [functions."breaking-scanner"]
   schedule = "*/30 * * * *"
+
+[functions."generate-sport"]
+  schedule = "0 */2 * * *"
