@@ -107,7 +107,7 @@ exports.handler = async (event) => {
   const category = event.queryStringParameters?.category || "all";
 
   // Vráť cache ak je čerstvý
-  if (cache[category] && Date.now() - cache[category].time < CACHE_TTL) {
+  if (cache[category] && Date.now() - cache[category].time < CACHE_TTL && !event.queryStringParameters?.nocache) {
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "X-Cache": "HIT" },
