@@ -572,7 +572,13 @@
     const content = document.getElementById('content');
     if (!items.length) { content.innerHTML = '<div class="loading"><span>Žiadne správy</span></div>'; return; }
 
-    const featured = items[0];
+    // Vyber featured z rôznych kategórií
+    const catOrder = ['slovensko', 'svet', 'sport', 'ekonomika', 'krypto'];
+    let featured = items[0];
+    for (const cat of catOrder) {
+      const found = items.find(i => i.category === cat);
+      if (found) { featured = found; break; }
+    }
     const secondary = items.slice(1, 4);
     const rest = items.slice(4);
 
