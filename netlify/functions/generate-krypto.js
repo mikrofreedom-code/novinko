@@ -4,9 +4,7 @@ const http = require("http");
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
 
 const CRYPTO_FEEDS = [
-  { url: "https://cointelegraph.com/rss", source: "CoinTelegraph" },
-  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/", source: "CoinDesk" },
-  { url: "https://decrypt.co/feed", source: "Decrypt" },
+  { url: 'https://cointelegraph.com/rss', source: 'CoinTelegraph' },
 ];
 
 function fetchUrl(url) {
