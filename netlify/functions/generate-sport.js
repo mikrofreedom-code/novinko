@@ -102,10 +102,10 @@ async function generateSKArticle(item, apiKey) {
 }
 
 
-async function titleExists(sheetsId, title, serviceAccountKey) {
+async function titleExists(sheetsId, link, serviceAccountKey) {
   try {
     const csv = await fetchUrl(SHEET_CSV_URL);
-    return csv.toLowerCase().includes(title.toLowerCase().substring(0, 50));
+    return csv.includes(link);
   } catch(e) { return false; }
 }
 
@@ -198,7 +198,7 @@ exports.handler = async (event) => {
         const items = parseRSS(xml, feed.source);
 
         for (const item of items.slice(0, 1)) {
-          const exists = await titleExists(GOOGLE_SHEETS_ID, item.title, GOOGLE_SERVICE_ACCOUNT_KEY);
+          const exists = await titleExists(GOOGLE_SHEETS_ID, item.link, GOOGLE_SERVICE_ACCOUNT_KEY);
           if (exists) continue;
           if (exists) continue;
           const article = await generateSKArticle(item, ANTHROPIC_API_KEY);
