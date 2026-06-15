@@ -32,7 +32,6 @@ const FEEDS = [
 
   // ⚽ ŠPORT
   { url: "https://www.teraz.sk/rss/sport.rss", category: "sport", source: "Teraz / Šport" },
-  { url: "https://sita.sk/sport/feed/", category: "sport", source: "SITA / Šport" },
   { url: "https://sport.pravda.sk/rss/xml", category: "sport", source: "Pravda / Šport" },
   { url: "https://www.sme.sk/rss/sport", category: "sport", source: "SME / Šport" },
   { url: "https://www.cas.sk/rss/sport/", category: "sport", source: "Čas / Šport" },

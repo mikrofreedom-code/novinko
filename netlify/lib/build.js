@@ -6,8 +6,8 @@ const { FEEDS } = require("./feeds");
 const { fetchSheetItems } = require("./sheets");
 const { CATS, MAX_ITEMS } = require("./config");
 
-// Stiahne všetky (alebo kategóriou filtrované) RSS zdroje paralelne.
-// Pomalý/mŕtvy feed neblokuje ostatné (Promise.allSettled + timeout).
+const CAT_ORDER = ["slovensko", "svet", "ekonomika", "sport", "krypto"];
+
 async function gatherRss(categoryFilter = "all") {
   const feeds = categoryFilter === "all" ? FEEDS : FEEDS.filter((f) => f.category === categoryFilter);
   const results = await Promise.allSettled(
@@ -17,7 +17,6 @@ async function gatherRss(categoryFilter = "all") {
     })
   );
 
-  // zoskup podľa zdroja a zoraď podľa dátumu
   const bySource = {};
   results
     .filter((r) => r.status === "fulfilled")
@@ -29,11 +28,10 @@ async function gatherRss(categoryFilter = "all") {
     arr.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
   );
 
-  // striedaj zdroje (interleave), aby nedominoval jeden web
   const sources = Object.values(bySource);
   const out = [];
   let i = 0;
-  while (out.length < MAX_ITEMS && sources.some((s) => s.length > 0)) {
+  while (out.length < MAX_ITEMS * 2 && sources.some((s) => s.length > 0)) {
     const src = sources[i % sources.length];
     if (src.length > 0) out.push(src.shift());
     i++;
@@ -45,25 +43,52 @@ async function gatherSheet() {
   try { return await fetchSheetItems(); } catch { return []; }
 }
 
-// Postaví payload pre jednu kategóriu (núdzový režim pre fetch-rss).
+function roundRobin(lists) {
+  const out = [];
+  let added = true;
+  while (out.length < MAX_ITEMS && added) {
+    added = false;
+    for (const list of lists) {
+      if (list.length) { out.push(list.shift()); added = true; }
+      if (out.length >= MAX_ITEMS) break;
+    }
+  }
+  return out;
+}
+
+function combineCategory(rss, own, category) {
+  const o = category === "all" ? own : own.filter((i) => i.category === category);
+  const r = category === "all" ? rss : rss.filter((i) => i.category === category);
+  return [...o, ...r];
+}
+
 async function buildPayload(category = "all") {
-  const [rss, ownAll] = await Promise.all([gatherRss(category), gatherSheet()]);
-  const own = category === "all" ? ownAll : ownAll.filter((i) => i.category === category);
-  const items = [...own, ...rss].slice(0, MAX_ITEMS);
+  const [rss, own] = await Promise.all([gatherRss(category), gatherSheet()]);
+  let items;
+  if (category === "all") {
+    const perCat = CAT_ORDER.map((cat) => combineCategory(rss, own, cat));
+    items = roundRobin(perCat);
+  } else {
+    items = combineCategory(rss, own, category).slice(0, MAX_ITEMS);
+  }
   return { items, count: items.length, fetched: new Date().toISOString() };
 }
 
-// Postaví payloady pre VŠETKY kategórie naraz (RSS aj Sheet stiahne len raz).
 async function buildAll() {
   const [rssAll, ownAll] = await Promise.all([gatherRss("all"), gatherSheet()]);
   const now = new Date().toISOString();
   const out = {};
-  for (const cat of CATS) {
-    const rss = cat === "all" ? rssAll : rssAll.filter((i) => i.category === cat);
-    const own = cat === "all" ? ownAll : ownAll.filter((i) => i.category === cat);
-    const items = [...own, ...rss].slice(0, MAX_ITEMS);
-    out[cat] = { items, count: items.length, fetched: now };
+
+  const perCat = {};
+  for (const cat of CAT_ORDER) {
+    const list = combineCategory(rssAll, ownAll, cat);
+    perCat[cat] = list;
+    out[cat] = { items: list.slice(0, MAX_ITEMS), count: Math.min(list.length, MAX_ITEMS), fetched: now };
   }
+
+  const allItems = roundRobin(CAT_ORDER.map((cat) => [...perCat[cat]]));
+  out.all = { items: allItems, count: allItems.length, fetched: now };
+
   return out;
 }
 
