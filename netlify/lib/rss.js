@@ -11,7 +11,7 @@ function decodeEntities(s) {
     .replace(/&#(\d+);/g, (_, n) => safeChar(parseInt(n, 10)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => safeChar(parseInt(n, 16)))
     .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&"); // &amp; až nakoniec
+    .replace(/&amp;/g, "&");
 }
 
 function safeChar(code) {
@@ -28,7 +28,30 @@ function safeDateISO(s) {
   return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 }
 
-// vytiahne obsah jedného tagu (CDATA aj plain)
+// ─── Detekcia športu (oprava miešania športu do iných kategórií) ───
+const SK_LETTERS = "a-z0-9áäčďéěíĺľňóôöŕřšťúůýž";
+const SPORT_WORDS = [
+  "futbal", "futbalov", "futbalist", "hokej", "hokejov", "hokejist",
+  "tenis", "tenisov", "tenist", "basketbal", "volejbal", "hádzan",
+  "cyklist", "cyklistik", "atletik", "atlét", "olympiád", "olympijsk",
+  "šampionát", "brankár", "gól", "góly", "štadión", "biatlon",
+  "lyžiar", "lyžovan", "slalom", "maratón", "nhl", "nba", "nfl", "mlb",
+  "wimbledon", "paralympi", "súpisk", "polčas", "víťazn", "remíz",
+];
+const SPORT_PHRASES = [
+  "ms vo futbale", "majstrovstvá sveta", "liga majstrov", "formula 1",
+  "svetový pohár", "zlatá lopta", "play off", "play-off", "f-skupin",
+];
+
+function looksLikeSport(text) {
+  const t = String(text || "").toLowerCase();
+  if (SPORT_PHRASES.some((p) => t.includes(p))) return true;
+  return SPORT_WORDS.some((w) => {
+    const re = new RegExp(`(^|[^${SK_LETTERS}])${w}`, "i");
+    return re.test(t);
+  });
+}
+
 function pick(block, tag) {
   const cdata = block.match(new RegExp(`<${tag}\\b[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>`, "i"));
   if (cdata) return cdata[1];
@@ -36,7 +59,6 @@ function pick(block, tag) {
   return plain ? plain[1] : "";
 }
 
-// Parsuje RSS aj Atom. Vracia pole položiek.
 function parseRSS(xml, { source = "", category = "", limit = Infinity } = {}) {
   const items = [];
   let blocks = xml.match(/<item\b[\s\S]*?<\/item>/gi);
@@ -66,9 +88,13 @@ function parseRSS(xml, { source = "", category = "", limit = Infinity } = {}) {
     const image = imgM ? imgM[1] : "";
 
     if (!title || !link) continue;
-    items.push({ title, link, description, pubDate, image, source, category });
+
+    let cat = category;
+    if (cat !== "sport" && cat !== "krypto" && looksLikeSport(title)) cat = "sport";
+
+    items.push({ title, link, description, pubDate, image, source, category: cat });
   }
   return items;
 }
 
-module.exports = { parseRSS, decodeEntities, stripHtml, safeDateISO };
+module.exports = { parseRSS, decodeEntities, stripHtml, safeDateISO, looksLikeSport };
