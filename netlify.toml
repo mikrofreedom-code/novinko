@@ -2,6 +2,9 @@
   publish = "."
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+
 [dev]
   publish = "."
 
@@ -10,15 +13,24 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
 
+# ─── CRON ÚLOHY ───
+# Pripravuje hotové spravodajstvo do cache (vďaka tomu je web rýchly).
+[functions."refresh-feeds"]
+  schedule = "*/10 * * * *"
+
+# Generátory vlastných SK článkov – ČASOVO ROZLOŽENÉ, aby nešli naraz
+# (predtým o polnoci bežali všetky súčasne a vznikali kolízie ID + duplicity).
 [functions."generate-krypto"]
-  schedule = "0 */4 * * *"
+  schedule = "5 */4 * * *"
 
 [functions."generate-svet"]
-  schedule = "0 */5 * * *"
-
-[functions."breaking-scanner"]
-  schedule = "*/30 * * * *"
+  schedule = "15 */5 * * *"
 
 [functions."generate-sport"]
-  schedule = "0 */2 * * *"
+  schedule = "25 */2 * * *"
+
+# Skener mimoriadnych správ.
+[functions."breaking-scanner"]
+  schedule = "*/30 * * * *"

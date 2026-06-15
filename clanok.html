@@ -147,99 +147,117 @@
 
 <script>
   const SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
+  const PARAGRAPH_DELIM = "¶¶"; // musí sedieť s backendom (lib/config.js)
+
+  // bezpečnostné helpery
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function safeLink(url) {
+    try {
+      const u = new URL(url, location.origin);
+      return ['http:', 'https:'].includes(u.protocol) ? u.href : '#';
+    } catch { return '#'; }
+  }
+
+  // robustný CSV parser (zvláda úvodzovky aj zdvojené "")
+  function parseCSVLine(line) {
+    const cols = [];
+    let cur = "", inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === "," && !inQuotes) { cols.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    return cols.map(c => c.trim());
+  }
 
   function parseCSV(csv) {
-    const lines = csv.trim().split("\n");
-    const headers = lines[0].split(",");
+    const lines = csv.trim().split("\n").filter(l => l.trim());
+    if (lines.length <= 1) return [];
+    const headers = parseCSVLine(lines[0]);
     return lines.slice(1).map(line => {
-      // Handle commas inside quoted fields
-      const cols = [];
-      let current = "";
-      let inQuotes = false;
-      for (let char of line) {
-        if (char === '"') inQuotes = !inQuotes;
-        else if (char === "," && !inQuotes) { cols.push(current); current = ""; }
-        else current += char;
-      }
-      cols.push(current);
+      const cols = parseCSVLine(line);
       const obj = {};
-      headers.forEach((h, i) => obj[h.trim()] = (cols[i] || "").trim().replace(/^"|"$/g, ""));
+      headers.forEach((h, i) => obj[h] = cols[i] || "");
       return obj;
     });
   }
 
   function timeAgo(iso) {
-    const diff = (Date.now() - new Date(iso)) / 1000;
+    const t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    const diff = (Date.now() - t) / 1000;
     if (diff < 60) return 'práve teraz';
     if (diff < 3600) return `${Math.floor(diff/60)} min`;
     if (diff < 86400) return `${Math.floor(diff/3600)} hod`;
     return `${Math.floor(diff/86400)} d`;
   }
 
+  function showMessage(msg) {
+    document.getElementById("articleWrap").innerHTML =
+      `<div class='loading'><span>${esc(msg)}</span></div>`;
+  }
+
   async function loadArticle() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-
-    if (!id) {
-      document.getElementById("articleWrap").innerHTML = "<div class='loading'><span>Článok nenájdený</span></div>";
-      return;
-    }
+    if (!id) { showMessage("Článok nenájdený"); return; }
 
     try {
       const res = await fetch(SHEET_CSV);
       const csv = await res.text();
-      const articles = parseCSV(csv);
-      const article = articles.find(a => a.id === id);
+      const rows = parseCSV(csv);
 
-      if (!article) {
-        document.getElementById("articleWrap").innerHTML = "<div class='loading'><span>Článok nenájdený</span></div>";
-        return;
-      }
+      // nájdi článok podľa id (prvý stĺpec)
+      const article = rows.find(r => Object.values(r)[0] === id);
+      if (!article) { showMessage("Článok nenájdený"); return; }
 
-      // Update page title
-      document.title = `${article.title} — Novinko`;
+      const vals = Object.values(article);
+      const [aId, title, perex, content, source, date, category] = vals;
 
-      // Parse source and original link
-      const sourceParts = article.source.split("|");
-      const sourceName = sourceParts[0]?.trim() || "";
-      const sourceLink = sourceParts[1]?.trim() || "";
+      document.title = `${title} — Novinko`;
 
-      // Format content — odseky rozdelené \n\n
-      const contentHTML = article.content
-        .split("\\n\\n")
-        .map(p => `<p>${p.trim()}</p>`)
+      // zdroj: "Názov | link"
+      const sourceParts = String(source || "").split("|");
+      const sourceName = (sourceParts[0] || "").trim();
+      const sourceLink = (sourceParts[1] || "").trim();
+
+      // odseky: rozdeľ podľa oddeľovača (¶¶) aj podľa prípadných \n\n
+      const contentHTML = String(content || "")
+        .split(new RegExp(`\\s*${PARAGRAPH_DELIM}\\s*|\\n\\n`))
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p>${esc(p)}</p>`)
         .join("");
 
       document.getElementById("articleWrap").innerHTML = `
         <div class="article-meta">
-          <span class="cat-badge">${article.category || "krypto"}</span>
-          <span class="article-source">${sourceName}</span>
-          <span class="article-date">${timeAgo(article.date)}</span>
+          <span class="cat-badge">${esc(category || "správy")}</span>
+          <span class="article-source">${esc(sourceName)}</span>
+          <span class="article-date">${timeAgo(date)}</span>
         </div>
-
-        <h1 class="article-title">${article.title}</h1>
-
-        <div class="article-perex">${article.perex}</div>
-
+        <h1 class="article-title">${esc(title)}</h1>
+        <div class="article-perex">${esc(perex)}</div>
         <div class="ad-slot">
           <!-- Google AdSense banner 728x90 -->
           Reklamný priestor
         </div>
-
-        <div class="article-content">
-          ${contentHTML}
-        </div>
-
+        <div class="article-content">${contentHTML}</div>
         <div class="article-footer">
           <div class="source-link">
-            Zdroj: <a href="${sourceLink}" target="_blank" rel="noopener">${sourceName}</a>
+            ${sourceLink ? `Zdroj: <a href="${safeLink(sourceLink)}" target="_blank" rel="noopener">${esc(sourceName)}</a>` : `Zdroj: ${esc(sourceName)}`}
           </div>
           <a href="/" class="back-link">← Všetky správy</a>
         </div>
       `;
-
     } catch (e) {
-      document.getElementById("articleWrap").innerHTML = "<div class='loading'><span>Chyba pri načítavaní</span></div>";
+      showMessage("Chyba pri načítavaní");
     }
   }
 

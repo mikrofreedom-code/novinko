@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Novinko – všetky aktuálne slovenské a svetové správy na jednom mieste. Slovensko, svet, ekonomika, šport a krypto v reálnom čase." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Novinko — Všetky aktuálne správy na jednom mieste" />
+  <meta property="og:description" content="Slovenské a svetové správy v reálnom čase: Slovensko, svet, ekonomika, šport, krypto." />
+  <meta property="og:locale" content="sk_SK" />
+  <meta name="twitter:card" content="summary_large_image" />
   <title>Novinko — Všetky aktuálne správy na jednom mieste</title>
     <link rel='preconnect' href='https://fonts.googleapis.com'>
   <link rel='dns-prefetch' href='https://fonts.googleapis.com'>
@@ -438,11 +444,29 @@
 </footer>
 
 <script>
+  // ─── BEZPEČNOSŤ: escapovanie a validácia (RSS obsah je neoverený vstup) ───
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function safeLink(url) {
+    try {
+      const u = new URL(url, location.origin);
+      return ['http:', 'https:'].includes(u.protocol) ? u.href : '#';
+    } catch { return '#'; }
+  }
+  function externalAttr(link) {
+    return (link || '').startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost')
+      ? 'target="_blank" rel="noopener"' : '';
+  }
+
   let allItems = [];
   let currentCat = 'all';
 
   function timeAgo(iso) {
-    const diff = (Date.now() - new Date(iso)) / 1000;
+    const t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    const diff = (Date.now() - t) / 1000;
     if (diff < 60) return 'práve teraz';
     if (diff < 3600) return `${Math.floor(diff/60)} min`;
     if (diff < 86400) return `${Math.floor(diff/3600)} hod`;
@@ -462,44 +486,6 @@
     return `label-${cat}`;
   }
 
-  function featuredStoryHTML(item) {
-    const label = CAT_LABELS[item.category] || item.category;
-    const href = item.link.startsWith('http') ? item.link : item.link;
-    const target = item.link.startsWith('http') && !item.link.includes('localhost') && !item.link.includes('novinko.netlify') ? 'target="_blank" rel="noopener"' : '';
-    return `
-      <div class="story-featured fade-in">
-        <div class="story-featured-left">
-          <span class="story-label ${getLabelClass(item.category)}">${label}</span>
-          <a href="${item.link}" ${target} class="story-headline-xl">${item.title}</a>
-          ${item.description ? `<div class="story-summary">${item.description}</div>` : ''}
-          <div class="story-byline">
-            <span class="story-byline-source">${item.source}</span>
-            <span class="story-byline-sep">—</span>
-            <span class="story-byline-time">${timeAgo(item.pubDate)}</span>
-          </div>
-        </div>
-        <div class="story-featured-right" id="secondary-stories"></div>
-      </div>`;
-  }
-
-  function secondaryStoriesHTML(items) {
-    return `<div class="stories-secondary">
-      ${items.map(item => {
-        const label = CAT_LABELS[item.category] || item.category;
-        const target = item.link.startsWith('http') && !item.link.includes('novinko.netlify') && !item.link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
-        return `<a href="${item.link}" ${target} class="story-secondary fade-in">
-          <span class="story-label ${getLabelClass(item.category)}">${label}</span>
-          <div class="story-headline-sm">${item.title}</div>
-          <div class="story-byline">
-            <span class="story-byline-source">${item.source}</span>
-            <span class="story-byline-sep">—</span>
-            <span class="story-byline-time">${timeAgo(item.pubDate)}</span>
-          </div>
-        </a>`;
-      }).join('')}
-    </div>`;
-  }
-
   function newsListHTML(items) {
     let html = '<div class="news-list">';
     for (let i = 0; i < items.length; i += 2) {
@@ -516,12 +502,12 @@
 
   function newsItemHTML(item, right = false) {
     const label = CAT_LABELS[item.category] || item.category;
-    const target = item.link.startsWith('http') && !item.link.includes('novinko.netlify') && !item.link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
-    return `<a href="${item.link}" ${target} class="news-item ${right ? 'news-item-right' : ''} fade-in">
-      <span class="story-label ${getLabelClass(item.category)}">${label}</span>
-      <div class="news-title">${item.title}</div>
+    const target = externalAttr(item.link);
+    return `<a href="${safeLink(item.link)}" ${target} class="news-item ${right ? 'news-item-right' : ''} fade-in">
+      <span class="story-label ${getLabelClass(item.category)}">${esc(label)}</span>
+      <div class="news-title">${esc(item.title)}</div>
       <div class="news-meta">
-        <span class="news-source">${item.source}</span>
+        <span class="news-source">${esc(item.source)}</span>
         <span>·</span>
         <span class="news-time">${timeAgo(item.pubDate)}</span>
       </div>
@@ -533,12 +519,12 @@
     const tList = document.getElementById('trendingList');
     if (tList) {
       tList.innerHTML = trending.map((item, i) => {
-        const target = item.link.startsWith('http') && !item.link.includes('novinko.netlify') && !item.link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
-        return `<a href="${item.link}" ${target} class="trending-item">
+        const target = externalAttr(item.link);
+        return `<a href="${safeLink(item.link)}" ${target} class="trending-item">
           <div class="trending-num">${i + 1}</div>
           <div>
-            <div class="trending-text">${item.title}</div>
-            <div class="trending-source">${item.source} · ${timeAgo(item.pubDate)}</div>
+            <div class="trending-text">${esc(item.title)}</div>
+            <div class="trending-source">${esc(item.source)} · ${timeAgo(item.pubDate)}</div>
           </div>
         </a>`;
       }).join('');
@@ -563,7 +549,8 @@
   function renderTicker(items) {
     const track = document.getElementById('tickerTrack');
     const wrap = document.getElementById('tickerWrap');
-    const titles = items.slice(0, 15).map(i => `<span class="ticker-item">${i.title}</span>`).join('');
+    if (!track || !wrap) return;
+    const titles = items.slice(0, 15).map(i => `<span class="ticker-item">${esc(i.title)}</span>`).join('');
     track.innerHTML = titles + titles;
     wrap.style.display = 'flex';
   }
@@ -586,14 +573,14 @@
 
     // Featured + secondary side by side
     const label = CAT_LABELS[featured.category] || featured.category;
-    const featTarget = featured.link.startsWith('http') && !featured.link.includes('novinko.netlify') && !featured.link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
+    const featTarget = externalAttr(featured.link);
     html += `<div class="story-featured fade-in">
       <div class="story-featured-left">
-        <span class="story-label ${getLabelClass(featured.category)}">${label}</span>
-        <a href="${featured.link}" ${featTarget} class="story-headline-xl">${featured.title}</a>
-        ${featured.description ? `<div class="story-summary">${featured.description}</div>` : ''}
+        <span class="story-label ${getLabelClass(featured.category)}">${esc(label)}</span>
+        <a href="${safeLink(featured.link)}" ${featTarget} class="story-headline-xl">${esc(featured.title)}</a>
+        ${featured.description ? `<div class="story-summary">${esc(featured.description)}</div>` : ''}
         <div class="story-byline">
-          <span class="story-byline-source">${featured.source}</span>
+          <span class="story-byline-source">${esc(featured.source)}</span>
           <span class="story-byline-sep">—</span>
           <span class="story-byline-time">${timeAgo(featured.pubDate)}</span>
         </div>
@@ -601,12 +588,12 @@
       <div class="story-featured-right">
         ${secondary.map(item => {
           const lbl = CAT_LABELS[item.category] || item.category;
-          const t = item.link.startsWith('http') && !item.link.includes('novinko.netlify') && !item.link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
-          return `<a href="${item.link}" ${t} class="story-secondary fade-in" style="display:block;padding:16px 0;border-bottom:1px solid var(--border);text-decoration:none">
-            <span class="story-label ${getLabelClass(item.category)}">${lbl}</span>
-            <div class="story-headline-md">${item.title}</div>
+          const t = externalAttr(item.link);
+          return `<a href="${safeLink(item.link)}" ${t} class="story-secondary fade-in" style="display:block;padding:16px 0;border-bottom:1px solid var(--border);text-decoration:none">
+            <span class="story-label ${getLabelClass(item.category)}">${esc(lbl)}</span>
+            <div class="story-headline-md">${esc(item.title)}</div>
             <div class="story-byline">
-              <span class="story-byline-source">${item.source}</span>
+              <span class="story-byline-source">${esc(item.source)}</span>
               <span class="story-byline-sep">—</span>
               <span class="story-byline-time">${timeAgo(item.pubDate)}</span>
             </div>
