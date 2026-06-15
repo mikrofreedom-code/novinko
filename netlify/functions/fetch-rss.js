@@ -1,12 +1,13 @@
 // Frontendový endpoint. Primárne servíruje HOTOVÉ spravodajstvo z Netlify Blobs
 // (pripravuje ho cron každých 10 min) => načítanie je takmer okamžité.
 // Ak blob ešte neexistuje (prvý beh) alebo Blobs nie sú dostupné, poskladá to naživo.
-const { loadNews } = require("../lib/store");
+const { loadNews, connect } = require("../lib/store");
 const { buildPayload } = require("../lib/build");
 
 const CORS = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
 
 exports.handler = async (event) => {
+  connect(event);
   const category = (event.queryStringParameters && event.queryStringParameters.category) || "all";
 
   // 1) rýchla cesta – pripravená cache

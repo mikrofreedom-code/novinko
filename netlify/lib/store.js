@@ -1,13 +1,19 @@
-// Tenká vrstva nad Netlify Blobs. Ak Blobs nie sú dostupné (napr. lokálne mimo
-// netlify dev), funkcie sa nezrútia – vrátia null / ticho zlyhajú.
+// Tenká vrstva nad Netlify Blobs. Pri klasickom handleri (event) treba najprv
+// zavolať connect(event) – inak SDK nevie načítať kontext a getStore zlyhá.
 const { STORE_NAME } = require("./config");
 
-let getStore = null;
-try { ({ getStore } = require("@netlify/blobs")); } catch { /* blobs nie sú k dispozícii */ }
+let blobs = null;
+try { blobs = require("@netlify/blobs"); } catch { /* nedostupné */ }
+
+function connect(event) {
+  if (blobs && typeof blobs.connectLambda === "function" && event) {
+    try { blobs.connectLambda(event); } catch { /* ignoruj */ }
+  }
+}
 
 function store() {
-  if (!getStore) return null;
-  try { return getStore(STORE_NAME); } catch { return null; }
+  if (!blobs || typeof blobs.getStore !== "function") return null;
+  try { return blobs.getStore(STORE_NAME); } catch { return null; }
 }
 
 async function saveNews(key, data) {
@@ -22,4 +28,4 @@ async function loadNews(key) {
   try { return await s.get(key, { type: "json" }); } catch { return null; }
 }
 
-module.exports = { saveNews, loadNews };
+module.exports = { connect, saveNews, loadNews };

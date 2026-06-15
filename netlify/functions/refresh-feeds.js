@@ -1,10 +1,11 @@
 // Cron (každých 10 min): stiahne RSS + vlastné články a uloží HOTOVÉ
 // spravodajstvo do Netlify Blobs. Vďaka tomu fetch-rss nič nesťahuje naživo.
 const { buildAll } = require("../lib/build");
-const { saveNews } = require("../lib/store");
+const { saveNews, connect } = require("../lib/store");
 const { CATS } = require("../lib/config");
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   try {
     const all = await buildAll();
     let saved = 0;

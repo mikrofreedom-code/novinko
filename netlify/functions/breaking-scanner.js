@@ -2,7 +2,7 @@
 // a uloží ich do Blobs (kľúč "breaking"), odkiaľ ich vie načítať frontend.
 const { fetchUrl } = require("../lib/net");
 const { parseRSS } = require("../lib/rss");
-const { saveNews } = require("../lib/store");
+const { saveNews, connect } = require("../lib/store");
 const { BREAKING_FEEDS } = require("../lib/feeds");
 const { BREAKING_KEY } = require("../lib/config");
 
@@ -18,7 +18,8 @@ function isBreaking(title) {
   return BREAKING_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()));
 }
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const breaking = [];
   const seen = new Set();
 
