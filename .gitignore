@@ -1,4 +1,9 @@
 # Local Netlify folder
 .netlify
+
+# Závislosti
+node_modules
+
+# Premenné prostredia
 .env
 .env.backup
