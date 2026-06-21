@@ -233,6 +233,25 @@
       .logo-tagline { display: none; }
       .world-clock { display: none; }
     }
+
+    /* ─── COOKIE BANNER ─── */
+    .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: var(--header-bg); color: #fff; padding: 18px clamp(16px,4vw,48px); box-shadow: 0 -4px 20px rgba(0,0,0,0.25); transform: translateY(100%); transition: transform 0.35s ease; }
+    .cookie-banner.show { transform: translateY(0); }
+    .cookie-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .cookie-text { flex: 1; min-width: 260px; font-size: 0.85rem; line-height: 1.55; color: #cfccc6; }
+    .cookie-text strong { color: #fff; }
+    .cookie-text a { color: var(--gold); }
+    .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .cookie-btn { font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; font-weight: 600; padding: 10px 20px; border-radius: 3px; cursor: pointer; border: 1px solid #444; transition: all 0.15s; white-space: nowrap; }
+    .cookie-btn-reject { background: transparent; color: #cfccc6; }
+    .cookie-btn-reject:hover { border-color: #888; color: #fff; }
+    .cookie-btn-accept { background: var(--gold); color: #0d0d0d; border-color: var(--gold); }
+    .cookie-btn-accept:hover { filter: brightness(1.1); }
+    @media (max-width: 600px) {
+      .cookie-banner { bottom: 50px; padding: 14px 16px; }
+      .cookie-actions { width: 100%; }
+      .cookie-btn { flex: 1; }
+    }
   </style>
 </head>
 <body>
@@ -605,6 +624,37 @@
   // Init
   loadNews('krypto');
   renderWorldStrip();
+
+  // ─── COOKIE CONSENT ───
+  (function() {
+    const banner = document.getElementById('cookieBanner');
+    let consent = null;
+    try { consent = localStorage.getItem('novinko_cookie_consent'); } catch(e) {}
+    if (!consent) {
+      setTimeout(() => banner.classList.add('show'), 800);
+    }
+    function setConsent(val) {
+      try { localStorage.setItem('novinko_cookie_consent', val); } catch(e) {}
+      banner.classList.remove('show');
+    }
+    document.getElementById('cookieAccept').addEventListener('click', () => setConsent('accepted'));
+    document.getElementById('cookieReject').addEventListener('click', () => setConsent('rejected'));
+  })();
+
 </script>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-inner">
+    <div class="cookie-text">
+      <strong>Tento web používa cookies.</strong> Používame nevyhnutné cookies pre fungovanie stránky a so súhlasom aj cookies tretích strán (TradingView grafy, reklama). Viac v <a href="/sukromie.html">Zásadách ochrany súkromia</a>.
+    </div>
+    <div class="cookie-actions">
+      <button class="cookie-btn cookie-btn-reject" id="cookieReject">Odmietnuť</button>
+      <button class="cookie-btn cookie-btn-accept" id="cookieAccept">Prijať všetko</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
