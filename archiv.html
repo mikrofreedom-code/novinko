@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Archív — Novinko</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #faf9f7; --surface: #ffffff; --border: #d8d3c8; --border-light: #ece9e2;
+      --accent: #c0392b; --gold: #c89b3c; --text: #111; --text2: #333; --muted: #7a7468; --header-bg: #0d0d0d;
+      --cat-sk: #1a3a5c; --cat-svet: #4a235a; --cat-eko: #1a4a2a; --cat-sport: #7a2a00; --cat-krypto: #b8860b;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; min-height: 100vh; }
+
+    header { background: var(--header-bg); border-bottom: 2px solid var(--gold); padding: 0 clamp(16px,4vw,48px); }
+    .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; height: 60px; gap: 16px; }
+    .logo { font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-weight: 700; color: #fff; text-decoration: none; }
+    .logo span { color: var(--gold); }
+    .back { margin-left: auto; color: #888; text-decoration: none; font-size: 0.85rem; }
+    .back:hover { color: #fff; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: clamp(24px,4vw,40px) clamp(16px,4vw,48px); }
+    .page-title { font-family: 'Libre Baskerville', serif; font-size: 2rem; font-weight: 700; margin-bottom: 6px; }
+    .page-sub { color: var(--muted); font-size: 0.9rem; font-style: italic; margin-bottom: 24px; }
+
+    /* CONTROLS */
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+    .search-box { flex: 1; min-width: 220px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 3px; font-family: inherit; font-size: 0.9rem; background: var(--surface); color: var(--text); }
+    .search-box:focus { outline: none; border-color: var(--gold); }
+    .cat-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .cat-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 3px; font-family: inherit; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+    .cat-btn:hover { border-color: var(--text); color: var(--text); }
+    .cat-btn.active { background: var(--gold); color: #0d0d0d; border-color: var(--gold); }
+
+    .count-info { font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; font-style: italic; }
+
+    /* LIST */
+    .arch-list { display: flex; flex-direction: column; }
+    .arch-item { display: flex; align-items: baseline; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border-light); text-decoration: none; transition: background 0.1s; }
+    .arch-item:hover { background: #f5f3ee; }
+    .arch-item:hover .arch-title { color: var(--accent); }
+    .arch-cat { font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; width: 80px; padding-top: 3px; }
+    .label-slovensko { color: var(--cat-sk); } .label-svet { color: var(--cat-svet); }
+    .label-ekonomika { color: var(--cat-eko); } .label-sport { color: var(--cat-sport); }
+    .label-krypto { color: var(--cat-krypto); }
+    .arch-body { flex: 1; min-width: 0; }
+    .arch-title { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; line-height: 1.35; color: var(--text); transition: color 0.15s; }
+    .arch-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.4; margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .arch-date { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; white-space: nowrap; padding-top: 4px; }
+
+    .load-more { display: block; margin: 28px auto 0; background: var(--header-bg); color: #fff; border: none; padding: 12px 32px; border-radius: 3px; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .load-more:hover { background: var(--gold); color: #0d0d0d; }
+
+    .loading { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; gap: 14px; color: var(--muted); }
+    .loader { width: 30px; height: 30px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+    footer { border-top: 3px solid var(--text); margin-top: 48px; padding: 20px clamp(16px,4vw,48px); }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-family: 'Libre Baskerville', serif; font-weight: 700; }
+    .footer-logo span { color: var(--gold); }
+    .footer-text { font-size: 0.72rem; color: var(--muted); font-style: italic; }
+
+    @media (max-width: 600px) {
+      .arch-cat { width: 60px; font-size: 0.55rem; }
+      .arch-date { display: none; }
+      .arch-perex { display: none; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a href="/" class="logo">novinko<span>.</span></a>
+    <a href="/" class="back">← Späť na hlavnú stránku</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1 class="page-title">Archív správ</h1>
+  <p class="page-sub">Všetky publikované články Novinko</p>
+
+  <div class="controls">
+    <input type="text" class="search-box" id="searchBox" placeholder="Hľadať v archíve…" />
+    <div class="cat-filters" id="catFilters">
+      <button class="cat-btn active" data-cat="all">Všetko</button>
+      <button class="cat-btn" data-cat="krypto">Krypto</button>
+      <button class="cat-btn" data-cat="slovensko">Slovensko</button>
+      <button class="cat-btn" data-cat="svet">Svet</button>
+      <button class="cat-btn" data-cat="ekonomika">Ekonomika</button>
+      <button class="cat-btn" data-cat="sport">Šport</button>
+    </div>
+  </div>
+
+  <div class="count-info" id="countInfo"></div>
+  <div id="archContent">
+    <div class="loading"><div class="loader"></div><span>Načítavam archív…</span></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-logo">novinko<span>.</span></span>
+    <span class="footer-text">© 2026 PowerLink s.r.o.</span>
+  </div>
+</footer>
+
+<script>
+  const SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
+  const PAGE_SIZE = 50;
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto' };
+
+  let allArticles = [];
+  let filtered = [];
+  let shown = 0;
+  let currentCat = 'all';
+  let currentSearch = '';
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  function parseCSVLine(line) {
+    const cols = []; let cur = "", inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { if (inQuotes && line[i+1] === '"') { cur += '"'; i++; } else inQuotes = !inQuotes; }
+      else if (ch === "," && !inQuotes) { cols.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    return cols.map(c => c.trim());
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function applyFilters() {
+    const q = currentSearch.toLowerCase().trim();
+    filtered = allArticles.filter(a => {
+      const catOk = currentCat === 'all' || a.category === currentCat;
+      const qOk = !q || a.title.toLowerCase().includes(q) || a.perex.toLowerCase().includes(q);
+      return catOk && qOk;
+    });
+    shown = 0;
+    render(true);
+  }
+
+  function render(reset) {
+    const el = document.getElementById('archContent');
+    const info = document.getElementById('countInfo');
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty">Žiadne články nezodpovedajú filtru.</div>';
+      info.textContent = '';
+      return;
+    }
+    info.textContent = `${filtered.length} článkov`;
+    const next = filtered.slice(0, shown + PAGE_SIZE);
+    shown = next.length;
+    let html = '<div class="arch-list">';
+    html += next.map(a => `
+      <a href="/clanok.html?id=${encodeURIComponent(a.id)}" class="arch-item">
+        <span class="arch-cat label-${a.category}">${CAT_LABELS[a.category] || a.category}</span>
+        <span class="arch-body">
+          <span class="arch-title">${esc(a.title)}</span>
+          ${a.perex ? `<span class="arch-perex">${esc(a.perex)}</span>` : ''}
+        </span>
+        <span class="arch-date">${fmtDate(a.date)}</span>
+      </a>`).join('');
+    html += '</div>';
+    if (shown < filtered.length) {
+      html += `<button class="load-more" id="loadMore">Načítať ďalšie (${filtered.length - shown})</button>`;
+    }
+    el.innerHTML = html;
+    const lm = document.getElementById('loadMore');
+    if (lm) lm.addEventListener('click', () => render(false));
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(SHEET_CSV);
+      const csv = await res.text();
+      const lines = csv.trim().split("\n").filter(l => l.trim());
+      const articles = lines.slice(1).map(line => {
+        const c = parseCSVLine(line);
+        const [id, title, perex, , , date, category] = c;
+        if (!id || !title) return null;
+        return { id, title, perex: perex || '', date: date || '', category: category || 'krypto' };
+      }).filter(Boolean);
+      // dedup podľa titulku + najnovšie hore
+      const seen = new Set();
+      allArticles = articles.filter(a => {
+        const k = a.title.toLowerCase().trim();
+        if (seen.has(k)) return false;
+        seen.add(k); return true;
+      }).reverse();
+      applyFilters();
+    } catch (e) {
+      document.getElementById('archContent').innerHTML = '<div class="empty">Chyba pri načítavaní archívu.</div>';
+    }
+  }
+
+  document.getElementById('searchBox').addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    applyFilters();
+  });
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCat = btn.dataset.cat;
+      applyFilters();
+    });
+  });
+
+  load();
+</script>
+</body>
+</html>
