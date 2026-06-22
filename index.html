@@ -629,22 +629,6 @@
   loadNews('krypto');
   renderWorldStrip();
 
-  // ─── COOKIE CONSENT ───
-  (function() {
-    const banner = document.getElementById('cookieBanner');
-    let consent = null;
-    try { consent = localStorage.getItem('novinko_cookie_consent'); } catch(e) {}
-    if (!consent) {
-      setTimeout(() => banner.classList.add('show'), 800);
-    }
-    function setConsent(val) {
-      try { localStorage.setItem('novinko_cookie_consent', val); } catch(e) {}
-      banner.classList.remove('show');
-    }
-    document.getElementById('cookieAccept').addEventListener('click', () => setConsent('accepted'));
-    document.getElementById('cookieReject').addEventListener('click', () => setConsent('rejected'));
-  })();
-
 </script>
 
 <!-- COOKIE BANNER -->
@@ -660,5 +644,22 @@
   </div>
 </div>
 
+<script>
+  (function() {
+    var banner = document.getElementById('cookieBanner');
+    if (!banner) return;
+    var consent = null;
+    try { consent = localStorage.getItem('novinko_cookie_consent'); } catch(e) {}
+    if (!consent) { setTimeout(function(){ banner.classList.add('show'); }, 800); }
+    function setConsent(val) {
+      try { localStorage.setItem('novinko_cookie_consent', val); } catch(e) {}
+      banner.classList.remove('show');
+    }
+    var a = document.getElementById('cookieAccept');
+    var r = document.getElementById('cookieReject');
+    if (a) a.addEventListener('click', function(){ setConsent('accepted'); });
+    if (r) r.addEventListener('click', function(){ setConsent('rejected'); });
+  })();
+</script>
 </body>
 </html>
