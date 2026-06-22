@@ -3,8 +3,7 @@
 const jwt = require("jsonwebtoken");
 const { httpsPost, httpsGet, fetchUrl } = require("./net");
 const { parseCSVLine } = require("./csv");
-const { SHEET_CSV_URL } = require("./config");
-
+const { SHEET_CSV_URL, MAX_AGE_HOURS } = require("./config");
 async function getAccessToken(serviceAccountKey) {
   const auth = JSON.parse(serviceAccountKey);
   const now = Math.floor(Date.now() / 1000);
@@ -26,7 +25,6 @@ async function getAccessToken(serviceAccountKey) {
   if (!res.access_token) throw new Error("Nepodarilo sa získať access token");
   return res.access_token;
 }
-
 // Pridá jeden riadok do hárku "articles" (stĺpce A:G).
 async function appendRow(sheetsId, row, serviceAccountKey) {
   const token = await getAccessToken(serviceAccountKey);
@@ -38,7 +36,6 @@ async function appendRow(sheetsId, row, serviceAccountKey) {
     Authorization: `Bearer ${token}`,
   });
 }
-
 // Načíta existujúce titulky a zdrojové linky -> Set-y pre spoľahlivý dedup.
 // Stĺpec B = titulok, stĺpec E = "Zdroj | originálny link".
 async function readArticlesIndex(sheetsId, serviceAccountKey) {
@@ -51,7 +48,6 @@ async function readArticlesIndex(sheetsId, serviceAccountKey) {
   const ranges = res.valueRanges || [];
   const titleRows = ranges[0]?.values || [];
   const sourceRows = ranges[1]?.values || [];
-
   const titles = new Set(titleRows.map((r) => (r[0] || "").toLowerCase().trim()).filter(Boolean));
   const links = new Set(
     sourceRows
@@ -61,13 +57,16 @@ async function readArticlesIndex(sheetsId, serviceAccountKey) {
   );
   return { titles, links };
 }
-
 // Načíta vlastné SK články pre ZOBRAZENIE (publikovaný CSV stačí, robí to cron).
 // Stĺpce podľa pozície: id, title, perex, content, source, date, category
-async function fetchSheetItems() {
+// opts.all = true  -> vráti všetky (pre archív), inak len mladšie ako MAX_AGE_HOURS
+async function fetchSheetItems(opts = {}) {
   const csv = await fetchUrl(SHEET_CSV_URL, { timeout: 8000 });
   const lines = csv.trim().split("\n").slice(1).filter((l) => l.trim()); // bez hlavičky
-  return lines
+  const maxAgeMs = MAX_AGE_HOURS * 60 * 60 * 1000;
+  const now = Date.now();
+  const seen = new Set();
+  const items = lines
     .map((line) => {
       const c = parseCSVLine(line);
       const [id, title, perex, , , date, category] = c;
@@ -83,7 +82,19 @@ async function fetchSheetItems() {
       };
     })
     .filter(Boolean)
+    .filter((it) => {
+      // dedup podľa titulku (poistka pri zobrazení)
+      const key = it.title.toLowerCase().trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .filter((it) => {
+      if (opts.all) return true; // archív chce všetko
+      const age = now - new Date(it.pubDate).getTime();
+      return age <= maxAgeMs; // len mladšie ako 24h
+    })
     .reverse(); // najnovšie prvé
+  return items;
 }
-
 module.exports = { getAccessToken, appendRow, readArticlesIndex, fetchSheetItems };
