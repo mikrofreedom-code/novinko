@@ -70,6 +70,7 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
       for (const item of items) {
         if (made >= perFeed) break;
         if (isTooOld(item.pubDate)) continue;   // zdroj starší než limit
+        if (/\/video\//i.test(item.link)) continue;   // video/bulletin bez textu – preskoč
 
         const titleKey = item.title.toLowerCase().trim();
         if (index.links.has(normalizeLink(item.link)) || index.titles.has(titleKey)) continue; // už existuje
