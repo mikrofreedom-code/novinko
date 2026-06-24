@@ -38,6 +38,19 @@ async function appendRow(sheetsId, row, serviceAccountKey) {
 }
 // Načíta existujúce titulky a zdrojové linky -> Set-y pre spoľahlivý dedup.
 // Stĺpec B = titulok, stĺpec E = "Zdroj | originálny link".
+function normalizeLink(link) {
+  if (!link) return "";
+  let s = String(link).trim();
+  try {
+    const u = new URL(s);
+    u.search = "";
+    u.hash = "";
+    return u.toString().replace(/\/+$/, "").toLowerCase();
+  } catch (e) {
+    return s.replace(/[?#].*$/, "").replace(/\/+$/, "").toLowerCase();
+  }
+}
+
 async function readArticlesIndex(sheetsId, serviceAccountKey) {
   const token = await getAccessToken(serviceAccountKey);
   const path =
@@ -52,7 +65,7 @@ async function readArticlesIndex(sheetsId, serviceAccountKey) {
   const links = new Set(
     sourceRows
       .map((r) => (r[0] || "").split("|")[1]) // časť za "|"
-      .map((l) => (l || "").trim())
+      .map((l) => normalizeLink(l))
       .filter(Boolean)
   );
   return { titles, links };
@@ -97,4 +110,4 @@ async function fetchSheetItems(opts = {}) {
     .reverse(); // najnovšie prvé
   return items;
 }
-module.exports = { getAccessToken, appendRow, readArticlesIndex, fetchSheetItems };
+module.exports = { getAccessToken, appendRow, readArticlesIndex, fetchSheetItems, normalizeLink };

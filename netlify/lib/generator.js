@@ -1,7 +1,7 @@
 // Spoločné jadro pre generovanie SK článkov. Nahrádza 4× skopírovaný kód.
 const { fetchUrl } = require("./net");
 const { parseRSS } = require("./rss");
-const { appendRow, readArticlesIndex } = require("./sheets");
+const { appendRow, readArticlesIndex, normalizeLink } = require("./sheets");
 const { generateArticle } = require("./ai");
 const { PARAGRAPH_DELIM } = require("./config");
 
@@ -48,6 +48,14 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
     return { error: "Dedup index zlyhal: " + e.message, generated: 0, errors: [] };
   }
 
+  const MAX_SOURCE_AGE_HOURS = Number(process.env.MAX_SOURCE_AGE_HOURS || 48);
+  function isTooOld(pubISO) {
+    if (!pubISO) return false;            // chýba dátum → nechaj prejsť
+    const t = Date.parse(pubISO);
+    if (isNaN(t)) return false;           // nečitateľný → nechaj prejsť
+    const ageH = (Date.now() - t) / 3600000;
+    return ageH > MAX_SOURCE_AGE_HOURS;   // starší než limit → preskoč
+  }
   let generated = 0;
   const errors = [];
 
@@ -60,9 +68,10 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
       let made = 0;
       for (const item of items) {
         if (made >= perFeed) break;
+        if (isTooOld(item.pubDate)) continue;   // zdroj starší než limit
 
         const titleKey = item.title.toLowerCase().trim();
-        if (index.links.has(item.link) || index.titles.has(titleKey)) continue; // už existuje
+        if (index.links.has(normalizeLink(item.link)) || index.titles.has(titleKey)) continue; // už existuje
 
         const article = await generateArticle(item, env.ANTHROPIC_API_KEY);
         if (!article || !article.title) continue;
@@ -80,7 +89,7 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
         await appendRow(env.GOOGLE_SHEETS_ID, row, env.GOOGLE_SERVICE_ACCOUNT_KEY);
 
         // hneď zapíš do indexu, nech v tom istom behu nevznikne duplicita
-        index.links.add(item.link);
+        index.links.add(normalizeLink(item.link));
         index.titles.add(titleKey);
         generated += 1;
         made += 1;
