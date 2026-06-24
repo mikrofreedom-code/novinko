@@ -63,9 +63,15 @@ async function generateImage(title, category, id) {
     const supabase = makeSupabase();
     const safeId = String(id || Date.now()).replace(/[^a-z0-9_-]/gi, "");
     const path = `${category || "news"}/${safeId}.webp`;
-    const { error } = await supabase.storage.from(BUCKET)
-      .upload(path, buffer, { contentType: "image/webp", upsert: true });
-    if (error) { console.error("Supabase upload:", error.message); return ""; }
+    let uploadOk = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const { error } = await supabase.storage.from(BUCKET)
+        .upload(path, buffer, { contentType: "image/webp", upsert: true });
+      if (!error) { uploadOk = true; break; }
+      console.error(`Supabase upload pokus ${attempt}/3:`, error.message);
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
+    if (!uploadOk) return "";
 
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data.publicUrl || "";
