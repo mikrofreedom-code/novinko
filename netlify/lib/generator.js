@@ -2,6 +2,7 @@
 const { fetchUrl } = require("./net");
 const { parseRSS } = require("./rss");
 const { appendRow, readArticlesIndex, normalizeLink } = require("./sheets");
+const { generateImage } = require("./images");
 const { generateArticle } = require("./ai");
 const { PARAGRAPH_DELIM } = require("./config");
 
@@ -75,6 +76,8 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
 
         const article = await generateArticle(item, env.ANTHROPIC_API_KEY);
         if (!article || !article.title) continue;
+        const _imgId = uniqueId();
+        const imageUrl = await generateImage(article.title, category, _imgId);
 
         const row = [
           uniqueId(),
@@ -84,6 +87,7 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
           `${feed.source} | ${item.link}`,
           new Date().toISOString(),
           category,
+          imageUrl,
         ];
 
         await appendRow(env.GOOGLE_SHEETS_ID, row, env.GOOGLE_SERVICE_ACCOUNT_KEY);

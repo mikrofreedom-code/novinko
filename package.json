@@ -4,7 +4,10 @@
   "description": "Slovenský news agregátor s AI prepisom článkov",
   "dependencies": {
     "@netlify/blobs": "^10.7.9",
+    "@supabase/supabase-js": "^2.108.2",
     "dotenv": "^17.4.2",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "replicate": "^1.4.0",
+    "ws": "^8.21.0"
   }
 }

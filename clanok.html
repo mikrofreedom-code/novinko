@@ -84,6 +84,7 @@
       min-height: 90px; display: flex; align-items: center; justify-content: center;
     }
 
+    .article-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 5px; margin: 0 0 22px; display: block; background: var(--surface); }
     .article-content {
       font-size: 1rem; line-height: 1.8; color: #111;
     }
@@ -219,7 +220,7 @@
       if (!article) { showMessage("Článok nenájdený"); return; }
 
       const vals = Object.values(article);
-      const [aId, title, perex, content, source, date, category] = vals;
+      const [aId, title, perex, content, source, date, category, imageUrl] = vals;
 
       document.title = `${title} — Novinko`;
 
@@ -243,6 +244,7 @@
           <span class="article-date">${timeAgo(date)}</span>
         </div>
         <h1 class="article-title">${esc(title)}</h1>
+        ${imageUrl ? `<img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">` : ''}
         <div class="article-perex">${esc(perex)}</div>
         <div class="ad-slot">
           <!-- Google AdSense banner 728x90 -->

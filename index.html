@@ -137,6 +137,10 @@
     .story-secondary:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .story-headline-md { font-family: 'Libre Baskerville', serif; font-size: 1.15rem; font-weight: 700; line-height: 1.28; color: var(--text); margin-bottom: 8px; transition: color 0.15s; }
     .story-secondary:hover .story-headline-md { color: var(--accent); }
+    .story-featured-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin-bottom: 16px; display: block; background: var(--surface); }
+    .story-secondary { display: flex; gap: 12px; }
+    .story-secondary-img { width: 88px; height: 64px; object-fit: cover; border-radius: 3px; flex-shrink: 0; background: var(--surface); }
+    .story-secondary-text { flex: 1; min-width: 0; }
 
     /* ─── CHART SECTION ─── */
     .market-section { margin-bottom: 36px; }
@@ -158,6 +162,8 @@
     .news-title { font-family: 'Libre Baskerville', serif; font-size: 0.92rem; font-weight: 700; line-height: 1.35; color: var(--text); margin-bottom: 4px; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .news-meta { font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
     .news-source { font-weight: 600; color: var(--text2); }
+    .news-item-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 3px; margin-bottom: 10px; display: block; background: var(--surface); }
+    .news-item-body { display: block; }
     .news-time { font-style: italic; }
 
     /* ─── WORLD STRIP (ostatné sekcie) ─── */
@@ -454,6 +460,7 @@
     const lbl = CAT_LABELS[featured.category] || featured.category;
     el.innerHTML = `<div class="story-featured fade-in">
       <div class="story-featured-left">
+        ${(featured.image && featured.source === 'Novinko SK') ? `<img src="${featured.image}" alt="" class="story-featured-img" loading="lazy">` : ''}
         <span class="story-label label-${featured.category}">${lbl}</span>
         <a href="${featured.link}" ${targetAttr(featured.link)} class="story-headline-xl">${featured.title}</a>
         ${featured.description ? `<div class="story-summary">${featured.description}</div>` : ''}
@@ -467,12 +474,15 @@
         ${secondary.map(item => {
           const l = CAT_LABELS[item.category] || item.category;
           return `<a href="${item.link}" ${targetAttr(item.link)} class="story-secondary">
-            <span class="story-label label-${item.category}">${l}</span>
-            <div class="story-headline-md">${item.title}</div>
-            <div class="story-byline">
-              <span class="story-byline-source">${item.source}</span>
-              <span class="story-byline-sep">—</span>
-              <span class="story-byline-time">${timeAgo(item.pubDate)}</span>
+            ${(item.image && item.source === 'Novinko SK') ? `<img src="${item.image}" alt="" class="story-secondary-img" loading="lazy">` : ''}
+            <div class="story-secondary-text">
+              <span class="story-label label-${item.category}">${l}</span>
+              <div class="story-headline-md">${item.title}</div>
+              <div class="story-byline">
+                <span class="story-byline-source">${item.source}</span>
+                <span class="story-byline-sep">—</span>
+                <span class="story-byline-time">${timeAgo(item.pubDate)}</span>
+              </div>
             </div>
           </a>`;
         }).join('')}
@@ -501,9 +511,12 @@
   function newsItemHTML(item, right = false) {
     const lbl = CAT_LABELS[item.category] || item.category;
     return `<a href="${item.link}" ${targetAttr(item.link)} class="news-item fade-in">
-      <span class="story-label label-${item.category}">${lbl}</span>
-      <div class="news-title">${item.title}</div>
-      <div class="news-meta"><span class="news-source">${item.source}</span><span>·</span><span class="news-time">${timeAgo(item.pubDate)}</span></div>
+      ${(item.image && item.source === 'Novinko SK') ? `<img src="${item.image}" alt="" class="news-item-img" loading="lazy">` : ''}
+      <div class="news-item-body">
+        <span class="story-label label-${item.category}">${lbl}</span>
+        <div class="news-title">${item.title}</div>
+        <div class="news-meta"><span class="news-source">${item.source}</span><span>·</span><span class="news-time">${timeAgo(item.pubDate)}</span></div>
+      </div>
     </a>`;
   }
 

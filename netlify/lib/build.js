@@ -13,7 +13,8 @@ async function gatherRss(categoryFilter = "all") {
   const results = await Promise.allSettled(
     feeds.map(async (feed) => {
       const xml = await fetchUrl(feed.url, { timeout: 6000 });
-      return parseRSS(xml, { source: feed.source, category: feed.category, limit: 20 });
+      const parsed = parseRSS(xml, { source: feed.source, category: feed.category, limit: 20 });
+      return parsed.map((it) => ({ ...it, image: "" })); // RSS obrázky nezobrazujeme (autorské práva)
     })
   );
 

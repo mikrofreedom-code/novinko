@@ -44,6 +44,7 @@
     .arch-item:hover { background: #f5f3ee; }
     .arch-item:hover .arch-title { color: var(--accent); }
     .arch-cat { font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; width: 80px; padding-top: 3px; }
+    .arch-img { width: 72px; height: 48px; object-fit: cover; border-radius: 3px; flex-shrink: 0; background: var(--surface); }
     .label-slovensko { color: var(--cat-sk); } .label-svet { color: var(--cat-svet); }
     .label-ekonomika { color: var(--cat-eko); } .label-sport { color: var(--cat-sport); }
     .label-krypto { color: var(--cat-krypto); }
@@ -168,6 +169,7 @@
     let html = '<div class="arch-list">';
     html += next.map(a => `
       <a href="/clanok.html?id=${encodeURIComponent(a.id)}" class="arch-item">
+        ${a.image ? `<img src="${a.image}" alt="" class="arch-img" loading="lazy">` : ''}
         <span class="arch-cat label-${a.category}">${CAT_LABELS[a.category] || a.category}</span>
         <span class="arch-body">
           <span class="arch-title">${esc(a.title)}</span>
@@ -191,9 +193,9 @@
       const lines = csv.trim().split("\n").filter(l => l.trim());
       const articles = lines.slice(1).map(line => {
         const c = parseCSVLine(line);
-        const [id, title, perex, , , date, category] = c;
+        const [id, title, perex, , , date, category, imageUrl] = c;
         if (!id || !title) return null;
-        return { id, title, perex: perex || '', date: date || '', category: category || 'krypto' };
+        return { id, title, perex: perex || '', date: date || '', category: category || 'krypto', image: imageUrl || '' };
       }).filter(Boolean);
       // dedup podľa titulku + najnovšie hore
       const seen = new Set();

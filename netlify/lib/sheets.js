@@ -82,14 +82,14 @@ async function fetchSheetItems(opts = {}) {
   const items = lines
     .map((line) => {
       const c = parseCSVLine(line);
-      const [id, title, perex, , , date, category] = c;
+      const [id, title, perex, , , date, category, imageUrl] = c;
       if (!id || !title) return null;
       return {
         title,
         link: `/clanok.html?id=${encodeURIComponent(id)}`,
         description: perex || "",
         pubDate: date || new Date().toISOString(),
-        image: "",
+        image: imageUrl || "",
         source: "Novinko SK",
         category: category || "krypto",
       };
