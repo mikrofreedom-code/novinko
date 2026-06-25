@@ -5,6 +5,7 @@ const { appendRow, readArticlesIndex, normalizeLink } = require("./sheets");
 const { generateImage } = require("./images");
 const { generateArticle } = require("./ai");
 const { PARAGRAPH_DELIM } = require("./config");
+const { connect, acquireLock, releaseLock } = require("./store");
 
 // Unikátne ID založené na čase + počítadlo v rámci behu => žiadne kolízie
 // pri súbehu viacerých cron jobov.
@@ -37,10 +38,17 @@ function requireEnv() {
 // category: "krypto" | "svet" | "sport"
 // feeds: [{ url, source }]
 // perFeed: koľko nových článkov max. z jedného feedu
-async function runGenerator({ category, feeds, perFeed = 1 }) {
+async function runGenerator({ category, feeds, perFeed = 1, event } = {}) {
   const { env, missing } = requireEnv();
   if (missing.length) return { error: "Chýbajú premenné: " + missing.join(", "), generated: 0, errors: [] };
 
+  // Lock proti súbežnému behu (race condition medzi cronmi / Run now)
+  connect(event);
+  const LOCK_KEY = `gen-lock-${category}`;
+  const gotLock = await acquireLock(LOCK_KEY);
+  if (!gotLock) return { skipped: true, reason: "Iný generátor práve beží", generated: 0, errors: [] };
+
+  try {
   // jeden autentifikovaný (čerstvý) sken existujúcich článkov pre dedup
   let index;
   try {
@@ -105,6 +113,9 @@ async function runGenerator({ category, feeds, perFeed = 1 }) {
   }
 
   return { generated, errors };
+  } finally {
+    await releaseLock(LOCK_KEY);
+  }
 }
 
 module.exports = { runGenerator, paragraphsToCell, uniqueId };

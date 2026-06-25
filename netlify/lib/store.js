@@ -28,4 +28,25 @@ async function loadNews(key) {
   try { return await s.get(key, { type: "json" }); } catch { return null; }
 }
 
-module.exports = { connect, saveNews, loadNews };
+// --- Lock proti súbežnému generovaniu (race condition) ---
+// Vráti true ak sa lock podarilo získať (môžeš generovať).
+// Vráti false ak už beží iný generátor (preskoč).
+async function acquireLock(key, maxAgeMs = 5 * 60 * 1000) {
+  const s = store();
+  if (!s) return true; // Blobs nedostupné (napr. lokálne) => nezdržuj, povoľ
+  try {
+    const existing = await s.get(key, { type: "json" });
+    if (existing && existing.ts && (Date.now() - existing.ts) < maxAgeMs) {
+      return false; // čerstvý lock => iný beh práve prebieha
+    }
+  } catch { /* lock neexistuje => pokračuj */ }
+  try { await s.setJSON(key, { ts: Date.now() }); } catch { /* ignoruj */ }
+  return true;
+}
+async function releaseLock(key) {
+  const s = store();
+  if (!s) return;
+  try { await s.delete(key); } catch { /* ignoruj */ }
+}
+
+module.exports = { connect, saveNews, loadNews, acquireLock, releaseLock };

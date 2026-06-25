@@ -335,7 +335,7 @@
     </div>
 
     <!-- TRADINGVIEW ADVANCED CHART -->
-    <div class="market-section">
+    <div class="market-section" id="chartSection">
       <div class="section-head">
         <span class="section-head-title">Trh naživo — Bitcoin</span>
       </div>
@@ -364,7 +364,7 @@
     <div id="newsListSection"></div>
 
     <!-- TRADINGVIEW MARKET OVERVIEW (CRYPTO) -->
-    <div class="market-section">
+    <div class="market-section" id="screenerSection">
       <div class="section-head">
         <span class="section-head-title">Prehľad kryptotrhu</span>
       </div>
@@ -563,7 +563,15 @@
       </a>`).join('');
   }
 
+  function toggleCharts(cat) {
+    var show = (cat === 'krypto');
+    var c = document.getElementById('chartSection');
+    var sc = document.getElementById('screenerSection');
+    if (c) c.style.display = show ? '' : 'none';
+    if (sc) sc.style.display = show ? '' : 'none';
+  }
   async function loadNews(cat = 'krypto') {
+    toggleCharts(cat);
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('spinning');
     document.getElementById('heroContent').innerHTML = '<div class="loading"><div class="loader"></div><span>Načítavam…</span></div>';

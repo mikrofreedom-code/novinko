@@ -19,7 +19,6 @@ const FEEDS = [
   { url: "https://www.pravda.sk/rss/zahranicne-spravy/", category: "svet", source: "Pravda / Svet" },
   { url: "https://sita.sk/zahranicne/feed/", category: "svet", source: "SITA / Svet" },
   { url: "https://www.tvnoviny.sk/rss", category: "svet", source: "TV Noviny" },
-  { url: "https://feeds.bbci.co.uk/news/world/rss.xml", category: "svet", source: "BBC World" },
   // POZN.: Reuters RSS (feeds.reuters.com) bol zrušený – odstránené, len zdržoval načítanie.
 
   // 💰 EKONOMIKA
