@@ -1,6 +1,7 @@
 // Cron (každých 30 min): preskenuje vybrané zdroje na mimoriadne správy
 // a uloží ich do Blobs (kľúč "breaking"), odkiaľ ich vie načítať frontend.
 const { fetchUrl } = require("../lib/net");
+const { denyIfUnauthorized } = require("../lib/guard");
 const { parseRSS } = require("../lib/rss");
 const { saveNews, connect } = require("../lib/store");
 const { BREAKING_FEEDS } = require("../lib/feeds");
@@ -19,6 +20,8 @@ function isBreaking(title) {
 }
 
 exports.handler = async (event) => {
+  const deny = denyIfUnauthorized(event);
+  if (deny) return deny;
   connect(event);
   const breaking = [];
   const seen = new Set();
