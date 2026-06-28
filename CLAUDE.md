@@ -57,11 +57,17 @@ Cieľ: vyzerať ako profesionálny krypto denník (CoinDesk, Cointelegraph) bez 
 ## Build poradie (aktuálny stav)
 
 1. Spustiť `db/schema.sql` + `sources` tabuľku v NOVOM Supabase
-2. `05-verification.js` — Fact Extractor (legally critical, prvá priorita)
-3. `07-writer.js` — Writer (číta len facts JSON)
-4. `06-chief-editor.js` — Chief Editor
+2. `05-verification.js` — Fact Extractor (legally critical, prvá priorita) ✅
+3. `07-writer.js` — Writer (číta len facts JSON) ✅
+4. `06-chief-editor.js` — Chief Editor ✅
 
 Learning Engine (`14`) je odložený, kým nebudú reálne publikačné dáta.
+
+**ODLOŽENÉ (nezabudnúť):**
+- `06` newsworthiness brána je zatiaľ LEN software (prah `MIN_PCT_MOVE`, `ALWAYS_WORTHY`).
+  Fáza 2 = AI (Haiku) na hraničné prípady — doplniť AŽ po reálnych dátach, na označenom
+  `TODO` v `assessNewsworthiness()`. Dovtedy prahy ladíš konštantami navrchu súboru.
+- `06` zaviedol terminálny status `merged` (pohltené položky clusteru) — je v `schema.sql`.
 
 ## AI cost layers (poradie eskalácie)
 

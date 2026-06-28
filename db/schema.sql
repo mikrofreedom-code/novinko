@@ -4,7 +4,7 @@ create table if not exists public.queue (
   status text not null default 'raw' check (status in (
     'raw','filtered','collected','facts_ready','clustered',
     'written','proofed','legal_ok','seo_done','imaged','published',
-    'rejected','error'
+    'merged','rejected','error'
   )),
   source_id uuid references public.sources(id),
   raw_data jsonb,
