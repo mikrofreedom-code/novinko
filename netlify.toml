@@ -1,0 +1,18 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions."scout"]
+  schedule = "*/30 * * * *"
+[functions."event-gateway"]
+  schedule = "3,33 * * * *"
+[functions."collector"]
+  schedule = "6,36 * * * *"
+[functions."verification"]
+  schedule = "9,39 * * * *"
+[functions."chief-editor"]
+  schedule = "12,42 * * * *"
+[functions."writer"]
+  schedule = "15,45 * * * *"
+[functions."publisher"]
+  schedule = "20,50 * * * *"
