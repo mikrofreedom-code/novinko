@@ -7,6 +7,7 @@
 // ============================================================
 
 import { db } from '../lib/_shared/queue.js';
+import { retryTransientErrors } from '../lib/_shared/retry.js';
 import * as scout from '../lib/flow/01-scout.js';
 import * as gateway from '../lib/flow/02-event-gateway.js';
 import * as collector from '../lib/flow/04-collector.js';
@@ -18,6 +19,9 @@ const SKIP_SCOUT = process.argv.includes('--no-scout');
 const log = (s) => console.log(`\n\x1b[36m${s}\x1b[0m`);
 
 async function main() {
+  log('0) retry — dočasné chyby späť do hry');
+  console.log('  ', await retryTransientErrors());
+
   if (!SKIP_SCOUT) {
     log('01-scout — sťahujem živé trhy z CoinGecku → raw');
     console.log('  ', await scout.run());

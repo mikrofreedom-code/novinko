@@ -59,7 +59,7 @@ nedotlačí reálny rast. Teraz by nás len spomalili.
     Chráni nás, aby AI nevymyslela nepravdu.
     PREČO: nepravdivá správa s naším menom je najväčšie riziko.
 
-  KROK 4 — Odolnosť + poistka na náklady
+  KROK 4 — Odolnosť + poistka na náklady   ✅ HOTOVO
     Keď zdroj alebo AI dočasne zlyhá, systém to skúsi znova namiesto
     straty správy. Plus strop na denné náklady.
 
