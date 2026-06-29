@@ -63,7 +63,7 @@ nedotlačí reálny rast. Teraz by nás len spomalili.
     Keď zdroj alebo AI dočasne zlyhá, systém to skúsi znova namiesto
     straty správy. Plus strop na denné náklady.
 
-  KROK 5 — Lacnejšie cenové články (šablóny namiesto drahej AI)
+  KROK 5 — Lacnejšie cenové články (šablóny)   ✅ HOTOVO
 
   KROK 6 — Pamäť o tom, z čoho a ako každý článok vznikol (dôkaz + učenie)
 
