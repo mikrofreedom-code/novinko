@@ -39,7 +39,7 @@ nedotlačí reálny rast. Teraz by nás len spomalili.
     [ ] Nechať robota pár hodín/dní zbierať reálne články.
         → TY nič nemusíš robiť, beží to samo.
 
-  KROK 1 — VÝBER DÔLEŽITÝCH SPRÁV NA ZVEREJNENIE   *** PRIORITA ***
+  KROK 1 — VÝBER DÔLEŽITÝCH SPRÁV NA ZVEREJNENIE   ✅ HOTOVO
     Nechceme veľa článkov — chceme tých pár PODSTATNÝCH. Šéfredaktor (06)
     dá každej správe "skóre dôležitosti" (veľkosť pohybu, význam aktíva,
     objem obchodov, typ udalosti, súbeh viacerých zdrojov) a vyberie len
@@ -48,7 +48,7 @@ nedotlačí reálny rast. Teraz by nás len spomalili.
     a máš posledné slovo, čo ide von.
     PREČO: kvalita a výber namiesto množstva. Menej článkov, nižší náklad.
 
-  KROK 2 — ROZŠÍRIŤ ZDROJE (regulácie, štát, dôležité osoby)
+  KROK 2 — ROZŠÍRIŤ ZDROJE (regulácie...)   ✅ HOTOVO (SEC, ESMA, ECB)
     Pridať oficiálne zdroje pre MiCA / EÚ / regulátorov / centrálne banky
     a oficiálne firemné blogy. Práve regulačné a politické správy bývajú
     najdôležitejšie. Detail v sekcii ZDROJE nižšie.
