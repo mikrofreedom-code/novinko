@@ -1,0 +1,58 @@
+// ============================================================
+// REÁLNA PIPELINE: 01-scout → 02-gateway → 04-collector → 05 → 06 → 07
+// Stiahne živé dáta z CoinGecku a prebehne celým lievikom.
+// ------------------------------------------------------------
+//   node --env-file=.env scripts/run-pipeline.mjs
+//   node --env-file=.env scripts/run-pipeline.mjs --no-scout   # preskoč scout (spracuj existujúce raw)
+// ============================================================
+
+import { db } from '../lib/_shared/queue.js';
+import * as scout from '../lib/flow/01-scout.js';
+import * as gateway from '../lib/flow/02-event-gateway.js';
+import * as collector from '../lib/flow/04-collector.js';
+import * as verification from '../lib/flow/05-verification.js';
+import * as chiefEditor from '../lib/flow/06-chief-editor.js';
+import * as writer from '../lib/flow/07-writer.js';
+
+const SKIP_SCOUT = process.argv.includes('--no-scout');
+const log = (s) => console.log(`\n\x1b[36m${s}\x1b[0m`);
+
+async function main() {
+  if (!SKIP_SCOUT) {
+    log('01-scout — sťahujem živé trhy z CoinGecku → raw');
+    console.log('  ', await scout.run());
+  }
+  log('02-event-gateway — prah + dedup → filtered/rejected');
+  console.log('  ', await gateway.runBatch());
+
+  log('04-collector — normalizácia → collected');
+  console.log('  ', await collector.runBatch());
+
+  log('05-verification — fakty (Layer A bez AI) → facts_ready');
+  console.log('  ', await verification.runBatch());
+
+  log('06-chief-editor — clustering + newsworthiness → clustered');
+  console.log('  ', await chiefEditor.runBatch());
+
+  log('07-writer — Sonnet, len facts JSON → written');
+  console.log('  ', await writer.runBatch());
+
+  log('Hotové články (status=written, posledné 4)');
+  const { data: arts } = await db.from('queue')
+    .select('article, facts->entity')
+    .eq('status', 'written').order('updated_at', { ascending: false }).limit(4);
+  for (const r of arts ?? []) {
+    if (!r.article) continue;
+    console.log(`\n   📰 ${r.article.headline}`);
+    console.log(`   ${r.article.perex ?? ''}`);
+    console.log(`   zdroje: ${(r.article.sources ?? []).map((s) => `${s.name} [${s.type}]`).join(', ')}`);
+  }
+
+  log('AI náklad za tento beh (posledných 10 volaní)');
+  const { data: costs } = await db.from('ai_cost_log')
+    .select('agent, model, cost_usd').order('created_at', { ascending: false }).limit(10);
+  const total = (costs ?? []).reduce((s, c) => s + Number(c.cost_usd), 0);
+  console.log(`   volaní: ${costs?.length ?? 0}, spolu: $${total.toFixed(6)}`);
+}
+
+main().then(() => process.exit(0)).catch((e) => { console.error('\n❌', e); process.exit(1); });
