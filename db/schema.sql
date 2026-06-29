@@ -54,3 +54,11 @@ alter table public.sources enable row level security;
 alter table public.queue enable row level security;
 alter table public.ai_cost_log enable row level security;
 alter table public.audit_log enable row level security;
+
+-- Privilégiá pre service_role (backend kľúč). Service_role obchádza RLS, ale
+-- potrebuje GRANT-y na tabuľky. Niektoré projekty ich nenastavia automaticky.
+grant usage on schema public to service_role;
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant all on sequences to service_role;
