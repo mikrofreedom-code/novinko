@@ -63,6 +63,13 @@ Cieľ: vyzerať ako profesionálny krypto denník (CoinDesk, Cointelegraph) bez 
 
 Learning Engine (`14`) je odložený, kým nebudú reálne publikačné dáta.
 
+**VSTUPNÁ STRANA — LIVE:**
+- `01-scout` ťahá CoinGecko (Layer A) + RSS/Atom feedy (Layer B/C).
+- **Pridať zdroj = pridať riadok do `lib/_shared/feeds.js`** (text) alebo upraviť `coingecko.js`.
+- `02-gateway`: Layer A prah `MIN_MOVE_PCT`, feedy `FEED_MAX_AGE_DAYS` + dedup.
+- `04-collector`: normalizuje oba zdroje na facts kontrakt.
+- Celá pipeline: `node --env-file=.env scripts/run-pipeline.mjs`.
+
 **ODLOŽENÉ (nezabudnúť):**
 - `06` newsworthiness brána je zatiaľ LEN software (prah `MIN_PCT_MOVE`, `ALWAYS_WORTHY`).
   Fáza 2 = AI (Haiku) na hraničné prípady — doplniť AŽ po reálnych dátach, na označenom
