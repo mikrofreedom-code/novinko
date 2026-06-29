@@ -11,6 +11,9 @@
 --------------------------------------------------------------------------------
   [ČISTÉ]  Fed / FOMC — úrokové rozhodnutia (cca 8x/rok). Oficiálne tlačové
            správy, majú RSS. Hýbe VŠETKÝMI rizikovými aktívami vrátane kryptu.
+           ⚠️ POZOR: úroková správa NEOBSAHUJE slovo "krypto", takže náš krypto
+           filter by ju ZAHODIL. Makro-správy (Fed/ECB sadzby) potrebujú vlastné
+           pravidlo "reportuj vždy" — samostatná malá úloha, urobiť osobitne.
   [ČISTÉ]  ECB — Európska centrálna banka (rozhodnutia, prejavy).
   [ČISTÉ]  ESMA — MiCA, európska krypto regulácia.
   [ČISTÉ]  Európska komisia — digitálne financie.
