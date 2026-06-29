@@ -1,0 +1,79 @@
+================================================================================
+  NOVINKO REDAKCIA — JEDNODUCHÝ PLÁN (čo máme, čo ďalej)
+  Písané po ľudsky, bez technického žargónu. Stav: 29. jún 2026
+================================================================================
+
+--------------------------------------------------------------------------------
+  ČO UŽ MÁŠ (a beží to samo)
+--------------------------------------------------------------------------------
+
+Máš funkčnú "robotickú redakciu", ktorá:
+  • každú hodinu sama stiahne krypto dáta a oficiálne oznámenia,
+  • sama zahodí 95 % nezaujímavého (lacno, bez AI),
+  • z toho dôležitého vytiahne fakty,
+  • napíše originálny slovenský článok,
+  • a počká na schválenie (nič sa nepublikuje samo).
+
+To je hotové a otestované na reálnych dátach. Toto je tvoj základ.
+Detailný popis je v súbore: STAV-PROJEKTU.txt
+
+
+--------------------------------------------------------------------------------
+  AKO TO ČÍTAŤ: čo robí náš produkt iným
+--------------------------------------------------------------------------------
+
+Nepredávame "veľkosť" (milióny článkov). Predávame DVE veci:
+  1. DÔVERYHODNOSŤ  — články sú právne čisté a pravdivé.
+  2. NÍZKE NÁKLADY   — 95 % roboty stojí nula.
+
+Takže všetko, čo budeme robiť ďalej, slúži len týmto dvom cieľom.
+Všetko ostatné (zložité "škálovacie" veci) odkladáme, kým nás k nim
+nedotlačí reálny rast. Teraz by nás len spomalili.
+
+
+--------------------------------------------------------------------------------
+  PLÁN ĎALŠÍCH KROKOV (v poradí, jednoducho)
+--------------------------------------------------------------------------------
+
+  TERAZ:
+    [ ] Nechať robota pár hodín/dní zbierať reálne články.
+        → Pozrieme spolu, čo vyrobil, a posúdime kvalitu na väčšej vzorke.
+        → TY nič nemusíš robiť, beží to samo.
+
+  KROK 1 — "Kontrola pravdy" (najdôležitejšie)
+    Pridáme krok, ktorý overí, že každý fakt v článku naozaj sedí
+    so zdrojom. Chráni nás to pred tým, aby AI vymyslela nepravdu.
+    PREČO: nepravdivá správa s naším menom je najväčšie riziko.
+
+  KROK 2 — Odolnosť + poistka na náklady
+    Keď nejaký zdroj alebo AI dočasne zlyhá, systém to skúsi znova
+    namiesto toho, aby správu stratil. Plus strop na denné náklady.
+    PREČO: aby sme nestrácali články a nemíňali omylom.
+
+  KROK 3 — Lacnejšie cenové články
+    Krátke "cena sa hla o X %" články nepotrebujú drahú AI vôbec —
+    spravíme ich šablónou. Drahú AI necháme len na skutočné texty.
+    PREČO: zníži náklady o desiatky percent.
+
+  KROK 4 — Pamäť o tom, čo vzniklo
+    Systém si bude pamätať, z čoho a ako každý článok vznikol.
+    PREČO: dôkaz pri prípadnom spore + základ pre budúce vylepšovanie.
+
+  KROK 5 — Dokončiť cestu k publikovaniu (kroky 08-12)
+    Korektúra → právna kontrola → SEO → obrázok → publikovanie.
+    Až potom sa článok reálne zverejní (stále s tvojím schválením).
+
+  PARALELNE (nie kód, ale dôležité):
+    [ ] Skontrolovať licencie zdrojov (či ich smieme komerčne použiť).
+
+
+--------------------------------------------------------------------------------
+  AKO TO BUDEME ROBIŤ ĎALEJ
+--------------------------------------------------------------------------------
+
+  • Vždy ti pred každým krokom po ľudsky poviem, ČO ideme robiť a PREČO.
+  • Pôjdeme pomalšie a po jednom kroku, nech máš prehľad.
+  • Ty nemusíš rozumieť kódu — stačí, že rozumieš, čo ktorý krok robí
+    pre produkt. Od toho som tu ja.
+
+================================================================================
