@@ -140,3 +140,19 @@ KEDY: až po dotiahnutí slovenčiny (výber, kontrola pravdy, publikovanie).
     pre produkt. Od toho som tu ja.
 
 ================================================================================
+
+--------------------------------------------------------------------------------
+  AKTUÁLNY REŽIM: ZBEROVÝ (AI_ENABLED=false) — od 29.6. večer
+--------------------------------------------------------------------------------
+
+Robot ZBIERA a VYBERÁ dôležité správy, ale NEPÍŠE ich (žiadny AI náklad).
+Dôvod: nemá zmysel platiť za články, ktoré zatiaľ nevidíme a nepublikujeme.
+
+  • Vybrané dôležité udalosti čakajú v stave 'clustered' (pripravené).
+  • Zapnúť písanie = v .env zmeniť AI_ENABLED na true.
+
+ČO TOTO ODOMKÝNA AKO ĎALŠIU PRIORITU:
+  Aby malo zmysel platiť za písanie, musíme vedieť články (1) VIDIEŤ a
+  (2) PUBLIKOVAŤ. Preto sa ďalej oplatí spraviť jednoduchý spôsob, ako
+  vybrané správy uvidíš (prehľad/zoznam), a potom cestu k publikovaniu.
+  Až potom má zmysel zapnúť platené písanie.
