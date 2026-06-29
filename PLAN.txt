@@ -54,7 +54,7 @@ nedotlačí reálny rast. Teraz by nás len spomalili.
     najdôležitejšie. Detail v sekcii ZDROJE nižšie.
     PREČO: bez toho nám chýbajú najpodstatnejšie typy správ.
 
-  KROK 3 — "Kontrola pravdy"
+  KROK 3 — "Kontrola pravdy"   ✅ HOTOVO
     Krok, ktorý overí, že každý fakt v článku naozaj sedí so zdrojom.
     Chráni nás, aby AI nevymyslela nepravdu.
     PREČO: nepravdivá správa s naším menom je najväčšie riziko.
