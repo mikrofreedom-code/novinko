@@ -100,6 +100,37 @@ Dnešné zdroje (ceny + vývojárske oznámenia) toto NEPOKRÝVAJÚ. Doplníme:
   (KROK 1) VYSOKÉ skóre — sú to typovo najdôležitejšie správy.
 
 --------------------------------------------------------------------------------
+  NA POROZMÝŠĽANIE (budúcnosť, nie teraz) — VIACJAZYČNÁ VERZIA
+--------------------------------------------------------------------------------
+
+Nápad: spraviť aj inojazyčné verzie (angličtina a/alebo ďalšie jazyky).
+
+PREČO TO IDE LACNO:
+  Náš Writer nepíše z cudzieho textu, ale z FAKTOV, ktoré sú jazykovo
+  neutrálne. Tie isté fakty → slovenský / anglický / český / poľský článok.
+  Je to "1x extrakcia faktov → N jazykov → N webov". Pridať jazyk =
+  v podstate ďalšia verzia Writera s parametrom jazyka. Architektúra je
+  na to už pripravená.
+
+DVA HÁČIKY (dôležité pri rozhodovaní):
+  1. ANGLIČTINA JE PRÁVNE RIZIKOVEJŠIA než slovenčina.
+     SK: anglický vstup → slovenský výstup = prirodzene transformatívne.
+     EN: anglický vstup → anglický výstup = menší odstup od originálu,
+     tenší bezpečnostný margin. Potrebovala by viac opatrnosti.
+  2. ANGLIČTINA = najpreplnenejší trh (CoinDesk, Cointelegraph, stovky
+     ďalších + AI agregátory). Slovenčina = malá, podobsluhovaná nika =
+     naša VÝHODA.
+
+SMER NA ZVÁŽENIE:
+  Naša sila nie je "slovenčina", ale "jeden faktový stroj → veľa jazykov".
+  Preto skôr ďalšie PODOBSLUHOVANÉ jazyky (čeština, poľština, maďarčina...)
+  než súboj s CoinDeskom v angličtine. Stredoeurópsky multi-jazyk je
+  obhájiteľnejší než ďalší anglický web.
+
+KEDY: až po dotiahnutí slovenčiny (výber, kontrola pravdy, publikovanie).
+  Toto je "Fáza 3" z architektonického review. Lacné pridať neskôr.
+
+--------------------------------------------------------------------------------
   AKO TO BUDEME ROBIŤ ĎALEJ
 --------------------------------------------------------------------------------
 
