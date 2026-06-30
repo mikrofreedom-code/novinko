@@ -96,14 +96,16 @@ async function fetchSheetItems(opts = {}) {
     })
     .filter(Boolean)
     .filter((it) => {
-      // dedup podľa titulku (poistka pri zobrazení)
-      const key = it.title.toLowerCase().trim();
+      // dedup podľa titulku V RÁMCI kategórie (ten istý evergreen smie byť aj na
+      // hlavnej 'krypto' aj v sekcii 'krypto-skola' — rôzne kategórie, nevyhadzuj).
+      const key = (it.category || "krypto") + "::" + it.title.toLowerCase().trim();
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
     .filter((it) => {
       if (opts.all) return true; // archív chce všetko
+      if (it.category === "krypto-skola") return true; // evergreen (Krypto škola) nevyprší
       const age = now - new Date(it.pubDate).getTime();
       return age <= maxAgeMs; // len mladšie ako 24h
     })

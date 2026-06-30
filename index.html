@@ -37,6 +37,7 @@
       --cat-eko: #1a4a2a;
       --cat-sport: #7a2a00;
       --cat-krypto: #b8860b;
+      --cat-krypto-skola: #0f7a5a;
       --hairline: var(--text);
     }
 
@@ -56,6 +57,7 @@
       --cat-eko: #6abf7f;
       --cat-sport: #d98c5f;
       --cat-krypto: #e0b34d;
+      --cat-krypto-skola: #4fd1a5;
       --hairline: #3a3a42;
     }
 
@@ -116,6 +118,7 @@
     .label-ekonomika { color: var(--cat-eko); }
     .label-sport { color: var(--cat-sport); }
     .label-krypto { color: var(--cat-krypto); }
+    .label-krypto-skola { color: var(--cat-krypto-skola); }
 
     /* ─── HERO FEATURED ─── */
     .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 28px; }
@@ -271,6 +274,7 @@
     </a>
     <nav class="nav-filters">
       <button class="filter-btn active" data-cat="krypto">Krypto</button>
+      <button class="filter-btn" data-cat="krypto-skola">Krypto škola</button>
       <button class="filter-btn" data-cat="all">Všetko</button>
       <button class="filter-btn" data-cat="slovensko">Slovensko</button>
       <button class="filter-btn" data-cat="svet">Svet</button>
@@ -446,7 +450,7 @@
     return `${Math.floor(diff/86400)} d`;
   }
 
-  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto' };
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', 'krypto-skola': 'Krypto škola' };
 
   function targetAttr(link) {
     return link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';

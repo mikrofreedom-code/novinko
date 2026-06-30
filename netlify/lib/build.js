@@ -90,6 +90,11 @@ async function buildAll() {
   const allItems = roundRobin(CAT_ORDER.map((cat) => [...perCat[cat]]));
   out.all = { items: allItems, count: allItems.length, fetched: now };
 
+  // Evergreen sekcia "Krypto škola" — nadčasové vysvetlivky, nevypršia.
+  // Vlastná záložka; zámerne NIE je v round-robin pre "all" (nezahlcuje homepage).
+  const skola = ownAll.filter((i) => i.category === "krypto-skola");
+  out["krypto-skola"] = { items: skola.slice(0, MAX_ITEMS), count: Math.min(skola.length, MAX_ITEMS), fetched: now };
+
   return out;
 }
 
