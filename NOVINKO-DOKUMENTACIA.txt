@@ -1,0 +1,323 @@
+================================================================================
+  NOVINKO — AI KRYPTO REDAKCIA (News OS)
+  Kompletná dokumentácia · na prezentáciu aj s technickými detailmi
+  Stav: 30. jún 2026 — ŽIVÁ, AUTONÓMNA PREVÁDZKA
+================================================================================
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  1. ČO TO JE — V JEDNEJ VETE                                               ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Samobežná AI redakcia, ktorá nepretržite sleduje krypto svet, sama rozpozná,
+čo stojí za článok, napíše originálnu slovenskú správu (vrátane obrázka)
+a automaticky ju publikuje na web novinko.netlify.app — bez zásahu človeka.
+
+Elevator pitch:
+„Robot-redaktor, ktorý za pár centov denne vyrába dôveryhodné, právne čisté
+ slovenské krypto spravodajstvo a sám ho zverejňuje na náš web."
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  2. ČO SYSTÉM AKTUÁLNE ROBÍ (LIVE)                                         ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  [✓] Beží SÁM každú hodinu (cron), bez obsluhy
+  [✓] Sleduje desiatky zdrojov: trhové dáta, regulátorov, firemné PR,
+      vývojárske oznámenia, ekosystémové novinky
+  [✓] Sám zahodí 95–97 % šumu LACNO (bez AI)
+  [✓] Z dôležitého vytiahne overiteľné FAKTY (právna ochrana)
+  [✓] OVERÍ pravdivosť — zahodí čísla, ktoré AI vymyslela
+  [✓] Vyberie len 2 NAJDÔLEŽITEJŠIE správy za hodinu (kvalita, nie kvantita)
+  [✓] Napíše ľudský, čitateľný slovenský článok (nie technický výpis)
+  [✓] Vygeneruje k nemu obrázok (Flux Schnell)
+  [✓] Automaticky PUBLIKUJE na živý web (objaví sa do ~10 min)
+  [✓] Sleduje náklady do centa + tvrdý denný strop
+
+  REÁLNE ČLÁNKY, ktoré systém už sám zverejnil:
+    • „Hashi na sieti Sui získal troch inštitucionálnych partnerov"
+    • „Bitget hlási rezervy na úrovni 127 % – krytie prevyšuje vklady"
+    • „ESMA zverejnila výročnú správu: MiCA, DORA aj umelá inteligencia"
+    • „Frontier Traders spúšťa obchodnú komunitu na blockchaine Solana"
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  3. AKO TO FUNGUJE — VÝROBNÁ LINKA                                         ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Každá správa prejde reťazou špecializovaných „agentov". Každý robí JEDNU vec
+a posunie prácu ďalšiemu zmenou stavu vo fronte. Žiaden agent nehovorí priamo
+s druhým — komunikujú výhradne cez túto frontu (Event Bus).
+
+  ZDROJE
+    │
+    ▼
+  [01 SCOUT]        Objaví a stiahne surové dáta (ceny + RSS/Atom feedy).
+    │ raw           Nič nehodnotí. AI: žiadna.
+    ▼
+  [02 GATEWAY]      Filtre PRED AI: prah pohybu, čerstvosť, krypto-kľúčové
+    │ filtered      slová (pri regulátoroch), duplicity. TU PADNE 95–97 %.
+    ▼               AI: žiadna.
+  [04 COLLECTOR]    Zjednotí rôzne zdroje do jedného formátu.
+    │ collected     AI: žiadna.
+    ▼
+  [05 VERIFICATION] *** PRÁVNY ZÁKLAD *** Vytiahne IBA fakty, pôvodný text
+    │ facts_ready   zahodí. + KONTROLA PRAVDY (čísla musia byť v zdroji).
+    ▼               AI: lacná (Haiku) len pri texte; čísla bez AI.
+  [06 CHIEF EDITOR] Zoskupí správy o tej istej udalosti, dá im SKÓRE
+    │ clustered     DÔLEŽITOSTI a vyberie, čo stojí za článok. AI: žiadna.
+    ▼
+  [07 WRITER]       Napíše originálny SK článok ĽUDSKÝM štýlom. Len 2
+    │ written       najdôležitejšie za beh. AI: silná (Sonnet) na text,
+    ▼               šablóna (zadarmo) na cenové.
+  [11 IMAGE]        Vygeneruje obrázok (Flux Schnell) + uloží do úložiska.
+    │ imaged        AI: obrazový model (Replicate).
+    ▼
+  [12 PUBLISHER]    Zapíše hotový článok do Google Sheetu živej stránky →
+    │ published     web ho zobrazí. AI: žiadna.
+    ▼
+  ŽIVÝ WEB (novinko.netlify.app, sekcia krypto)
+
+  (Kroky 08 Korektor, 09 Právne, 10 SEO sú pripravené ako kostry, zatiaľ
+   sa preskakujú — fakt-checking a čisté zdroje ich zatiaľ nahrádzajú.)
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  4. ZDROJE (odkiaľ berie správy)                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  DÁTA (čísla):        CoinGecko (top 100 mincí — cena, objem, kapitalizácia)
+  REGULÁCIE:           SEC, ESMA (MiCA), ECB — s krypto filtrom
+  PR / OZNÁMENIA:      Chainwire (krypto PR wire — partnerstvá, launche)
+  EKOSYSTÉM:           Solana news
+  GOVERNANCE:          Uniswap, Aave, Optimism, Arbitrum, Lido, Maker
+                       (zámerne nízka priorita — insider/technické)
+  VÝVOJ:               GitHub releases (Ethereum, Bitcoin Core, Solana,
+                       Chainlink, Uniswap, Lighthouse), Ethereum Foundation blog
+
+  Pridať zdroj = jeden riadok v konfigurácii. Plne škálovateľné.
+
+  ZÁSADA: staviame na PRIMÁRNYCH zdrojoch (oficiálne oznámenia, dáta).
+  Cudzie médiá by sme použili len s atribúciou „podľa X" — nie prepisom.
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  5. PREČO JE TO PRÁVNE BEZPEČNÉ (kľúčová výhoda)                           ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Bežné AI agregátory prepisujú cudzie články = riziko autorských práv.
+Náš systém to rieši architektúrou:
+
+  • REDAKTOR NIKDY NEVIDÍ PÔVODNÝ TEXT. Dostane len štruktúrované FAKTY.
+    Medzi zdrojom a redaktorom stojí „Fact Extractor" (krok 05), ktorý
+    pôvodné formulácie zahodí. Fakty a čísla nie sú chránené autorským právom.
+
+  • KONTROLA PRAVDY: každé číslo, ktoré fakt tvrdí, musí byť v zdroji —
+    inak sa zahodí. Chráni pred halucináciou (nepravdivou správou).
+
+  • PRIMÁRNE ZDROJE: oficiálne oznámenia firiem/regulátorov, nie prepis médií.
+
+  • VLASTNÝ OBRÁZOK: generovaný, nie prevzatý → žiadne licenčné riziko.
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  6. PREČO JE TO LACNÉ ("Software First, AI Second")                        ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+AI je najdrahšia vrstva, preto sa používa AŽ keď lacnejšie zlyhá.
+Poradie: bežný kód / pravidlá → Haiku (lacný) → Sonnet (silný).
+
+  REÁLNY PRÍKLAD: zo stoviek položiek za beh ~95 % padne ZADARMO softvérom;
+  drahá AI sa dotkne len tých pár vybraných.
+
+  Cenník:
+    • Cenový článok (šablóna):      $0,00  (žiadna AI)
+    • Textový článok (Haiku+Sonnet): ~$0,01
+    • Obrázok (Flux Schnell):        ~$0,003
+    • Pri tempe 2 články/hod:        rádovo ~$0,5–1 / DEŇ
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  7. NAPOJENIE NA ŽIVÚ STRÁNKU                                             ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Nestaviame nový web — pripájame sa na EXISTUJÚCE Novinko (novinko.netlify.app):
+
+  • Publisher zapíše článok do toho istého Google Sheetu, čo používa stránka.
+  • Stránka má vlastnú cache (Netlify Blobs), obnovuje sa každých 10 minút.
+  • Náš článok sa tak objaví v sekcii „krypto" medzi ostatným spravodajstvom.
+  • Obrázky ukladáme do toho istého úložiska (Supabase Storage), aby boli
+    zobrazené správne.
+
+  Naša redakcia je v podstate OVEĽA lepšia náhrada pôvodného generovania
+  krypto článkov (lepší výber, právna bezpečnosť, kontrola pravdy).
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  8. REDAKČNÉ NASTAVENIA (čo vieš ovládať)                                  ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  Všetko sa ladí jednou hodnotou (bez zásahu do kódu):
+
+  IMPORTANCE_BAR=50        Latka dôležitosti (vyššia = menej, dôležitejších)
+  MAX_ARTICLES_PER_RUN=2   Koľko článkov za hodinu (tempo)
+  WEB_MARKET_MIN_PCT=10    Cenové správy len pri pohybe >= toto %
+  DAILY_BUDGET_USD=3       Tvrdý denný strop nákladov
+  MIN_MOVE_PCT, FEED_MAX_AGE_DAYS …  ďalšie jemné prahy
+
+  Skóre dôležitosti počíta:
+    typ udalosti (regulácia/oznámenie HORE, governance DOLE) + veľkosť
+    pohybu + význam mince + likvidita + súbeh viacerých zdrojov.
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  9. BEZPEČNOSTNÉ POISTKY                                                   ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  • Strop nákladov $/deň — pri prekročení sa AI zastaví.
+  • Retry — pri dočasnom výpadku AI/zdroja to skúsi znova (nestratí správu).
+  • Kontrola pravdy — zahodí vymyslené čísla.
+  • Latka dôležitosti — nepustí von nepodstatné.
+  • Mazací nástroj — zlý článok zo živej stránky odstrániš jedným príkazom.
+  • Oddelené databázy — pipeline (vlastný Supabase) vs úložisko obrázkov.
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  10. TECHNOLÓGIE                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  • Node.js (agenti, pipeline)
+  • Supabase / PostgreSQL (fronta = Event Bus, logy nákladov, audit)
+  • Anthropic Claude API (Haiku = lacná vrstva, Sonnet = písanie)
+  • Replicate / Flux Schnell (obrázky)
+  • Google Sheets API (zápis článkov na živú stránku)
+  • cron (hodinová automatizácia), PM2 / Netlify (cieľové nasadenie)
+  • CoinGecko API + RSS/Atom feedy (zdroje)
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  11. ČO JE AUTOMATICKÉ vs RUČNÉ                                            ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  AUTOMATICKÉ (beží samo):
+    zber → filter → fakty → kontrola pravdy → výber → písanie → obrázok →
+    publikovanie na web → obnova cache. Všetko každú hodinu, bez teba.
+
+  RUČNÉ (podľa potreby):
+    • pridanie nového zdroja, doladenie nastavení (latka, tempo)
+    • odstránenie zlého článku zo stránky
+    • prepnutie tempa / pauza
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  12. ČO EŠTE NIE JE / ĎALŠIE KROKY (čestne)                                ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  • Kroky 08–10 (korektúra, právna kontrola, SEO) sú kostry — fakt-checking
+    a čisté zdroje ich zatiaľ nahrádzajú; doplnia sa pre vyššiu kvalitu.
+  • „Názorová" vrstva (čo kto povedal, komentáre) — najsilnejšia je v médiách
+    (cez atribúciu) alebo na Twitteri; zatiaľ riešime primárnymi zdrojmi.
+  • Vyjadrenia konkrétnych osôb (Saylor, CZ…) — cez ich firmy/úradné podania.
+  • Retencia DB (čistenie starých zahodených), občasné dolaďovanie kvality.
+  • MOŽNOSŤ: viacjazyčná verzia — fakty sú jazykovo neutrálne, takže ten istý
+    obsah vie vzniknúť aj v ďalších jazykoch (lacné rozšírenie).
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  13. ZHRNUTIE PRE PREZENTÁCIU (3 vety)                                     ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  1. Máme funkčnú, samobežnú AI redakciu, ktorá z reálnych zdrojov automaticky
+     vyrába a PUBLIKUJE slovenské krypto spravodajstvo na náš web — za centy denne.
+
+  2. Je postavená právne bezpečne: redaktor nikdy nevidí cudzí text, pracuje
+     len s faktami, overuje pravdivosť a generuje vlastné obrázky.
+
+  3. Vyberá len to najdôležitejšie (2 správy/hod), píše ľudským jazykom, a beží
+     na princípe „lacný softvér najprv, drahá AI až keď treba" — 95 % roboty
+     stojí nula.
+
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  14. PREVÁDZKA — užitočné príkazy                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  Priečinok: ~/Plocha/novinko-redakcia
+
+  Ručne spustiť celý cyklus:
+     node --env-file=.env scripts/run-pipeline.mjs
+
+  Pozrieť interný prehľad (čo robot vybral):
+     node --env-file=.env scripts/prehlad.mjs   → otvor prehlad.html
+
+  Zmazať zlý článok zo živej stránky:
+     node --env-file=.env scripts/unpublish.mjs "časť titulku"
+
+  Sledovať beh:
+     tail -f ~/Plocha/novinko-redakcia/logs/pipeline.log
+
+  Vypnúť/zapnúť: v súbore .env zmeň
+     AI_ENABLED=false   (zber bez písania)
+     ALLOW_PUBLISH=false (nepublikovať automaticky)
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  15. PRÍLOHA — DETAILNÝ ZOZNAM ZDROJOV                                     ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+  AKTÍVNE ZDROJE (robot ich sleduje práve teraz):
+
+  ── Trhové dáta (Layer A — čísla, bez AI) ──
+    CoinGecko        top 100 mincí (cena, 24h zmena, objem, kapitalizácia)
+                     api.coingecko.com
+
+  ── Regulátori / inštitúcie (Layer C — s krypto filtrom) ──
+    SEC              tlačové správy     www.sec.gov/news/pressreleases.rss
+    ESMA (MiCA)      novinky            www.esma.europa.eu/rss.xml
+    ECB              tlačové správy     www.ecb.europa.eu/rss/press.xml
+
+  ── PR / oznámenia firiem (Layer C) ──
+    Chainwire        krypto PR wire     chainwire.org/feed
+                     (partnerstvá, launche, listingy — určené na šírenie)
+
+  ── Ekosystém (Layer B) ──
+    Solana news      solana.com/news/rss.xml
+    Ethereum Foundation blog            blog.ethereum.org/en/feed.xml
+
+  ── Vývojárske vydania (Layer B — GitHub release feedy) ──
+    go-ethereum, Bitcoin Core, Solana, Uniswap v3-core, Chainlink, Lighthouse
+
+  ── Governance fóra (Layer C — zámerne NÍZKA priorita, insider) ──
+    Uniswap, Aave, Optimism, Arbitrum, Lido, MakerDAO
+    (zobrazujú sa skôr ako kontext; väčšina nejde do článkov)
+
+  ────────────────────────────────────────────────────────────────────────
+
+  PLÁNOVANÉ / NA ZVÁŽENIE (zoznam želaní — viď ZDROJE-WISHLIST.txt):
+
+  ── Makro / centrálne banky (rare, ale obrovský dopad) ──
+    Fed / FOMC (úrokové rozhodnutia), CFTC
+    Pozn.: makro správy nemajú slovo „krypto" → potrebujú vlastné pravidlo.
+
+  ── Burzy / firemné blogy ──
+    Coinbase, Binance, Kraken (oficiálne oznámenia)
+
+  ── Vplyvné osoby (cez ich firmy / úradné podania = čisté) ──
+    Michael Saylor → SEC podania (8-K) + Strategy blog
+    CZ / Binance   → Binance blog
+    Elon Musk      → SEC podania Tesly (osobné tweety = ťažké, neskôr)
+    Brian Armstrong (Coinbase), Vitalik Buterin (EF blog)
+
+  ── Médiá (len cez ATRIBÚCIU „podľa X", nie prepis) ──
+    CoinDesk, Cointelegraph, Decrypt, Blockworks… — vedomé rozhodnutie neskôr
+    (tu žije „čo kto povedal / názory" — ale je to sekundárny obsah)
+
+  ZÁSADA PRIORITY ZDROJOV:
+    1. Primárne dáta a oznámenia (čisté)  → používame
+    2. Úradné podania / firemné blogy      → používame / pridávame
+    3. Sekundárne médiá                    → len s atribúciou, vedome
+    4. Osobné sociálne siete (Twitter/X)   → drahé + citlivé, najneskôr
+
+
+================================================================================
+  Z nápadu po samobežný produkt na vlastnom webe. Novinko News OS.
+================================================================================
