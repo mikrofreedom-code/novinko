@@ -6,3 +6,4 @@ node_modules/
 logs/
 .pipeline.lock
 prehlad.html
+web/
