@@ -8,6 +8,7 @@
 
 import { db } from '../lib/_shared/queue.js';
 import { retryTransientErrors } from '../lib/_shared/retry.js';
+import { generatePrehlad } from './prehlad.mjs';
 import * as scout from '../lib/flow/01-scout.js';
 import * as gateway from '../lib/flow/02-event-gateway.js';
 import * as collector from '../lib/flow/04-collector.js';
@@ -57,6 +58,10 @@ async function main() {
     .select('agent, model, cost_usd').order('created_at', { ascending: false }).limit(10);
   const total = (costs ?? []).reduce((s, c) => s + Number(c.cost_usd), 0);
   console.log(`   volaní: ${costs?.length ?? 0}, spolu: $${total.toFixed(6)}`);
+
+  log('prehlad.html — obnovujem prehľad vybraných správ');
+  const p = await generatePrehlad();
+  console.log(`   vybraných: ${p.selected}, textových čaká: ${p.texts}, napísaných: ${p.written}`);
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error('\n❌', e); process.exit(1); });

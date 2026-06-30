@@ -5,3 +5,4 @@ node_modules/
 .netlify/
 logs/
 .pipeline.lock
+prehlad.html
