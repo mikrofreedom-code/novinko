@@ -16,6 +16,7 @@ import * as collector from '../lib/flow/04-collector.js';
 import * as verification from '../lib/flow/05-verification.js';
 import * as chiefEditor from '../lib/flow/06-chief-editor.js';
 import * as writer from '../lib/flow/07-writer.js';
+import * as image from '../lib/flow/11-image.js';
 
 const SKIP_SCOUT = process.argv.includes('--no-scout');
 const log = (s) => console.log(`\n\x1b[36m${s}\x1b[0m`);
@@ -42,6 +43,9 @@ async function main() {
 
   log('07-writer — Sonnet, len facts JSON → written');
   console.log('  ', await writer.runBatch());
+
+  log('11-image — Flux Schnell obrázok → imaged (pripravené na publikovanie)');
+  console.log('  ', await image.runBatch(30));
 
   log('Hotové články (status=written, posledné 4)');
   const { data: arts } = await db.from('queue')
