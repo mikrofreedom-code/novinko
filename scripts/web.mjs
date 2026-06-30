@@ -33,11 +33,25 @@ function card(r, featured = false) {
   </article>`;
 }
 
+// Editoriálne pravidlo: trhové (cenové) správy len pri VEĽKOM pohybe,
+// inak je ich priveľa. Ostatné typy (regulácie, oznámenia…) vždy.
+const MARKET_MIN_PCT = Number(process.env.WEB_MARKET_MIN_PCT ?? 10);
+const changeOf = (facts) => {
+  const f = (facts?.facts ?? []).find((x) => x.claim === 'change_24h_pct');
+  return typeof f?.value === 'number' ? Math.abs(f.value) : null;
+};
+
 export async function generateWeb() {
   const { data } = await db.from('queue')
-    .select('article, facts->importance, updated_at')
-    .eq('status', 'written').order('updated_at', { ascending: false }).limit(60);
-  const arts = (data ?? []).filter((r) => r.article);
+    .select('article, facts, updated_at')
+    .eq('status', 'written').order('updated_at', { ascending: false }).limit(80);
+  const arts = (data ?? []).filter((r) => r.article).filter((r) => {
+    if (r.article.event_type === 'price_move') {
+      const c = changeOf(r.facts);
+      return c != null && c >= MARKET_MIN_PCT; // len veľké pohyby
+    }
+    return true; // ostatné správy vždy
+  });
 
   const top = arts[0];
   const rest = arts.slice(1);
