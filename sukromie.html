@@ -30,10 +30,14 @@
     a { color: var(--accent); }
     strong { color: var(--text); }
     .box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--gold); padding: 16px 20px; margin: 16px 0; font-size: 0.92rem; }
+    .fill { background: #fff3cd; color: #7a5b00; padding: 0 5px; border-radius: 2px; font-weight: 600; font-size: 0.9em; }
     footer { border-top: 3px solid var(--text); margin-top: 48px; padding: 20px clamp(16px, 4vw, 48px); }
-    .footer-inner { max-width: 860px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-inner { max-width: 860px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
     .footer-logo { font-family: 'Libre Baskerville', serif; font-weight: 700; }
     .footer-logo span { color: var(--gold); }
+    .footer-links { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; }
+    .footer-links a { color: var(--text2); text-decoration: none; }
+    .footer-links a:hover { color: var(--accent); }
     .footer-text { font-size: 0.72rem; color: var(--muted); font-style: italic; }
   </style>
 </head>
@@ -53,8 +57,11 @@
 
   <h2>1. Prevádzkovateľ</h2>
   <div class="box">
-    <p style="margin:0"><strong>PowerLink s.r.o.</strong><br>
-    E-mail: <a href="mailto:powerlink@gmail.com">powerlink@gmail.com</a></p>
+    <p style="margin:0"><strong>Powerlink s. r. o.</strong><br>
+    IČO: 56 985 843<br>
+    Sídlo: Plášťovce 255, 935 82 Plášťovce<br>
+    E-mail: <a href="mailto:powerlink@gmail.com">powerlink@gmail.com</a><br>
+    Ďalšie vydavateľské údaje: <a href="/impressum.html">Tiráž</a></p>
   </div>
 
   <h2>2. Aké údaje spracúvame</h2>
@@ -118,6 +125,12 @@
 <footer>
   <div class="footer-inner">
     <span class="footer-logo">novinko<span>.</span></span>
+    <span class="footer-links">
+      <a href="/impressum.html">Tiráž</a>
+      <a href="/pravo-na-opravu.html">Právo na opravu</a>
+      <a href="/podmienky.html">Podmienky používania</a>
+      <a href="/sukromie.html">Ochrana súkromia</a>
+    </span>
     <span class="footer-text">© 2026 PowerLink s.r.o.</span>
   </div>
 </footer>
