@@ -38,6 +38,7 @@
       --cat-sport: #7a2a00;
       --cat-krypto: #b8860b;
       --cat-krypto-skola: #0f7a5a;
+      --cat-ai: #6d28d9;
       --hairline: var(--text);
     }
 
@@ -58,6 +59,7 @@
       --cat-sport: #d98c5f;
       --cat-krypto: #e0b34d;
       --cat-krypto-skola: #4fd1a5;
+      --cat-ai: #a78bfa;
       --hairline: #3a3a42;
     }
 
@@ -119,6 +121,7 @@
     .label-sport { color: var(--cat-sport); }
     .label-krypto { color: var(--cat-krypto); }
     .label-krypto-skola { color: var(--cat-krypto-skola); }
+    .label-ai { color: var(--cat-ai); }
 
     /* ─── HERO FEATURED ─── */
     .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 28px; }
@@ -274,6 +277,7 @@
     </a>
     <nav class="nav-filters">
       <button class="filter-btn active" data-cat="krypto">Krypto</button>
+      <button class="filter-btn" data-cat="ai">AI</button>
       <button class="filter-btn" data-cat="krypto-skola">Krypto škola</button>
       <button class="filter-btn" data-cat="all">Všetko</button>
       <button class="filter-btn" data-cat="slovensko">Slovensko</button>
@@ -434,6 +438,7 @@
       <a href="/archiv.html" style="color:var(--text2);text-decoration:none;font-weight:600">Archív</a>
       <a href="/impressum.html" style="color:var(--text2);text-decoration:none">Tiráž</a>
       <a href="/pravo-na-opravu.html" style="color:var(--text2);text-decoration:none">Právo na opravu</a>
+      <a href="/dsa.html" style="color:var(--text2);text-decoration:none">Nahlásenie obsahu</a>
       <a href="/podmienky.html" style="color:var(--text2);text-decoration:none">Podmienky</a>
       <a href="/sukromie.html" style="color:var(--text2);text-decoration:none">Ochrana súkromia</a>
       <span class="footer-text">© 2026 PowerLink s.r.o.</span>
@@ -453,7 +458,7 @@
     return `${Math.floor(diff/86400)} d`;
   }
 
-  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', 'krypto-skola': 'Krypto škola' };
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola' };
 
   function targetAttr(link) {
     return link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';

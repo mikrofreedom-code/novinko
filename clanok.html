@@ -200,6 +200,17 @@
     return `${Math.floor(diff/86400)} d`;
   }
 
+  // Plný dátum a čas zverejnenia (slovenský čas) — pri každom našom článku.
+  function formatDateTime(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('sk-SK', {
+      timeZone: 'Europe/Bratislava',
+      day: 'numeric', month: 'long', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  }
+
   function showMessage(msg) {
     document.getElementById("articleWrap").innerHTML =
       `<div class='loading'><span>${esc(msg)}</span></div>`;
@@ -241,7 +252,7 @@
         <div class="article-meta">
           <span class="cat-badge">${esc(category || "správy")}</span>
           <span class="article-source">${esc(sourceName)}</span>
-          <span class="article-date">${timeAgo(date)}</span>
+          <span class="article-date"><time datetime="${esc(date)}">${formatDateTime(date)}</time></span>
         </div>
         <h1 class="article-title">${esc(title)}</h1>
         ${imageUrl ? `<img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">` : ''}

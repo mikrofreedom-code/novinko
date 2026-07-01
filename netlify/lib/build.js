@@ -6,7 +6,7 @@ const { FEEDS } = require("./feeds");
 const { fetchSheetItems } = require("./sheets");
 const { CATS, MAX_ITEMS } = require("./config");
 
-const CAT_ORDER = ["slovensko", "svet", "ekonomika", "sport", "krypto"];
+const CAT_ORDER = ["slovensko", "svet", "ekonomika", "sport", "krypto", "ai"];
 
 async function gatherRss(categoryFilter = "all") {
   const feeds = categoryFilter === "all" ? FEEDS : FEEDS.filter((f) => f.category === categoryFilter);
