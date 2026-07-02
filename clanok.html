@@ -85,6 +85,9 @@
     }
 
     .article-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 5px; margin: 0 0 22px; display: block; background: var(--surface); }
+    .article-figure { margin: 0 0 22px; }
+    .article-figure .article-img { margin: 0 0 6px; }
+    .img-credit { font-size: 0.7rem; color: var(--muted); font-style: italic; }
     .article-content {
       font-size: 1rem; line-height: 1.8; color: #111;
     }
@@ -251,11 +254,11 @@
       document.getElementById("articleWrap").innerHTML = `
         <div class="article-meta">
           <span class="cat-badge">${esc(category || "správy")}</span>
-          <span class="article-source">${esc(sourceName)}</span>
+          <span class="article-source">tím Novinko</span>
           <span class="article-date"><time datetime="${esc(date)}">${formatDateTime(date)}</time></span>
         </div>
         <h1 class="article-title">${esc(title)}</h1>
-        ${imageUrl ? `<img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">` : ''}
+        ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy"><figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption></figure>` : ''}
         <div class="article-perex">${esc(perex)}</div>
         <div class="ad-slot">
           <!-- Google AdSense banner 728x90 -->

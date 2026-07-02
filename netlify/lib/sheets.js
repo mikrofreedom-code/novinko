@@ -90,7 +90,7 @@ async function fetchSheetItems(opts = {}) {
         description: perex || "",
         pubDate: date || new Date().toISOString(),
         image: imageUrl || "",
-        source: "Novinko SK",
+        source: "tím Novinko",
         category: category || "krypto",
       };
     })

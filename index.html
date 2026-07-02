@@ -580,7 +580,7 @@
     return link && link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
   }
   function ownImg(i, cls) {
-    return (i.image && i.source === 'Novinko SK') ? `<img src="${i.image}" alt="" class="${cls}" loading="lazy">` : '';
+    return (i.image && i.source === 'tím Novinko') ? `<img src="${i.image}" alt="" class="${cls}" loading="lazy">` : '';
   }
   function metaHTML(i) {
     return `<div class="news-meta"><span class="news-source">${i.source}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
@@ -613,8 +613,8 @@
     let pool = [];
     for (const id of LEAD_SECTIONS) pool = pool.concat(DATA[id] || []);
     pool.sort(byDateDesc);
-    return pool.find(x => x.source === 'Novinko SK' && x.image)
-        || pool.find(x => x.source === 'Novinko SK')
+    return pool.find(x => x.source === 'tím Novinko' && x.image)
+        || pool.find(x => x.source === 'tím Novinko')
         || pool[0] || null;
   }
 
