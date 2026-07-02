@@ -226,6 +226,18 @@
     .sidebar-head { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); border-top: 3px solid var(--text); padding-top: 8px; margin-bottom: 12px; }
     .tv-mini-symbol { height: 220px; border: 1px solid var(--border); margin-bottom: 14px; background: var(--surface); }
 
+    /* ─── DNES (meniny) + POČASIE ─── */
+    .today-date { font-size: 0.8rem; color: var(--text2); margin-bottom: 8px; text-transform: capitalize; }
+    .today-meniny { font-family: 'Libre Baskerville', serif; font-size: 1.05rem; color: var(--text); line-height: 1.3; margin-bottom: 5px; }
+    .today-meniny strong { color: var(--accent); }
+    .today-tomorrow { font-size: 0.72rem; color: var(--muted); font-style: italic; }
+    .wx-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-light); font-size: 0.86rem; }
+    .wx-row:last-child { border-bottom: none; }
+    .wx-ico { font-size: 1.1rem; width: 22px; text-align: center; }
+    .wx-city { flex: 1; color: var(--text2); }
+    .wx-temp { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .wx-credit { font-size: 0.6rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
     .trending-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border-light); text-decoration: none; cursor: pointer; }
     .trending-item:last-child { border-bottom: none; }
     .trending-item:hover .trending-text { color: var(--accent); }
@@ -464,6 +476,9 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
+    <div class="sidebar-block" id="sbToday"></div>
+    <div class="sidebar-block" id="sbWeather" style="display:none"></div>
+
     <div class="sidebar-block" id="sbCrypto" style="display:none">
       <div class="sidebar-head">Bitcoin</div>
       <div class="tv-mini-symbol">
@@ -749,6 +764,60 @@
     set('tickerEkonomika', view === 'ekonomika');
     set('sbCrypto', view === 'krypto');
     set('sbEkonomika', view === 'ekonomika');
+    set('sbWeather', view === 'all');   // počasie len na domovskej
+  }
+
+  // ─── DNES: slovenský kalendár mien (statický, funguje bez API) ───
+  const MENINY = {
+    1: ['Nový rok','Alexandra','Daniela','Drahoslav','Andrea','Antónia','Bohuslava','Severín','Alexej','Dáša','Malvína','Ernest','Rastislav','Radovan','Dobroslav','Kristína','Nataša','Bohdana','Drahomíra','Dalibor','Vincent','Zora','Miloš','Timotej','Gejza','Tamara','Bohuš','Alfonz','Gašpar','Ema','Emil'],
+    2: ['Tatiana','Erika','Blažej','Veronika','Agáta','Dorota','Vanda','Zoja','Zdenko','Gabriela','Dezider','Perla','Arpád','Valentín','Pravoslav','Ida','Miloslava','Jaromír','Vlasta','Lívia','Eleonóra','Etela','Roman','Matej','Frederik','Viktor','Alexander','Zlatica','Radomír'],
+    3: ['Albín','Anežka','Bohumil','Kazimír','Fridrich','Radoslav','Tomáš','Alan','Františka','Bruno','Angela','Gregor','Vlastimil','Matilda','Svetlana','Boleslav','Ľubica','Eduard','Jozef','Víťazoslav','Blahoslav','Beňadik','Adrián','Gabriel','Marián','Emanuel','Alena','Soňa','Miroslav','Vieroslava','Benjamín'],
+    4: ['Hugo','Zita','Richard','Izidor','Miroslava','Irena','Zoltán','Albert','Milena','Igor','Július','Estera','Aleš','Justína','Fedor','Dana','Rudolf','Valér','Jela','Marcel','Ervín','Slavomír','Vojtech','Juraj','Marek','Jaroslava','Jaroslav','Jarmila','Lea','Anastázia'],
+    5: ['Sviatok práce','Žigmund','Galina','Florián','Lesana','Hermína','Monika','Ingrida','Roland','Viktória','Blažena','Pankrác','Servác','Bonifác','Žofia','Svetozár','Gizela','Viola','Gertrúda','Bernard','Zina','Júlia','Želmíra','Ela','Urban','Dušan','Iveta','Viliam','Vilma','Ferdinand','Petronela'],
+    6: ['Žaneta','Xénia','Karolína','Lenka','Laura','Norbert','Róbert','Medard','Stanislava','Margaréta','Dobroslava','Zlatko','Anton','Vasil','Vít','Blanka','Adolf','Vratislav','Alfréd','Valéria','Alojz','Paulína','Sidónia','Ján','Tadeáš','Adriána','Ladislav','Beáta','Peter a Pavol','Melánia'],
+    7: ['Diana','Berta','Miloslav','Prokop','Cyril a Metod','Patrik','Oliver','Ivan','Lujza','Amália','Milota','Nina','Margita','Kamil','Henrich','Rút','Bohuslav','Kamila','Dušana','Iľja','Daniel','Magdaléna','Oľga','Vladimír','Jakub','Anna','Božena','Krištof','Marta','Libuša','Ignác'],
+    8: ['Božidara','Gustáv','Jerguš','Dominik','Hortenzia','Jozefína','Štefánia','Oskar','Ľubomíra','Vavrinec','Zuzana','Darina','Ľubomír','Mojmír','Marcela','Leonard','Milica','Elena','Lýdia','Anabela','Jana','Tichomír','Filip','Bartolomej','Ľudovít','Samuel','Silvia','Augustín','Nikola','Ružena','Nora'],
+    9: ['Drahoslava','Linda','Belo','Rozália','Regína','Alica','Marianna','Miriam','Martina','Oleg','Bystrík','Mária','Ctibor','Ľudomil','Jolana','Ľudmila','Olympia','Eugénia','Konštantín','Ľuboslav','Matúš','Móric','Zdenka','Ľuboš','Vladislav','Edita','Cyprián','Václav','Michal','Jarolím'],
+    10: ['Arnold','Levoslav','Stela','František','Viera','Natália','Eliška','Brigita','Dionýz','Slavomíra','Valentína','Maximilián','Koloman','Boris','Terézia','Vladimíra','Hedviga','Lukáš','Kristián','Vendelín','Uršuľa','Sergej','Alojzia','Kvetoslava','Aurel','Demeter','Sabína','Dobromila','Klára','Šimon','Aurélia'],
+    11: ['Denisa','Pamiatka zosnulých','Hubert','Karol','Imrich','Renáta','René','Bohumír','Teodor','Tibor','Martin','Svätopluk','Stanislav','Irma','Leopold','Agnesa','Klaudia','Eugen','Alžbeta','Félix','Elvíra','Cecília','Klement','Emília','Katarína','Kornel','Milan','Henrieta','Vratko','Ondrej'],
+    12: ['Edmund','Bibiána','Oldrich','Barbora','Oto','Mikuláš','Ambróz','Marína','Izabela','Radúz','Hilda','Otília','Lucia','Branislava','Ivica','Albína','Kornélia','Sláva','Judita','Dagmara','Bohdan','Adela','Nadežda','Adam a Eva','Vianoce','Štefan','Filoména','Ivana','Milada','Dávid','Silvester'],
+  };
+  function meninyFor(d) { const a = MENINY[d.getMonth() + 1] || []; return a[d.getDate() - 1] || ''; }
+  function renderToday() {
+    const el = document.getElementById('sbToday'); if (!el) return;
+    const now = new Date();
+    const dstr = now.toLocaleDateString('sk-SK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const tmr = new Date(now.getTime() + 86400000);
+    el.innerHTML = `<div class="sidebar-head">Dnes</div>
+      <div class="today-date">${dstr}</div>
+      <div class="today-meniny">Meniny má <strong>${meninyFor(now)}</strong></div>
+      <div class="today-tomorrow">Zajtra: ${meninyFor(tmr)}</div>`;
+  }
+
+  // ─── POČASIE: open-meteo (zadarmo, bez kľúča) ───
+  const WX_CITIES = [
+    { n: 'Bratislava', la: 48.15, lo: 17.11 }, { n: 'Košice', la: 48.72, lo: 21.26 },
+    { n: 'Žilina', la: 49.22, lo: 18.74 }, { n: 'B. Bystrica', la: 48.74, lo: 19.15 },
+    { n: 'Prešov', la: 49.00, lo: 21.24 },
+  ];
+  function wxIcon(c) {
+    if (c === 0) return '☀️'; if (c <= 3) return '⛅'; if (c === 45 || c === 48) return '🌫️';
+    if (c >= 51 && c <= 67) return '🌧️'; if (c >= 71 && c <= 77) return '❄️';
+    if (c >= 80 && c <= 82) return '🌦️'; if (c >= 95) return '⛈️'; return '☁️';
+  }
+  async function loadWeather() {
+    const el = document.getElementById('sbWeather'); if (!el) return;
+    try {
+      const la = WX_CITIES.map(c => c.la).join(','), lo = WX_CITIES.map(c => c.lo).join(',');
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=temperature_2m,weather_code&timezone=Europe%2FBratislava`);
+      const d = await r.json();
+      const arr = Array.isArray(d) ? d : [d];
+      el.innerHTML = `<div class="sidebar-head">Počasie</div>` + WX_CITIES.map((c, i) => {
+        const cur = (arr[i] && arr[i].current) ? arr[i].current : {};
+        const t = cur.temperature_2m;
+        return `<div class="wx-row"><span class="wx-ico">${wxIcon(cur.weather_code)}</span><span class="wx-city">${c.n}</span><span class="wx-temp">${t != null ? Math.round(t) + '°' : '–'}</span></div>`;
+      }).join('') + `<div class="wx-credit">Dáta: Open-Meteo</div>`;
+    } catch (e) { el.innerHTML = ''; }
   }
   function stampUpdate() {
     document.getElementById('lastUpdate').textContent = 'Aktualizované ' + new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
@@ -839,6 +908,8 @@
   themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
 
   // ─── INIT ───
+  renderToday();
+  loadWeather();
   (async () => { await loadAll(); go('all'); stampUpdate(); })();
 </script>
 
