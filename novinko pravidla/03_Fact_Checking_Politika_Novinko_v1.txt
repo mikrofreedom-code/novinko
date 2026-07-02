@@ -1,0 +1,69 @@
+NOVINKO Dokument 03
+
+FACT-CHECKING POLITIKA Verzia 1.0
+
+1.  ÚČEL Stanoviť jednotný proces overovania informácií pred
+    publikovaním.
+
+2.  ZÁSADY
+
+-   Presnosť pred rýchlosťou.
+-   Každé tvrdenie musí byť overiteľné.
+-   AI nenahrádza overovanie faktov.
+
+3.  KLASIFIKÁCIA ZDROJOV A – Oficiálne inštitúcie B – Regulátori a
+    verejné registre C – Overené médiá D – Odborné organizácie E –
+    Sociálne siete (iba oficiálne účty) F – Neoverené zdroje
+    (nepublikovať bez potvrdenia)
+
+4.  PRAVIDLÁ OVEROVANIA
+
+-   Bežná správa: minimálne 1 dôveryhodný zdroj.
+-   Citlivá správa: minimálne 2 nezávislé zdroje.
+-   Breaking News: potvrdenie alebo jasné označenie ako oficiálne
+    vyhlásenie.
+-   Obvinenia: vyžiadať stanovisko druhej strany, ak je to možné.
+
+5.  KONTROLNÝ ZOZNAM □ Zdroj identifikovaný □ Dátum a čas overené □ Mená
+    overené □ Čísla overené □ Citácie presné □ Kontext zachovaný □
+    Duplicity skontrolované
+
+6.  AI PRAVIDLÁ AI musí:
+
+-   označiť neistotu,
+-   uviesť použité zdroje,
+-   zastaviť publikovanie pri vysokom riziku.
+
+AI nesmie: - dopĺňať chýbajúce fakty, - vytvárať citácie, - meniť význam
+informácií.
+
+7.  RIZIKOVÉ TÉMY Vyžadujú zvýšenú kontrolu:
+
+-   politika,
+-   kriminalita,
+-   súdy,
+-   zdravotníctvo,
+-   financie,
+-   maloletí.
+
+8.  OPRAVY Po zistení chyby:
+
+9.  opraviť,
+
+10. zaznamenať dôvod,
+
+11. uložiť novú verziu,
+
+12. zachovať históriu.
+
+13. AUDIT Ku každému článku evidovať:
+
+-   zdroje,
+-   dátum overenia,
+-   použitý AI model,
+-   prompt,
+-   výsledok kontroly,
+-   históriu zmien.
+
+10. REVÍZIA Politika sa kontroluje minimálne raz ročne alebo pri zmene
+    legislatívy.

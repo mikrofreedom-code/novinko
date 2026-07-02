@@ -10,12 +10,14 @@ import { db } from '../lib/_shared/queue.js';
 import { retryTransientErrors } from '../lib/_shared/retry.js';
 import { generatePrehlad } from './prehlad.mjs';
 import { generateWeb } from './web.mjs';
+import * as evergreen from '../lib/_shared/evergreen.js';
 import * as scout from '../lib/flow/01-scout.js';
 import * as gateway from '../lib/flow/02-event-gateway.js';
 import * as collector from '../lib/flow/04-collector.js';
 import * as verification from '../lib/flow/05-verification.js';
 import * as chiefEditor from '../lib/flow/06-chief-editor.js';
 import * as writer from '../lib/flow/07-writer.js';
+import * as marketRecap from '../lib/flow/13-market-recap.js';
 import * as image from '../lib/flow/11-image.js';
 import * as publisher from '../lib/flow/12-publisher.js';
 
@@ -45,11 +47,19 @@ async function main() {
   log('07-writer — Sonnet, len facts JSON → written');
   console.log('  ', await writer.runBatch());
 
+  log('13-market-recap — denný prehľad trhu (raz ráno) → written');
+  try { console.log('  ', await marketRecap.run()); }
+  catch (e) { console.log('   ⚠️ recap preskočený:', e.message); }
+
   log('11-image — Flux Schnell obrázok → imaged (pripravené na publikovanie)');
   console.log('  ', await image.runBatch(30));
 
   log('12-publisher — zverejni top 2 na živú stránku → published');
   console.log('  ', await publisher.runBatch());
+
+  log('evergreen — Krypto škola: raz za ~2–3 dni vytiahni vysvetlivku na hlavnú');
+  try { console.log('  ', await evergreen.rotate()); }
+  catch (e) { console.log('   ⚠️ evergreen preskočený:', e.message); }
 
   log('Hotové články (status=written, posledné 4)');
   const { data: arts } = await db.from('queue')
