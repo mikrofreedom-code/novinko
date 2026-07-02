@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Novinko — Slovenské krypto noviny</title>
-  <meta name="description" content="Slovenské krypto správy, analýzy trhu a aktuálne dianie zo sveta kryptomien. Bitcoin, Ethereum, Solana a viac." />
+  <title>Novinko — krypto, AI a slovenské spravodajstvo z primárnych zdrojov</title>
+  <meta name="description" content="Neutrálne spravodajstvo z primárnych zdrojov — krypto, umelá inteligencia, Slovensko, svet, ekonomika a šport." />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Novinko — Slovenské krypto noviny" />
-  <meta property="og:description" content="Krypto správy a analýzy trhu pre slovenského čitateľa." />
+  <meta property="og:title" content="Novinko — spravodajstvo z primárnych zdrojov" />
+  <meta property="og:description" content="Krypto, AI a slovenské správy — neutrálne, z primárnych zdrojov." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://novinko.netlify.app" />
 
@@ -123,8 +123,8 @@
     .label-krypto-skola { color: var(--cat-krypto-skola); }
     .label-ai { color: var(--cat-ai); }
 
-    /* ─── HERO FEATURED ─── */
-    .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 28px; }
+    /* ─── HERO / LEAD ─── */
+    .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 8px; }
     .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
     .hero-eyebrow-line { flex: 1; height: 1px; background: var(--border); }
     .hero-eyebrow-text { font-size: 0.7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
@@ -139,16 +139,55 @@
     .story-byline-time { font-style: italic; }
 
     .story-featured-right { display: flex; flex-direction: column; }
-    .story-secondary { padding: 0 0 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: block; }
+    .story-secondary { padding: 0 0 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: flex; gap: 12px; }
     .story-secondary:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .story-headline-md { font-family: 'Libre Baskerville', serif; font-size: 1.15rem; font-weight: 700; line-height: 1.28; color: var(--text); margin-bottom: 8px; transition: color 0.15s; }
     .story-secondary:hover .story-headline-md { color: var(--accent); }
     .story-featured-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin-bottom: 16px; display: block; background: var(--surface); }
-    .story-secondary { display: flex; gap: 12px; }
     .story-secondary-img { width: 88px; height: 64px; object-fit: cover; border-radius: 3px; flex-shrink: 0; background: var(--surface); }
     .story-secondary-text { flex: 1; min-width: 0; }
 
-    /* ─── CHART SECTION ─── */
+    /* ─── MAGAZINE SECTION BLOCKS (render engine) ─── */
+    .mag-sec { margin: 34px 0 8px; }
+    .mag-head { display: flex; align-items: baseline; justify-content: space-between; border-top: 3px solid var(--text); padding-top: 10px; margin-bottom: 18px; gap: 12px; }
+    .mag-sec-title { font-family: 'Source Sans 3', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); display: flex; align-items: center; gap: 9px; }
+    .mag-dot { font-size: 0.85rem; line-height: 1; }
+    .mag-more { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; letter-spacing: 0.5px; }
+    .mag-more:hover { color: var(--accent); }
+
+    .mag-tier1 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; align-items: start; }
+    .mag-feature { text-decoration: none; display: block; }
+    .mag-feature-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin-bottom: 14px; display: block; background: var(--surface); }
+    .mag-feature-title { font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: var(--text); margin-bottom: 10px; letter-spacing: -0.3px; transition: color 0.15s; }
+    .mag-feature:hover .mag-feature-title { color: var(--accent); }
+    .mag-feature-perex { font-size: 0.92rem; color: var(--text2); line-height: 1.6; font-weight: 300; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .mag-side { display: flex; flex-direction: column; }
+    .mag-side-item { text-decoration: none; padding: 0 0 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border-light); display: block; }
+    .mag-side-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .mag-side-title { font-family: 'Libre Baskerville', serif; font-size: 1.02rem; font-weight: 700; line-height: 1.3; color: var(--text); margin-bottom: 5px; transition: color 0.15s; }
+    .mag-side-item:hover .mag-side-title { color: var(--accent); }
+
+    .mag-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+    .mag-cell { text-decoration: none; padding: 12px 0; border-bottom: 1px solid var(--border-light); display: block; }
+    .mag-cell-title { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; line-height: 1.3; color: var(--text); margin-bottom: 5px; transition: color 0.15s; }
+    .mag-cell:hover .mag-cell-title { color: var(--accent); }
+
+    .news-meta { font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .news-source { font-weight: 600; color: var(--text2); }
+    .news-time { font-style: italic; }
+
+    /* ─── KRYPTO ŠKOLA (edu blok) ─── */
+    .skola-section { margin: 34px 0 8px; }
+    .skola-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .skola-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.15s; }
+    .skola-card:hover { border-color: var(--cat-krypto-skola); }
+    .skola-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .skola-card-body { padding: 14px 16px; }
+    .skola-card-title { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; margin: 6px 0; }
+    .skola-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    @media (max-width: 900px) { .skola-grid { grid-template-columns: 1fr; } }
+
+    /* ─── CHART SECTION (len v sekcii Krypto) ─── */
     .market-section { margin-bottom: 36px; }
     .tv-chart-wrap { height: 460px; border: 1px solid var(--border); background: var(--surface); }
     .tv-overview-wrap { height: 400px; border: 1px solid var(--border); background: var(--surface); margin-top: 1px; }
@@ -158,33 +197,28 @@
     .section-head-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); }
     .section-head-count { font-size: 0.68rem; color: var(--muted); margin-left: auto; font-style: italic; }
 
-    /* ─── NEWS LIST ─── */
+    /* ─── NEWS LIST (sekčný pohľad) ─── */
     .news-list { display: flex; flex-direction: column; }
     .news-row { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border-light); }
     .news-item { padding: 16px 20px 16px 0; border-right: 1px solid var(--border-light); text-decoration: none; display: block; transition: background 0.1s; }
     .news-item:last-child { border-right: none; padding-left: 20px; padding-right: 0; }
-    .news-item:hover { background: #f5f3ee; }
     .news-item:hover .news-title { color: var(--accent); }
     .news-title { font-family: 'Libre Baskerville', serif; font-size: 0.92rem; font-weight: 700; line-height: 1.35; color: var(--text); margin-bottom: 4px; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .news-meta { font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
-    .news-source { font-weight: 600; color: var(--text2); }
     .news-item-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 3px; margin-bottom: 10px; display: block; background: var(--surface); }
     .news-item-body { display: block; }
-    .news-time { font-style: italic; }
 
-    /* ─── WORLD STRIP (ostatné sekcie) ─── */
-    .world-strip { margin-top: 40px; border-top: 3px double var(--text); padding-top: 20px; }
-    .world-strip-head { font-family: 'Libre Baskerville', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
-    .world-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-    .world-col { padding: 0 16px; border-right: 1px solid var(--border-light); }
-    .world-col:first-child { padding-left: 0; }
-    .world-col:last-child { border-right: none; padding-right: 0; }
-    .world-col-title { font-size: 0.62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--text); }
-    .world-item { display: block; text-decoration: none; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
-    .world-item:last-child { border-bottom: none; }
-    .world-item-title { font-size: 0.82rem; color: var(--text); line-height: 1.35; font-weight: 600; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .world-item:hover .world-item-title { color: var(--accent); }
-    .world-item-time { font-size: 0.62rem; color: var(--muted); font-style: italic; margin-top: 3px; }
+    /* ─── DIGEST (tier 3: svet/ekonomika/šport) ─── */
+    .digest-grid { display: grid; gap: 0; }
+    .digest-col { padding: 0 16px; border-right: 1px solid var(--border-light); }
+    .digest-col:first-child { padding-left: 0; }
+    .digest-col:last-child { border-right: none; padding-right: 0; }
+    .digest-col-title { font-size: 0.62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--text); }
+    .digest-col-title a { color: inherit; text-decoration: none; }
+    .digest-item { display: block; text-decoration: none; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+    .digest-item:last-child { border-bottom: none; }
+    .digest-item-title { font-size: 0.82rem; color: var(--text); line-height: 1.35; font-weight: 600; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .digest-item:hover .digest-item-title { color: var(--accent); }
+    .digest-item-time { font-size: 0.62rem; color: var(--muted); font-style: italic; margin-top: 3px; }
 
     /* ─── SIDEBAR ─── */
     .sidebar { position: sticky; top: 0; padding-top: 28px; }
@@ -225,16 +259,16 @@
     @media (max-width: 800px) {
       .story-featured { grid-template-columns: 1fr; gap: 24px; }
       .story-featured-right { border-top: 1px solid var(--border); padding-top: 20px; }
-      .world-grid { grid-template-columns: 1fr 1fr; gap: 16px 0; }
-      .world-col:nth-child(2) { border-right: none; }
-      .world-col:nth-child(3) { padding-left: 0; }
+      .mag-tier1 { grid-template-columns: 1fr; gap: 20px; }
+      .mag-grid2 { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
       .story-headline-xl { font-size: 1.75rem; }
+      .mag-feature-title { font-size: 1.3rem; }
       .news-row { grid-template-columns: 1fr; }
       .news-item { border-right: none; padding-left: 0; }
-      .world-grid { grid-template-columns: 1fr; }
-      .world-col { border-right: none; padding-left: 0; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; margin-bottom: 12px; }
+      .digest-grid { grid-template-columns: 1fr !important; }
+      .digest-col { border-right: none; padding-left: 0; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; margin-bottom: 12px; }
       .tv-chart-wrap { height: 320px; }
       .nav-filters { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(13,13,13,0.97); backdrop-filter: blur(14px); border-top: 1px solid #333; padding: 6px 8px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-left: none; margin-left: 0; display: flex; flex-wrap: nowrap; }
       .nav-filters::-webkit-scrollbar { display: none; }
@@ -273,13 +307,12 @@
   <div class="masthead-inner">
     <a href="/" class="logo-wrap">
       <span class="logo">novinko<span class="logo-dot">.</span></span>
-      <span class="logo-tagline">Slovenské krypto noviny</span>
+      <span class="logo-tagline">z primárnych zdrojov</span>
     </a>
     <nav class="nav-filters">
-      <button class="filter-btn active" data-cat="krypto">Krypto</button>
+      <button class="filter-btn active" data-cat="all">Všetko</button>
+      <button class="filter-btn" data-cat="krypto">Krypto</button>
       <button class="filter-btn" data-cat="ai">AI</button>
-      <button class="filter-btn" data-cat="krypto-skola">Krypto škola</button>
-      <button class="filter-btn" data-cat="all">Všetko</button>
       <button class="filter-btn" data-cat="slovensko">Slovensko</button>
       <button class="filter-btn" data-cat="svet">Svet</button>
       <button class="filter-btn" data-cat="ekonomika">Ekonomika</button>
@@ -323,7 +356,7 @@
 <!-- SECTION NAV -->
 <div class="section-nav">
   <div class="section-nav-inner">
-    <span class="edition-label">Krypto správy pre slovenského čitateľa</span>
+    <span class="edition-label">Neutrálne spravodajstvo z primárnych zdrojov</span>
     <span class="last-update" id="lastUpdate"></span>
   </div>
 </div>
@@ -331,7 +364,7 @@
 <!-- MAIN LAYOUT -->
 <div class="page-layout">
   <main>
-    <!-- HERO -->
+    <!-- HERO / LEAD -->
     <div class="hero-section">
       <div class="hero-eyebrow">
         <span class="hero-eyebrow-text">Hlavná správa</span>
@@ -342,8 +375,8 @@
       </div>
     </div>
 
-    <!-- TRADINGVIEW ADVANCED CHART -->
-    <div class="market-section" id="chartSection">
+    <!-- CRYPTO CHART (len v sekcii Krypto) -->
+    <div class="market-section" id="chartSection" style="display:none">
       <div class="section-head">
         <span class="section-head-title">Trh naživo — Bitcoin</span>
       </div>
@@ -368,11 +401,14 @@
       </div>
     </div>
 
-    <!-- KRYPTO NEWS LIST -->
-    <div id="newsListSection"></div>
+    <!-- MAGAZÍNOVÉ SEKČNÉ BLOKY (domov) -->
+    <div id="magSections"></div>
 
-    <!-- TRADINGVIEW MARKET OVERVIEW (CRYPTO) -->
-    <div class="market-section" id="screenerSection">
+    <!-- SEKČNÝ ZOZNAM (pohľad na jednu sekciu) -->
+    <div id="sectionList"></div>
+
+    <!-- CRYPTO SCREENER (len v sekcii Krypto) -->
+    <div class="market-section" id="screenerSection" style="display:none">
       <div class="section-head">
         <span class="section-head-title">Prehľad kryptotrhu</span>
       </div>
@@ -395,8 +431,8 @@
       </div>
     </div>
 
-    <!-- WORLD STRIP (ostatné sekcie) -->
-    <div class="world-strip" id="worldStrip"></div>
+    <!-- KRYPTO ŠKOLA (edu blok, len domov) -->
+    <div class="skola-section" id="skolaSection"></div>
   </main>
 
   <!-- SIDEBAR -->
@@ -434,7 +470,7 @@
 <footer>
   <div class="footer-inner">
     <span class="footer-logo">novinko<span>.</span></span>
-    <span style="display:flex;gap:18px;align-items:center;font-size:0.78rem">
+    <span style="display:flex;gap:18px;align-items:center;font-size:0.78rem;flex-wrap:wrap">
       <a href="/archiv.html" style="color:var(--text2);text-decoration:none;font-weight:600">Archív</a>
       <a href="/impressum.html" style="color:var(--text2);text-decoration:none">Tiráž</a>
       <a href="/pravo-na-opravu.html" style="color:var(--text2);text-decoration:none">Právo na opravu</a>
@@ -447,172 +483,266 @@
 </footer>
 
 <script>
-  let allItems = [];
-  let currentCat = 'krypto';
+  // ─── KONFIGURÁCIA SEKCIÍ (render engine sa riadi TÝMTO) ───
+  // Pridať sekciu = pridať riadok. Povýšiť (napr. Slovensko) = zmeniť tier.
+  const DOMOV = [
+    { id: 'krypto',    label: 'Krypto',    tier: 1 },
+    { id: 'ai',        label: 'AI',        tier: 1 },
+    { id: 'slovensko', label: 'Slovensko', tier: 2 },   // rastie → časom tier 1
+    { id: 'svet',      label: 'Svet',      tier: 3 },
+    { id: 'ekonomika', label: 'Ekonomika', tier: 3 },
+    { id: 'sport',     label: 'Šport',     tier: 3 },
+  ];
+  const EDU = { id: 'krypto-skola', label: 'Krypto škola' };
+  const LEAD_SECTIONS = ['krypto', 'ai', 'slovensko'];  // z čoho sa vyberá hlavná správa (majú/budú mať obrázky)
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola' };
 
+  let DATA = {};          // { cat: items[] }
+  let currentView = 'all';
+
+  // ─── HELPERY ───
   function timeAgo(iso) {
     const diff = (Date.now() - new Date(iso)) / 1000;
+    if (isNaN(diff)) return '';
     if (diff < 60) return 'práve teraz';
     if (diff < 3600) return `${Math.floor(diff/60)} min`;
     if (diff < 86400) return `${Math.floor(diff/3600)} hod`;
     return `${Math.floor(diff/86400)} d`;
   }
-
-  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola' };
-
   function targetAttr(link) {
-    return link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
+    return link && link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
+  }
+  function ownImg(i, cls) {
+    return (i.image && i.source === 'Novinko SK') ? `<img src="${i.image}" alt="" class="${cls}" loading="lazy">` : '';
+  }
+  function metaHTML(i) {
+    return `<div class="news-meta"><span class="news-source">${i.source}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
+  }
+  function byDateDesc(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }
+
+  async function fetchCat(cat) {
+    try { const r = await fetch(`/.netlify/functions/fetch-rss?category=${cat}`); const d = await r.json(); return d.items || []; }
+    catch (e) { return []; }
+  }
+  async function loadAll() {
+    const ids = [...DOMOV.map(s => s.id), EDU.id];
+    const res = await Promise.all(ids.map(fetchCat));
+    ids.forEach((id, i) => { DATA[id] = res[i]; });
   }
 
+  function allItems() {
+    let all = [];
+    for (const s of DOMOV) all = all.concat(DATA[s.id] || []);
+    return all.sort(byDateDesc);
+  }
+  function recentDistinct(pool, n, exclude = new Set()) {
+    const seen = new Set(exclude); const out = [];
+    for (const x of pool) { if (out.length >= n) break; if (!x || seen.has(x.link)) continue; seen.add(x.link); out.push(x); }
+    return out;
+  }
+
+  // ─── HLAVNÁ SPRÁVA (naprieč sekciami; uprednostní vlastný článok s obrázkom) ───
+  function pickLead() {
+    let pool = [];
+    for (const id of LEAD_SECTIONS) pool = pool.concat(DATA[id] || []);
+    pool.sort(byDateDesc);
+    return pool.find(x => x.source === 'Novinko SK' && x.image)
+        || pool.find(x => x.source === 'Novinko SK')
+        || pool[0] || null;
+  }
+
+  // ─── RENDER: HERO / LEAD (featured + 3 sekundárne) ───
   function renderHero(items) {
     const el = document.getElementById('heroContent');
+    items = (items || []).filter(Boolean);
     if (!items.length) { el.innerHTML = '<div class="loading"><span>Žiadne správy</span></div>'; return; }
-    const featured = items[0];
-    const secondary = items.slice(1, 4);
-    const lbl = CAT_LABELS[featured.category] || featured.category;
+    const f = items[0], sec = items.slice(1, 4);
+    const lbl = CAT_LABELS[f.category] || f.category || '';
     el.innerHTML = `<div class="story-featured fade-in">
       <div class="story-featured-left">
-        ${(featured.image && featured.source === 'Novinko SK') ? `<img src="${featured.image}" alt="" class="story-featured-img" loading="lazy">` : ''}
-        <span class="story-label label-${featured.category}">${lbl}</span>
-        <a href="${featured.link}" ${targetAttr(featured.link)} class="story-headline-xl">${featured.title}</a>
-        ${featured.description ? `<div class="story-summary">${featured.description}</div>` : ''}
-        <div class="story-byline">
-          <span class="story-byline-source">${featured.source}</span>
-          <span class="story-byline-sep">—</span>
-          <span class="story-byline-time">${timeAgo(featured.pubDate)}</span>
-        </div>
+        ${ownImg(f, 'story-featured-img')}
+        <span class="story-label label-${f.category}">${lbl}</span>
+        <a href="${f.link}" ${targetAttr(f.link)} class="story-headline-xl">${f.title}</a>
+        ${f.description ? `<div class="story-summary">${f.description}</div>` : ''}
+        <div class="story-byline"><span class="story-byline-source">${f.source}</span><span class="story-byline-sep">—</span><span class="story-byline-time">${timeAgo(f.pubDate)}</span></div>
       </div>
       <div class="story-featured-right">
-        ${secondary.map(item => {
-          const l = CAT_LABELS[item.category] || item.category;
-          return `<a href="${item.link}" ${targetAttr(item.link)} class="story-secondary">
-            ${(item.image && item.source === 'Novinko SK') ? `<img src="${item.image}" alt="" class="story-secondary-img" loading="lazy">` : ''}
-            <div class="story-secondary-text">
-              <span class="story-label label-${item.category}">${l}</span>
-              <div class="story-headline-md">${item.title}</div>
-              <div class="story-byline">
-                <span class="story-byline-source">${item.source}</span>
-                <span class="story-byline-sep">—</span>
-                <span class="story-byline-time">${timeAgo(item.pubDate)}</span>
-              </div>
-            </div>
-          </a>`;
-        }).join('')}
+        ${sec.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="story-secondary">
+          ${ownImg(i, 'story-secondary-img')}
+          <div class="story-secondary-text">
+            <span class="story-label label-${i.category}">${CAT_LABELS[i.category] || i.category || ''}</span>
+            <div class="story-headline-md">${i.title}</div>
+            <div class="story-byline"><span class="story-byline-time">${timeAgo(i.pubDate)}</span></div>
+          </div>
+        </a>`).join('')}
       </div>
     </div>`;
   }
 
-  function renderNewsList(items) {
-    const rest = items.slice(4);
-    const el = document.getElementById('newsListSection');
-    if (!rest.length) { el.innerHTML = ''; return; }
-    let html = `<div class="section-head">
-      <span class="section-head-title">Ďalšie krypto správy</span>
-      <span class="section-head-count">${rest.length} článkov</span>
-    </div><div class="news-list">`;
-    for (let i = 0; i < rest.length; i += 2) {
-      html += '<div class="news-row">';
-      html += newsItemHTML(rest[i]);
-      if (rest[i+1]) html += newsItemHTML(rest[i+1], true);
-      html += '</div>';
-    }
-    html += '</div>';
-    el.innerHTML = html;
+  // ─── RENDER ENGINE: sekčný blok podľa tier ───
+  function magHead(s) {
+    return `<div class="mag-head">
+      <h2 class="mag-sec-title"><span class="mag-dot label-${s.id}">▸</span>${s.label}</h2>
+      <a href="#" class="mag-more" data-cat="${s.id}">Zobraziť všetko →</a>
+    </div>`;
+  }
+  function tier1Block(s, items) {
+    const f = items[0], list = items.slice(1, 4);
+    return `<section class="mag-sec fade-in">${magHead(s)}
+      <div class="mag-tier1">
+        <a href="${f.link}" ${targetAttr(f.link)} class="mag-feature">
+          ${ownImg(f, 'mag-feature-img')}
+          <div class="mag-feature-title">${f.title}</div>
+          ${f.description ? `<div class="mag-feature-perex">${f.description}</div>` : ''}
+          ${metaHTML(f)}
+        </a>
+        <div class="mag-side">
+          ${list.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="mag-side-item">
+            <div class="mag-side-title">${i.title}</div>${metaHTML(i)}
+          </a>`).join('')}
+        </div>
+      </div>
+    </section>`;
+  }
+  function tier2Block(s, items) {
+    const list = items.slice(0, 6);
+    return `<section class="mag-sec fade-in">${magHead(s)}
+      <div class="mag-grid2">
+        ${list.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="mag-cell">
+          <div class="mag-cell-title">${i.title}</div>${metaHTML(i)}
+        </a>`).join('')}
+      </div>
+    </section>`;
+  }
+  function digestBlock(sections, used) {
+    const cols = sections.map(s => {
+      const items = (DATA[s.id] || []).filter(x => !used.has(x.link)).slice(0, 5);
+      if (!items.length) return '';
+      return `<div class="digest-col">
+        <div class="digest-col-title label-${s.id}"><a href="#" data-cat="${s.id}">${s.label} →</a></div>
+        ${items.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="digest-item">
+          <div class="digest-item-title">${i.title}</div>
+          <div class="digest-item-time">${i.source} · ${timeAgo(i.pubDate)}</div>
+        </a>`).join('')}
+      </div>`;
+    }).filter(Boolean).join('');
+    if (!cols) return '';
+    return `<section class="mag-sec fade-in">
+      <div class="section-head"><span class="section-head-title">Ďalšie sekcie</span></div>
+      <div class="digest-grid" style="grid-template-columns:repeat(${sections.length},1fr)">${cols}</div>
+    </section>`;
   }
 
-  function newsItemHTML(item, right = false) {
-    const lbl = CAT_LABELS[item.category] || item.category;
-    return `<a href="${item.link}" ${targetAttr(item.link)} class="news-item fade-in">
-      ${(item.image && item.source === 'Novinko SK') ? `<img src="${item.image}" alt="" class="news-item-img" loading="lazy">` : ''}
+  function renderMagSections(used) {
+    let html = '';
+    for (const s of DOMOV) {
+      if (s.tier === 3) continue;
+      const items = (DATA[s.id] || []).filter(x => !used.has(x.link));
+      if (!items.length) continue;
+      html += s.tier === 1 ? tier1Block(s, items) : tier2Block(s, items);
+    }
+    html += digestBlock(DOMOV.filter(s => s.tier === 3), used);
+    document.getElementById('magSections').innerHTML = html;
+  }
+
+  function renderSkola() {
+    const el = document.getElementById('skolaSection');
+    const items = (DATA[EDU.id] || []).slice(0, 6);
+    if (!items.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `<div class="section-head"><span class="section-head-title">Krypto škola</span><span class="section-head-count">vysvetlivky pre začiatočníkov</span></div>
+      <div class="skola-grid">${items.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="skola-card">
+        ${ownImg(i, 'skola-card-img')}
+        <div class="skola-card-body"><span class="story-label label-krypto-skola">Krypto škola</span>
+        <div class="skola-card-title">${i.title}</div>${i.description ? `<div class="skola-card-perex">${i.description}</div>` : ''}</div>
+      </a>`).join('')}</div>`;
+  }
+
+  function renderTrending(items) {
+    const el = document.getElementById('trendingList');
+    if (!el) return;
+    el.innerHTML = items.slice(0, 6).map((i, n) => `<a href="${i.link}" ${targetAttr(i.link)} class="trending-item">
+      <div class="trending-num">${n + 1}</div>
+      <div><div class="trending-text">${i.title}</div><div class="trending-source">${i.source} · ${timeAgo(i.pubDate)}</div></div>
+    </a>`).join('');
+  }
+
+  function sectionListHTML(items, title) {
+    if (!items.length) return '';
+    let h = `<div class="section-head"><span class="section-head-title">${title}</span><span class="section-head-count">${items.length} článkov</span></div><div class="news-list">`;
+    for (let i = 0; i < items.length; i += 2) {
+      h += '<div class="news-row">' + newsItemHTML(items[i]) + (items[i+1] ? newsItemHTML(items[i+1]) : '') + '</div>';
+    }
+    return h + '</div>';
+  }
+  function newsItemHTML(i) {
+    return `<a href="${i.link}" ${targetAttr(i.link)} class="news-item fade-in">
+      ${ownImg(i, 'news-item-img')}
       <div class="news-item-body">
-        <span class="story-label label-${item.category}">${lbl}</span>
-        <div class="news-title">${item.title}</div>
-        <div class="news-meta"><span class="news-source">${item.source}</span><span>·</span><span class="news-time">${timeAgo(item.pubDate)}</span></div>
+        <span class="story-label label-${i.category}">${CAT_LABELS[i.category] || i.category || ''}</span>
+        <div class="news-title">${i.title}</div>${metaHTML(i)}
       </div>
     </a>`;
   }
 
-  async function renderWorldStrip() {
-    // Načítaj ostatné kategórie samostatne
-    const cats = [
-      { key: 'slovensko', label: 'Slovensko' },
-      { key: 'svet', label: 'Svet' },
-      { key: 'ekonomika', label: 'Ekonomika' },
-      { key: 'sport', label: 'Šport' }
-    ];
-    const el = document.getElementById('worldStrip');
-    el.innerHTML = '<div class="world-strip-head">Zo sveta</div><div class="world-grid" id="worldGrid"></div>';
-    const grid = document.getElementById('worldGrid');
-    try {
-      const res = await fetch('/.netlify/functions/fetch-rss?category=all');
-      const data = await res.json();
-      const items = data.items || [];
-      grid.innerHTML = cats.map(c => {
-        const catItems = items.filter(i => i.category === c.key).slice(0, 4);
-        return `<div class="world-col">
-          <div class="world-col-title label-${c.key}">${c.label}</div>
-          ${catItems.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="world-item">
-            <div class="world-item-title">${i.title}</div>
-            <div class="world-item-time">${i.source} · ${timeAgo(i.pubDate)}</div>
-          </a>`).join('') || '<div class="world-item-time">Žiadne správy</div>'}
-        </div>`;
-      }).join('');
-    } catch(e) {
-      el.innerHTML = '';
-    }
+  function setEyebrow(t) { const e = document.querySelector('.hero-eyebrow-text'); if (e) e.textContent = t; }
+  function toggleCryptoWidgets(show) {
+    document.getElementById('chartSection').style.display = show ? '' : 'none';
+    document.getElementById('screenerSection').style.display = show ? '' : 'none';
+  }
+  function stampUpdate() {
+    document.getElementById('lastUpdate').textContent = 'Aktualizované ' + new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
   }
 
-  function renderTrending(items) {
-    const tList = document.getElementById('trendingList');
-    if (!tList) return;
-    tList.innerHTML = items.slice(0, 6).map((item, i) => `
-      <a href="${item.link}" ${targetAttr(item.link)} class="trending-item">
-        <div class="trending-num">${i + 1}</div>
-        <div>
-          <div class="trending-text">${item.title}</div>
-          <div class="trending-source">${item.source} · ${timeAgo(item.pubDate)}</div>
-        </div>
-      </a>`).join('');
+  // ─── POHĽADY ───
+  function showHome() {
+    currentView = 'all';
+    const used = new Set();
+    const lead = pickLead();
+    const leadItems = [lead, ...recentDistinct(allItems(), 3, new Set(lead ? [lead.link] : []))].filter(Boolean);
+    leadItems.forEach(x => used.add(x.link));
+    setEyebrow('Hlavná správa');
+    renderHero(leadItems);
+    toggleCryptoWidgets(false);
+    document.getElementById('sectionList').innerHTML = '';
+    renderMagSections(used);
+    renderSkola();
+    renderTrending(recentDistinct(allItems(), 6));
+  }
+  function showSection(cat) {
+    currentView = cat;
+    const items = (DATA[cat] || []).slice();
+    setEyebrow(CAT_LABELS[cat] || cat);
+    renderHero(items);
+    document.getElementById('magSections').innerHTML = '';
+    document.getElementById('skolaSection').innerHTML = '';
+    document.getElementById('sectionList').innerHTML = sectionListHTML(items.slice(4), 'Ďalšie · ' + (CAT_LABELS[cat] || cat));
+    toggleCryptoWidgets(cat === 'krypto');
+    renderTrending(items.length ? items.slice(0, 6) : recentDistinct(allItems(), 6));
   }
 
-  function toggleCharts(cat) {
-    var show = (cat === 'krypto');
-    var c = document.getElementById('chartSection');
-    var sc = document.getElementById('screenerSection');
-    if (c) c.style.display = show ? '' : 'none';
-    if (sc) sc.style.display = show ? '' : 'none';
-  }
-  async function loadNews(cat = 'krypto') {
-    toggleCharts(cat);
-    const btn = document.getElementById('refreshBtn');
-    btn.classList.add('spinning');
-    document.getElementById('heroContent').innerHTML = '<div class="loading"><div class="loader"></div><span>Načítavam…</span></div>';
-    try {
-      const res = await fetch(`/.netlify/functions/fetch-rss?category=${cat}`);
-      const data = await res.json();
-      allItems = data.items || [];
-      renderHero(allItems);
-      renderNewsList(allItems);
-      renderTrending(allItems);
-      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
-      document.getElementById('heroContent').innerHTML = '<div class="loading"><span>Chyba pri načítavaní</span></div>';
-    } finally {
-      btn.classList.remove('spinning');
-    }
+  function go(cat) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+    if (cat === 'all') showHome(); else showSection(cat);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // ─── UDALOSTI ───
   document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentCat = btn.dataset.cat;
-      loadNews(currentCat);
-    });
+    btn.addEventListener('click', () => go(btn.dataset.cat));
   });
-
-  document.getElementById('refreshBtn').addEventListener('click', () => loadNews(currentCat));
-  setInterval(() => loadNews(currentCat), 5 * 60 * 1000);
+  // delegácia pre dynamické odkazy „Zobraziť všetko →" a hlavičky digestu
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[data-cat]');
+    if (!a) return;
+    e.preventDefault();
+    go(a.dataset.cat);
+  });
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('refreshBtn'); btn.classList.add('spinning');
+    await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate();
+    btn.classList.remove('spinning');
+  });
+  setInterval(async () => { await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate(); }, 5 * 60 * 1000);
 
   // ─── WORLD CLOCK ───
   const CLOCK_CITIES = [
@@ -621,8 +751,7 @@
     { city: 'Tokio', tz: 'Asia/Tokyo', open: [9, 15] },
   ];
   function updateClock() {
-    const el = document.getElementById('worldClock');
-    if (!el) return;
+    const el = document.getElementById('worldClock'); if (!el) return;
     el.innerHTML = CLOCK_CITIES.map(c => {
       const now = new Date();
       const timeStr = now.toLocaleTimeString('sk-SK', { timeZone: c.tz, hour: '2-digit', minute: '2-digit' });
@@ -630,38 +759,24 @@
       const [h, m] = hourStr.split(':').map(Number);
       const dec = h + m / 60;
       const day = now.toLocaleDateString('en-US', { timeZone: c.tz, weekday: 'short' });
-      const isWeekday = !['Sat', 'Sun'].includes(day);
-      const isOpen = isWeekday && dec >= c.open[0] && dec < c.open[1];
-      return `<div class="clock-item ${isOpen ? 'market-open' : ''}">
-        <span class="clock-city">${c.city}</span>
-        <span class="clock-time">${timeStr}</span>
-      </div>`;
+      const isOpen = !['Sat', 'Sun'].includes(day) && dec >= c.open[0] && dec < c.open[1];
+      return `<div class="clock-item ${isOpen ? 'market-open' : ''}"><span class="clock-city">${c.city}</span><span class="clock-time">${timeStr}</span></div>`;
     }).join('');
   }
-  updateClock();
-  setInterval(updateClock, 30000);
+  updateClock(); setInterval(updateClock, 30000);
 
   // ─── THEME TOGGLE ───
   const themeBtn = document.getElementById('themeBtn');
   let theme = 'light';
   function applyTheme(t) {
     theme = t;
-    if (t === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      themeBtn.textContent = '☀️';
-      themeBtn.title = 'Svetlý režim';
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      themeBtn.textContent = '🌙';
-      themeBtn.title = 'Tmavý režim';
-    }
+    if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeBtn.textContent = '☀️'; themeBtn.title = 'Svetlý režim'; }
+    else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent = '🌙'; themeBtn.title = 'Tmavý režim'; }
   }
   themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
 
-  // Init
-  loadNews('krypto');
-  renderWorldStrip();
-
+  // ─── INIT ───
+  (async () => { await loadAll(); go('all'); stampUpdate(); })();
 </script>
 
 <!-- COOKIE BANNER -->
