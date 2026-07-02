@@ -158,6 +158,8 @@
     .mag-tier1 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; align-items: start; }
     .mag-feature { text-decoration: none; display: block; }
     .mag-feature-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin-bottom: 14px; display: block; background: var(--surface); }
+    .img-wrap { position: relative; display: block; }
+    .ai-tag { position: absolute; left: 8px; bottom: 8px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.56rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; pointer-events: none; }
     .mag-feature-title { font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: var(--text); margin-bottom: 10px; letter-spacing: -0.3px; transition: color 0.15s; }
     .mag-feature:hover .mag-feature-title { color: var(--accent); }
     .mag-feature-perex { font-size: 0.92rem; color: var(--text2); line-height: 1.6; font-weight: 300; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -580,7 +582,11 @@
     return link && link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
   }
   function ownImg(i, cls) {
-    return (i.image && i.source === 'tím Novinko') ? `<img src="${i.image}" alt="" class="${cls}" loading="lazy">` : '';
+    if (!(i.image && i.source === 'tím Novinko')) return '';
+    const img = `<img src="${i.image}" alt="" class="${cls}" loading="lazy">`;
+    // Štítok „AI ilustrácia" len na väčšie obrázky (na drobné náhľady by bol stiesnený).
+    const big = /mag-feature-img|story-featured-img|news-item-img|skola-card-img/.test(cls);
+    return big ? `<span class="img-wrap">${img}<span class="ai-tag">AI ilustrácia</span></span>` : img;
   }
   function metaHTML(i) {
     return `<div class="news-meta"><span class="news-source">${i.source}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
