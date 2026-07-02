@@ -312,8 +312,8 @@
     <nav class="nav-filters">
       <button class="filter-btn active" data-cat="all">Všetko</button>
       <button class="filter-btn" data-cat="krypto">Krypto</button>
-      <button class="filter-btn" data-cat="ai">AI</button>
       <button class="filter-btn" data-cat="slovensko">Slovensko</button>
+      <button class="filter-btn" data-cat="ai">AI</button>
       <button class="filter-btn" data-cat="svet">Svet</button>
       <button class="filter-btn" data-cat="ekonomika">Ekonomika</button>
       <button class="filter-btn" data-cat="sport">Šport</button>
@@ -327,8 +327,8 @@
   </div>
 </header>
 
-<!-- TRADINGVIEW TICKER TAPE -->
-<div class="tv-ticker-wrap">
+<!-- TICKER: KRYPTO (len v sekcii Krypto) -->
+<div class="tv-ticker-wrap" id="tickerCrypto" style="display:none">
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
@@ -342,6 +342,33 @@
         { "proName": "BINANCE:ADAUSDT", "title": "Cardano" },
         { "proName": "BINANCE:DOGEUSDT", "title": "Dogecoin" },
         { "proName": "CRYPTOCAP:TOTAL", "title": "Total Market Cap" }
+      ],
+      "showSymbolLogo": true,
+      "isTransparent": true,
+      "displayMode": "adaptive",
+      "colorTheme": "dark",
+      "locale": "sk"
+    }
+    </script>
+  </div>
+</div>
+
+<!-- TICKER: EKONOMIKA (len v sekcii Ekonomika) — komodity, akcie, indexy -->
+<div class="tv-ticker-wrap" id="tickerEkonomika" style="display:none">
+  <div class="tradingview-widget-container">
+    <div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+    {
+      "symbols": [
+        { "proName": "TVC:GOLD", "title": "Zlato" },
+        { "proName": "TVC:USOIL", "title": "Ropa WTI" },
+        { "proName": "TVC:SILVER", "title": "Striebro" },
+        { "proName": "SP:SPX", "title": "S&P 500" },
+        { "proName": "NASDAQ:NDX", "title": "Nasdaq 100" },
+        { "proName": "TVC:DEU40", "title": "DAX" },
+        { "proName": "NASDAQ:AAPL", "title": "Apple" },
+        { "proName": "NASDAQ:NVDA", "title": "NVIDIA" },
+        { "proName": "FX:EURUSD", "title": "EUR/USD" }
       ],
       "showSymbolLogo": true,
       "isTransparent": true,
@@ -437,7 +464,7 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-block">
+    <div class="sidebar-block" id="sbCrypto" style="display:none">
       <div class="sidebar-head">Bitcoin</div>
       <div class="tv-mini-symbol">
         <div class="tradingview-widget-container" style="height:100%;width:100%">
@@ -452,6 +479,31 @@
             "colorTheme": "light",
             "isTransparent": true,
             "autosize": true
+          }
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-block" id="sbEkonomika" style="display:none">
+      <div class="sidebar-head">Trhy</div>
+      <div class="tv-mini-symbol" style="height:360px">
+        <div class="tradingview-widget-container" style="height:100%;width:100%">
+          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+          {
+            "colorTheme": "light",
+            "dateRange": "1D",
+            "showChart": false,
+            "locale": "sk",
+            "isTransparent": true,
+            "showSymbolLogo": true,
+            "width": "100%",
+            "height": "100%",
+            "tabs": [
+              { "title": "Komodity", "symbols": [ { "s": "TVC:GOLD", "d": "Zlato" }, { "s": "TVC:USOIL", "d": "Ropa" }, { "s": "TVC:SILVER", "d": "Striebro" }, { "s": "TVC:NATGAS", "d": "Zemný plyn" } ] },
+              { "title": "Indexy", "symbols": [ { "s": "SP:SPX", "d": "S&P 500" }, { "s": "NASDAQ:NDX", "d": "Nasdaq 100" }, { "s": "TVC:DEU40", "d": "DAX" } ] }
+            ]
           }
           </script>
         </div>
@@ -487,8 +539,8 @@
   // Pridať sekciu = pridať riadok. Povýšiť (napr. Slovensko) = zmeniť tier.
   const DOMOV = [
     { id: 'krypto',    label: 'Krypto',    tier: 1 },
-    { id: 'ai',        label: 'AI',        tier: 1 },
     { id: 'slovensko', label: 'Slovensko', tier: 2 },   // rastie → časom tier 1
+    { id: 'ai',        label: 'AI',        tier: 1 },
     { id: 'svet',      label: 'Svet',      tier: 3 },
     { id: 'ekonomika', label: 'Ekonomika', tier: 3 },
     { id: 'sport',     label: 'Šport',     tier: 3 },
@@ -689,6 +741,15 @@
     document.getElementById('chartSection').style.display = show ? '' : 'none';
     document.getElementById('screenerSection').style.display = show ? '' : 'none';
   }
+  // Trhové widgety podľa sekcie: krypto kurzy len v Krypto, komodity/akcie len v Ekonomike,
+  // na domovskej a inde ŽIADNE burzové kurzy (tam patrí iný, všeobecný obsah).
+  function updateContext(view) {
+    const set = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+    set('tickerCrypto', view === 'krypto');
+    set('tickerEkonomika', view === 'ekonomika');
+    set('sbCrypto', view === 'krypto');
+    set('sbEkonomika', view === 'ekonomika');
+  }
   function stampUpdate() {
     document.getElementById('lastUpdate').textContent = 'Aktualizované ' + new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
   }
@@ -703,6 +764,7 @@
     setEyebrow('Hlavná správa');
     renderHero(leadItems);
     toggleCryptoWidgets(false);
+    updateContext('all');
     document.getElementById('sectionList').innerHTML = '';
     renderMagSections(used);
     renderSkola();
@@ -717,6 +779,7 @@
     document.getElementById('skolaSection').innerHTML = '';
     document.getElementById('sectionList').innerHTML = sectionListHTML(items.slice(4), 'Ďalšie · ' + (CAT_LABELS[cat] || cat));
     toggleCryptoWidgets(cat === 'krypto');
+    updateContext(cat);
     renderTrending(items.length ? items.slice(0, 6) : recentDistinct(allItems(), 6));
   }
 
