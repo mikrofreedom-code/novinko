@@ -108,6 +108,10 @@
     .section-nav-inner { max-width: 1300px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 36px; }
     .edition-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.5px; font-style: italic; font-family: 'Libre Baskerville', serif; }
     .last-update { font-size: 0.68rem; color: var(--muted); }
+    .section-nav-right { display: flex; align-items: center; gap: 14px; }
+    .sk-now { font-size: 0.72rem; color: var(--text2); font-weight: 600; text-transform: capitalize; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sk-now::before { content: '🕐 '; }
+    @media (max-width: 560px) { .edition-label { display: none; } .last-update { display: none; } }
 
     /* ─── PAGE LAYOUT ─── */
     .page-layout { max-width: 1300px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 1fr 320px; gap: 40px; align-items: start; }
@@ -398,7 +402,10 @@
 <div class="section-nav">
   <div class="section-nav-inner">
     <span class="edition-label">Neutrálne spravodajstvo z primárnych zdrojov</span>
-    <span class="last-update" id="lastUpdate"></span>
+    <span class="section-nav-right">
+      <span class="sk-now" id="skNow"></span>
+      <span class="last-update" id="lastUpdate"></span>
+    </span>
   </div>
 </div>
 
@@ -901,7 +908,16 @@
       return `<div class="clock-item ${isOpen ? 'market-open' : ''}"><span class="clock-city">${c.city}</span><span class="clock-time">${timeStr}</span></div>`;
     }).join('');
   }
-  updateClock(); setInterval(updateClock, 30000);
+  // ─── AKTUÁLNY SLOVENSKÝ ČAS (dátum + čas, Europe/Bratislava) ───
+  function updateSkNow() {
+    const el = document.getElementById('skNow'); if (!el) return;
+    const now = new Date();
+    const d = now.toLocaleDateString('sk-SK', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Bratislava' });
+    const t = now.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava' });
+    el.textContent = `${d} · ${t}`;
+  }
+  updateClock(); updateSkNow();
+  setInterval(() => { updateClock(); updateSkNow(); }, 30000);
 
   // ─── THEME TOGGLE ───
   const themeBtn = document.getElementById('themeBtn');
