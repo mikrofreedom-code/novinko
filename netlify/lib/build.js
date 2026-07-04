@@ -9,7 +9,10 @@ const { CATS, MAX_ITEMS } = require("./config");
 const CAT_ORDER = ["slovensko", "svet", "ekonomika", "sport", "krypto", "ai"];
 
 async function gatherRss(categoryFilter = "all") {
-  const feeds = categoryFilter === "all" ? FEEDS : FEEDS.filter((f) => f.category === categoryFilter);
+  // Blokuj surové anglické RSS (lang: "en" vo feeds.js) — zobrazovali by sa
+  // nepreložené priamo na webe. Zrušiť blokovanie = vymazať tento .filter riadok.
+  const bySection = categoryFilter === "all" ? FEEDS : FEEDS.filter((f) => f.category === categoryFilter);
+  const feeds = bySection.filter((f) => f.lang !== "en");
   const results = await Promise.allSettled(
     feeds.map(async (feed) => {
       const xml = await fetchUrl(feed.url, { timeout: 6000 });

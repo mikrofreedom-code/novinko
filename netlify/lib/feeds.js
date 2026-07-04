@@ -36,14 +36,18 @@ const FEEDS = [
   { url: "https://www.cas.sk/rss/sport/", category: "sport", source: "Čas / Šport" },
 
   // ₿ KRYPTO
-  { url: "https://cointelegraph.com/rss", category: "krypto", source: "CoinTelegraph" },
-  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "krypto", source: "CoinDesk" },
-  { url: "https://cryptonews.com/news/feed/", category: "krypto", source: "CryptoNews" },
-  { url: "https://decrypt.co/feed", category: "krypto", source: "Decrypt" },
-  { url: "https://beincrypto.com/feed/", category: "krypto", source: "BeInCrypto" },
-  { url: "https://ambcrypto.com/feed/", category: "krypto", source: "AMBCrypto" },
-  { url: "https://bitcoinmagazine.com/.rss/full/", category: "krypto", source: "Bitcoin Magazine" },
-  { url: "https://www.theblock.co/rss.xml", category: "krypto", source: "The Block" },
+  // lang: "en" → gatherRss() v build.js tieto BLOKUJE (surové anglické titulky
+  // sa nezobrazujú na webe). Zámerne NEmazané — GEN_FEEDS.krypto nižšie je
+  // nezávislé pole a naďalej ich používa na AI generovanie vlastných SK článkov.
+  // Zrušiť blokovanie = vymazať `lang: "en"` z týchto riadkov.
+  { url: "https://cointelegraph.com/rss", category: "krypto", source: "CoinTelegraph", lang: "en" },
+  { url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "krypto", source: "CoinDesk", lang: "en" },
+  { url: "https://cryptonews.com/news/feed/", category: "krypto", source: "CryptoNews", lang: "en" },
+  { url: "https://decrypt.co/feed", category: "krypto", source: "Decrypt", lang: "en" },
+  { url: "https://beincrypto.com/feed/", category: "krypto", source: "BeInCrypto", lang: "en" },
+  { url: "https://ambcrypto.com/feed/", category: "krypto", source: "AMBCrypto", lang: "en" },
+  { url: "https://bitcoinmagazine.com/.rss/full/", category: "krypto", source: "Bitcoin Magazine", lang: "en" },
+  { url: "https://www.theblock.co/rss.xml", category: "krypto", source: "The Block", lang: "en" },
 ];
 
 // Zdroje pre generovanie vlastných SK článkov (AI prepis).
