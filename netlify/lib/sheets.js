@@ -25,11 +25,12 @@ async function getAccessToken(serviceAccountKey) {
   if (!res.access_token) throw new Error("Nepodarilo sa získať access token");
   return res.access_token;
 }
-// Pridá jeden riadok do hárku "articles" (stĺpce A:G).
+// Pridá jeden riadok do hárku "articles" (stĺpce A:H — H je voliteľný obrázok;
+// staršie volania s 7-prvkovým row bez obrázka fungujú ďalej bez zmeny).
 async function appendRow(sheetsId, row, serviceAccountKey) {
   const token = await getAccessToken(serviceAccountKey);
   const path =
-    `/v4/spreadsheets/${sheetsId}/values/articles!A:G:append` +
+    `/v4/spreadsheets/${sheetsId}/values/articles!A:H:append` +
     `?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   return httpsPost("sheets.googleapis.com", path, { values: [row] }, {
     "Content-Type": "application/json",

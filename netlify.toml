@@ -22,8 +22,13 @@
 
 # Generátory vlastných SK článkov – ČASOVO ROZLOŽENÉ, aby nešli naraz
 # (predtým o polnoci bežali všetky súčasne a vznikali kolízie ID + duplicity).
-[functions."generate-krypto"]
-  schedule = "5 */4 * * *"
+#
+# generate-krypto VYPNUTÝ (2026-07-05): krypto + AI obsah teraz produkuje
+# výhradne novinko-redakcia (fact-only pipeline, píše do rovnakého Sheetu).
+# Bežať oboje súčasne = duplicitný/konkurenčný obsah. Funkcia (generate-krypto.js)
+# ostáva v repozitári nedotknutá, len bez schedule — nespustí sa sama.
+# [functions."generate-krypto"]
+#   schedule = "5 */4 * * *"
 
 [functions."generate-svet"]
   schedule = "15 */5 * * *"
