@@ -22,7 +22,7 @@ exports.handler = async (event) => {
     return { statusCode: 401, body: JSON.stringify({ error: "nesprávne heslo" }) };
   }
 
-  const { headline, perex, text, source, sourceUrl, category, imageUrl, generateAiImage } = body;
+  const { headline, perex, text, source, sourceUrl, category, imageUrl, generateAiImage, imagePrompt } = body;
   if (!headline || !text) {
     return { statusCode: 400, body: JSON.stringify({ error: "chýba titulok alebo text článku" }) };
   }
@@ -37,8 +37,8 @@ exports.handler = async (event) => {
 
   if (imageUrl && String(imageUrl).trim().startsWith("http")) {
     article.image_url = String(imageUrl).trim();
-  } else if (generateAiImage) {
-    article.image_url = await generateImage(article.headline, article.category, Date.now());
+  } else if (generateAiImage || (imagePrompt && imagePrompt.trim())) {
+    article.image_url = await generateImage(article.headline, article.category, Date.now(), imagePrompt);
   }
 
   try {

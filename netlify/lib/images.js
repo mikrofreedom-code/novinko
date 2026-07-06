@@ -46,15 +46,17 @@ function makeSupabase() {
   });
 }
 
+// customPrompt: voliteľný vlastný prompt (napr. z formulára na ručné publikovanie) —
+// ak je zadaný, použije sa NAMIESTO automaticky poskladaného promptu z title/category.
 // Vráti permanentnú Supabase URL, alebo "" ak čokoľvek zlyhá (článok sa aj tak uloží).
-async function generateImage(title, category, id) {
+async function generateImage(title, category, id, customPrompt) {
   try {
     if (category !== "krypto" && category !== "ai") return "";   // obrázky len pre krypto a AI
     if (!process.env.REPLICATE_API_TOKEN || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
       return "";
     }
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
-    const prompt = buildPrompt(title, category);
+    const prompt = (customPrompt && customPrompt.trim()) || buildPrompt(title, category);
 
     const out = await replicate.run("black-forest-labs/flux-schnell", {
       input: { prompt, aspect_ratio: "16:9", output_format: "webp", num_outputs: 1 },
