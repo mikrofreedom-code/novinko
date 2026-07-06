@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Publikovať článok — Novinko</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #1a1a1a; }
+  h1 { font-size: 1.3rem; }
+  label { display: block; margin-top: 16px; font-weight: 600; font-size: 0.9rem; }
+  input, textarea, select { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 4px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+  textarea { min-height: 160px; font-family: inherit; }
+  small { color: #666; }
+  button { margin-top: 20px; padding: 10px 20px; font-size: 1rem; background: #111; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #status { margin-top: 16px; padding: 10px; border-radius: 4px; display: none; }
+  #status.ok { display: block; background: #e6f7e6; color: #1a5c1a; }
+  #status.err { display: block; background: #fbe6e6; color: #8a1a1a; }
+</style>
+</head>
+<body>
+<h1>Publikovať článok ručne</h1>
+
+<form id="f">
+  <label>Heslo
+    <input type="password" name="password" required>
+  </label>
+
+  <label>Titulok
+    <input type="text" name="headline" required>
+  </label>
+
+  <label>Perex (1-2 vety zhrnutia)
+    <textarea name="perex" style="min-height:60px"></textarea>
+  </label>
+
+  <label>Text článku
+    <textarea name="text" required></textarea>
+    <small>Odseky odděľuj prázdnym riadkom (Enter dvakrát).</small>
+  </label>
+
+  <label>Kategória
+    <select name="category">
+      <option value="krypto">Krypto</option>
+      <option value="ai">AI</option>
+    </select>
+  </label>
+
+  <label>Zdroj (meno)
+    <input type="text" name="source" placeholder="napr. Polícia SR">
+  </label>
+
+  <label>Zdroj (odkaz)
+    <input type="url" name="sourceUrl" placeholder="https://...">
+  </label>
+
+  <button type="submit" id="btn">Publikovať</button>
+</form>
+
+<div id="status"></div>
+
+<script>
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const status = document.getElementById('status');
+  const data = Object.fromEntries(new FormData(e.target));
+
+  btn.disabled = true;
+  btn.textContent = 'Publikujem...';
+  status.style.display = 'none';
+
+  try {
+    const res = await fetch('/.netlify/functions/manual-publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const j = await res.json();
+    if (res.ok && j.ok) {
+      status.className = 'ok';
+      status.textContent = '✅ Publikované (id: ' + j.id + '). Telegram: ' + j.telegram;
+      e.target.reset();
+    } else {
+      status.className = 'err';
+      status.textContent = '❌ ' + (j.error || 'neznáma chyba');
+    }
+  } catch (err) {
+    status.className = 'err';
+    status.textContent = '❌ ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Publikovať';
+  }
+});
+</script>
+</body>
+</html>

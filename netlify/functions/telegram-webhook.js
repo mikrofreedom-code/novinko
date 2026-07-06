@@ -11,34 +11,9 @@
 const { getQueueItem, advanceQueueItem } = require("../lib/redakcia-queue");
 const { callBotApi, sendArticle, esc } = require("../lib/telegram");
 const { appendRow } = require("../lib/sheets");
+const { articleToRow } = require("../lib/article-row");
 
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
-const PARAGRAPH_DELIM = "¶¶";
-
-function paragraphsToCell(body) {
-  return String(body || "")
-    .split(/\n{2,}/).map((p) => p.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean)
-    .join(` ${PARAGRAPH_DELIM} `);
-}
-
-let _counter = 0;
-function uniqueId() { _counter += 1; return `${Date.now()}${String(_counter).padStart(2, "0")}`; }
-
-// Rovnaký formát riadku ako novinko-redakcia/lib/_shared/sheets.js articleToRow
-// (A:id, B:titulok, C:perex, D:telo, E:zdroj|link, F:dátum, G:kategória, H:obrázok).
-function articleToRow(article, category) {
-  const first = (article.sources || [])[0] || {};
-  return [
-    uniqueId(),
-    article.headline,
-    article.perex || "",
-    paragraphsToCell(article.body),
-    `${first.name || "—"} | ${first.url || ""}`,
-    new Date().toISOString(),
-    article.category || category || "krypto",
-    article.image_url || "",
-  ];
-}
 
 async function markDecided(item, chatId, messageId, label) {
   const hasImg = typeof item.article?.image_url === "string" && item.article.image_url.startsWith("http");
