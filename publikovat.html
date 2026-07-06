@@ -55,6 +55,15 @@
     <input type="url" name="sourceUrl" placeholder="https://...">
   </label>
 
+  <label>Obrázok (odkaz, voliteľné)
+    <input type="url" name="imageUrl" placeholder="https://... (nechaj prázdne, ak chceš AI ilustráciu)">
+  </label>
+
+  <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+    <input type="checkbox" name="generateAiImage" value="true" style="width:auto; margin:0;">
+    Vygenerovať AI ilustráciu (ak nie je zadaný odkaz vyššie)
+  </label>
+
   <button type="submit" id="btn">Publikovať</button>
 </form>
 

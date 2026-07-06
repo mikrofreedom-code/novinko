@@ -21,6 +21,7 @@ const COIN_THEMES = [
 
 const CATEGORY_THEMES = {
   krypto:    "cryptocurrency and blockchain, digital coins, trading charts",
+  ai:        "artificial intelligence, neural networks, futuristic technology",
   svet:      "world news, global map, abstract editorial photo",
   ekonomika: "finance and economy, stock charts, banknotes, business",
   sport:     "sports action, stadium, dynamic motion",
@@ -48,7 +49,7 @@ function makeSupabase() {
 // Vráti permanentnú Supabase URL, alebo "" ak čokoľvek zlyhá (článok sa aj tak uloží).
 async function generateImage(title, category, id) {
   try {
-    if (category !== "krypto") return "";   // obrázky len pre krypto sekciu
+    if (category !== "krypto" && category !== "ai") return "";   // obrázky len pre krypto a AI
     if (!process.env.REPLICATE_API_TOKEN || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
       return "";
     }
