@@ -12,7 +12,12 @@ const anthropic = new Anthropic({
 const MODELS = { cheap: process.env.MODEL_CHEAP, smart: process.env.MODEL_SMART };
 const DAILY_BUDGET = Number(process.env.DAILY_BUDGET_USD ?? 5);
 
-export async function ask({ tier, system, prompt, agent, queueId, maxTokens = 1500, temperature = 0.2 }) {
+// askFull() vracia aj stopReason. Volajúci, ktorý čaká JSON, tak vie rozlíšiť
+// „model odpovedal nezmysel" od „odpoveď sa urezala na limite tokenov" — druhý
+// prípad sa dá opraviť zvýšením limitu, prvý nie. Bez tohto rozlíšenia sa
+// urezané odpovede hlásili ako „returned non-JSON" a správa sa zahodila
+// (medzi 30.6. a 9.7.2026 takto padlo 356 položiek).
+export async function askFull({ tier, system, prompt, agent, queueId, maxTokens = 1500, temperature = 0.2 }) {
   // POISTKA NÁKLADOV: keď dnešný náklad dosiahne strop, AI sa zastaví.
   const spent = await todaySpendUsd();
   if (spent >= DAILY_BUDGET) {
@@ -25,5 +30,14 @@ export async function ask({ tier, system, prompt, agent, queueId, maxTokens = 15
     messages: [{ role: 'user', content: prompt }],
   });
   await logCost({ agent, model, usage: res.usage, queueId });
-  return res.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+  return {
+    text: res.content.filter(b => b.type === 'text').map(b => b.text).join('\n'),
+    stopReason: res.stop_reason,          // 'end_turn' | 'max_tokens' | 'stop_sequence' | …
+    truncated: res.stop_reason === 'max_tokens',
+  };
+}
+
+// Pôvodné rozhranie — vracia len text. Ostáva nezmenené kvôli existujúcim volajúcim.
+export async function ask(opts) {
+  return (await askFull(opts)).text;
 }

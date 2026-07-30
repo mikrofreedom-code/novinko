@@ -1,18 +1,33 @@
+# ⚠️ TENTO SÚBOR SA NEPOUŽÍVA — je tu len ako dokumentácia zámeru.
+#
+# Nasadzuje sa VÝHRADNE koreňový /netlify.toml (novinko-clean pôvod).
+# Netlify číta netlify.toml len z koreňa repozitára, takže tento je neaktívny.
+#
+# Pipeline redakcie beží LOKÁLNE cez cron:
+#   0 * * * * /home/mikrofreedom/Plocha/novinko/redakcia/scripts/cron-run.sh
+#
+# Funkcie nižšie (netlify/functions/*.js) sú STUBY — vracajú {"status":"stub"}
+# a nič nerobia. Ich schedule je preto zakomentovaný: keby sa tento súbor
+# niekedy stal aktívnym, Netlify by spúšťal prázdne funkcie a v dashboarde
+# by to vyzeralo, akoby pipeline bežala v cloude. Nebeží.
+#
+# Zapnúť až vtedy, keď budú stuby nahradené skutočnou implementáciou.
+
 [build]
   functions = "netlify/functions"
   publish = "public"
 
-[functions."scout"]
-  schedule = "*/30 * * * *"
-[functions."event-gateway"]
-  schedule = "3,33 * * * *"
-[functions."collector"]
-  schedule = "6,36 * * * *"
-[functions."verification"]
-  schedule = "9,39 * * * *"
-[functions."chief-editor"]
-  schedule = "12,42 * * * *"
-[functions."writer"]
-  schedule = "15,45 * * * *"
-[functions."publisher"]
-  schedule = "20,50 * * * *"
+# [functions."scout"]
+#   schedule = "*/30 * * * *"
+# [functions."event-gateway"]
+#   schedule = "3,33 * * * *"
+# [functions."collector"]
+#   schedule = "6,36 * * * *"
+# [functions."verification"]
+#   schedule = "9,39 * * * *"
+# [functions."chief-editor"]
+#   schedule = "12,42 * * * *"
+# [functions."writer"]
+#   schedule = "15,45 * * * *"
+# [functions."publisher"]
+#   schedule = "20,50 * * * *"

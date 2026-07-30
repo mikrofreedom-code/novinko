@@ -12,7 +12,7 @@
 // ============================================================
 
 export const STAGE = {
-  index: 03,
+  index: 3,
   name: "Event Bus",
   input: "*",
   output: "*",

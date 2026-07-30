@@ -30,7 +30,7 @@
 // ============================================================
 
 import { claim, advance } from '../_shared/queue.js';
-import { ask } from '../_shared/ai-gateway.js';
+import { askFull } from '../_shared/ai-gateway.js';
 import { groundFacts, quoteGrounded } from '../_shared/grounding.js';
 import { fetchFullArticleText } from '../_shared/fetch-article.js';
 
@@ -118,21 +118,40 @@ async function factsFromText(item, meta) {
     }
   }
 
-  const raw = await ask({
-    tier: 'cheap',
-    agent: AGENT,
-    queueId: item.id,
-    system: EXTRACT_SYSTEM,
-    prompt: text,
-    maxTokens: 1200,
-    temperature: 0,
-  });
+  // Rozpočet tokenov na odpoveď. 1200 bolo primálo: pri dlhších oznámeniach
+  // (governance návrhy, protokolové release notes) sa JSON urezal uprostred
+  // a celá správa sa zahodila ako „non-JSON". Preto vyšší základ + jeden
+  // opakovaný pokus s dvojnásobkom, keď sa aj tak ureže.
+  const EXTRACT_MAX_TOKENS = Number(process.env.EXTRACT_MAX_TOKENS ?? 4000);
+
+  async function extract(maxTokens) {
+    return askFull({
+      tier: 'cheap',
+      agent: AGENT,
+      queueId: item.id,
+      system: EXTRACT_SYSTEM,
+      prompt: text,
+      maxTokens,
+      temperature: 0,
+    });
+  }
+
+  let res = await extract(EXTRACT_MAX_TOKENS);
+  if (res.truncated) {
+    console.warn(`[${AGENT}] odpoveď urezaná na ${EXTRACT_MAX_TOKENS} tokenoch — opakujem s dvojnásobkom`);
+    res = await extract(EXTRACT_MAX_TOKENS * 2);
+  }
+  const raw = res.text;
 
   let parsed;
   try {
     parsed = JSON.parse(stripFences(raw));
   } catch {
-    throw new Error(`Fact extractor returned non-JSON: ${raw.slice(0, 200)}`);
+    // Rozlíš urezanú odpoveď od skutočne pokazenej — inak sa príčina nedá dohľadať.
+    const dovod = res.truncated
+      ? `odpoveď urezaná aj pri ${EXTRACT_MAX_TOKENS * 2} tokenoch (zdroj je príliš dlhý)`
+      : 'model nevrátil platný JSON';
+    throw new Error(`Fact extractor returned non-JSON: ${dovod}: ${raw.slice(0, 200)}`);
   }
 
   const event_type = EVENT_TYPES.includes(parsed.event_type) ? parsed.event_type : 'other';

@@ -12,7 +12,7 @@
 // ============================================================
 
 export const STAGE = {
-  index: 09,
+  index: 9,
   name: "Legal",
   input: "proofed",
   output: "legal_ok",

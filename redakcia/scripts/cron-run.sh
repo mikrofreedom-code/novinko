@@ -3,7 +3,9 @@
 # zámok proti prekrývaniu behov a logovanie s časovou pečiatkou.
 set -euo pipefail
 
-PROJECT="/home/mikrofreedom/Plocha/novinko-redakcia"
+# Cesta sa odvodí od umiestnenia tohto skriptu → presun priečinka nič nerozbije.
+# (Predtým bola natvrdo "/home/mikrofreedom/Plocha/novinko-redakcia".)
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT"
 
 # Načítaj nvm, aby `node` existoval aj pod cronom.

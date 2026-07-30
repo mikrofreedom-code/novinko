@@ -1,9 +1,25 @@
-# Local Netlify folder
+# Zjednotené pravidlá oboch pôvodných projektov (novinko-clean + novinko-redakcia).
+# Poznámka: redakcia/ má vlastný .gitignore, ktorý platí navyše k tomuto.
+
+# Netlify lokálne (vrátane dev Postgresu a build cache)
 .netlify
 
 # Závislosti
 node_modules
 
-# Premenné prostredia
+# Premenné prostredia — NIKDY do gitu
 .env
+.env.*
 .env.backup
+!.env.example
+
+# Behové súbory pipeline
+logs/
+.pipeline.lock
+
+# Generované stránky (vznikajú pri každom behu pipeline)
+prehlad.html
+redakcia/web/
+
+# Systémové
+.DS_Store

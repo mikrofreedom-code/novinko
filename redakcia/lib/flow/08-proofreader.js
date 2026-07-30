@@ -12,7 +12,7 @@
 // ============================================================
 
 export const STAGE = {
-  index: 08,
+  index: 8,
   name: "Proofreader",
   input: "written",
   output: "proofed",
