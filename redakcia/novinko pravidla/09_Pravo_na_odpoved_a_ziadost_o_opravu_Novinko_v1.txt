@@ -1,0 +1,65 @@
+NOVINKO Dokument 09
+
+PRÁVO NA ODPOVEĎ A ŽIADOSŤ O OPRAVU Verzia 1.0
+
+1.  ÚČEL Stanoviť jednotný postup pri prijímaní, posudzovaní a
+    vybavovaní žiadostí o opravu, odpoveď alebo doplnenie informácií.
+
+2.  ROZSAH Politika sa vzťahuje na všetok obsah publikovaný redakciou
+    Novinko.
+
+3.  PODANIE ŽIADOSTI Žiadosť musí obsahovať:
+
+-   meno alebo názov žiadateľa,
+-   kontaktné údaje,
+-   odkaz na článok,
+-   opis namietanej skutočnosti,
+-   požadovanú opravu alebo odpoveď.
+
+4.  EVIDENCIA Každá žiadosť dostane:
+
+-   evidenčné číslo,
+-   dátum prijatia,
+-   stav riešenia,
+-   zodpovednú osobu.
+
+5.  POSÚDENIE Redakcia preverí:
+
+-   skutkový stav,
+-   použité zdroje,
+-   históriu článku,
+-   právne riziká.
+
+6.  MOŽNÉ ROZHODNUTIA
+
+-   oprava článku,
+-   doplnenie článku,
+-   uverejnenie odpovede,
+-   zamietnutie žiadosti,
+-   odstránenie článku, ak to vyžaduje zákon alebo rozhodnutie súdu.
+
+7.  LEHOTY Žiadosti sa vybavujú bez zbytočného odkladu v primeranej
+    lehote podľa ich povahy a platných právnych predpisov.
+
+8.  AI WORKFLOW Po prijatí žiadosti:
+
+9.  pozastaviť automatické aktualizácie článku,
+
+10. vytvoriť auditný záznam,
+
+11. vykonať nové overenie faktov,
+
+12. pripraviť návrh riešenia,
+
+13. uložiť novú verziu článku.
+
+14. AUDIT Uchovávať:
+
+-   pôvodný článok,
+-   všetky verzie,
+-   komunikáciu,
+-   rozhodnutie,
+-   dátumy a časy úkonov.
+
+10. REVÍZIA Dokument sa pravidelne aktualizuje podľa legislatívnych
+    zmien a redakčnej praxe.

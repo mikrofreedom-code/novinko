@@ -1,0 +1,59 @@
+================================================================================
+  ZDROJE — ZOZNAM ŽELANÍ (kam sa robot má pozerať)
+  Sem priebežne pridávame zdroje a osoby. Značka feasibility:
+    [ČISTÉ]   = primárny, verejný, ľahko pridáme (RSS / oficiálny kanál)
+    [STREDNE] = dá sa, ale treba prácu/atribúciu
+    [ŤAŽKÉ]   = drahé alebo právne citlivé, vedomé rozhodnutie neskôr
+================================================================================
+
+--------------------------------------------------------------------------------
+  MAKRO / CENTRÁLNE BANKY / REGULÁTORI  (rare, ale obrovský dopad)
+--------------------------------------------------------------------------------
+  [ČISTÉ]  Fed / FOMC — úrokové rozhodnutia (cca 8x/rok). Oficiálne tlačové
+           správy, majú RSS. Hýbe VŠETKÝMI rizikovými aktívami vrátane kryptu.
+           ⚠️ POZOR: úroková správa NEOBSAHUJE slovo "krypto", takže náš krypto
+           filter by ju ZAHODIL. Makro-správy (Fed/ECB sadzby) potrebujú vlastné
+           pravidlo "reportuj vždy" — samostatná malá úloha, urobiť osobitne.
+  [ČISTÉ]  ECB — Európska centrálna banka (rozhodnutia, prejavy).
+  [ČISTÉ]  ESMA — MiCA, európska krypto regulácia.
+  [ČISTÉ]  Európska komisia — digitálne financie.
+  [ČISTÉ]  SEC (US) — žaloby, povolenia ETF, vyjadrenia. Globálny dopad.
+  [ČISTÉ]  CFTC (US) — komoditná regulácia kryptu.
+
+--------------------------------------------------------------------------------
+  VPLYVNÉ OSOBY  (ich slová hýbu trhom)
+--------------------------------------------------------------------------------
+  Princíp: čo prejde cez OFICIÁLNY kanál (firma, úradné podanie) = čisté.
+           Čo je len osobný tweet = ťažké (platené X API + právne citlivé).
+
+  Michael Saylor (Strategy / býv. MicroStrategy) — najväčší firemný držiteľ BTC
+     [ČISTÉ]   nákupy BTC = úradné podania SEC (8-K) na EDGAR, majú feed
+     [ČISTÉ]   firemný blog Strategy
+     [ŤAŽKÉ]   osobné tweety
+
+  CZ (Changpeng Zhao) / Binance
+     [ČISTÉ]   oficiálny Binance blog (announcements)
+     [ŤAŽKÉ]   osobné tweety
+
+  Elon Musk / Tesla
+     [ČISTÉ]   pohyby BTC Tesly = úradné podania SEC (ak nakupujú/predávajú)
+     [ŤAŽKÉ]   osobné tweety o kryptu (skoro všetko ide len cez X)
+
+  ĎALŠÍ NA ZVÁŽENIE (doplniť mená):
+     • Brian Armstrong (Coinbase) — Coinbase blog [ČISTÉ]
+     • Vitalik Buterin (Ethereum)  — EF blog [ČISTÉ] / osobné [ŤAŽKÉ]
+     • zakladatelia veľkých protokolov — oficiálne blogy [ČISTÉ]
+     • ___________________________  (sem dopisuj, koho chceš sledovať)
+
+--------------------------------------------------------------------------------
+  DÔLEŽITÉ POZNÁMKY
+--------------------------------------------------------------------------------
+  1. "Osobný tweet" je najťažšia kategória: Twitter/X API je platené
+     (~stovky $/rok) a právne citlivé. Riešime VEDOME a NESKÔR, nie hneď.
+  2. Veľa VIP správ sa dá pokryť cez ich FIRMY (oficiálne blogy + úradné
+     podania) — tým získame podstatu (napr. "Saylor kúpil viac BTC")
+     legálne čisto, bez Twitteru.
+  3. VIP vyjadrenia potrebujú EXTRA kontrolu pravdy — preto je "Kontrola
+     pravdy" (KROK 3) pri nich kritická (riziko skreslenia = reputácia/právo).
+  4. Vo výbere dôležitosti (KROK 1) tieto typy správ dostanú VYSOKÉ skóre.
+================================================================================

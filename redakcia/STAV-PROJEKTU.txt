@@ -1,0 +1,198 @@
+================================================================================
+  NOVINKO REDAKCIA — News OS
+  Autonómna AI spravodajská redakcia pre slovenský krypto agregátor
+  Stav k: 29. jún 2026
+================================================================================
+
+--------------------------------------------------------------------------------
+  1. ČO TO JE (v jednej vete)
+--------------------------------------------------------------------------------
+
+Samobežný systém, ktorý NEPRETRŽITE sleduje krypto trhy a oficiálne zdroje,
+sám rozpozná, čo je správa hodná článku, a napíše originálny slovenský
+spravodajský text — bez toho, aby kopíroval cudzí obsah.
+
+Funguje ako redakcia zložená zo špecializovaných "agentov", kde každý robí
+jednu vec a posúva prácu ďalšiemu. Človek zatiaľ nemusí zasiahnuť až po
+finálne schválenie pred publikovaním.
+
+
+--------------------------------------------------------------------------------
+  2. ČO SYSTÉM AKTUÁLNE DOKÁŽE (LIVE)
+--------------------------------------------------------------------------------
+
+  [✓] Sám sťahuje živé dáta z reálnych zdrojov každú hodinu (automaticky, cez cron)
+  [✓] Sleduje 100 najväčších kryptomien (ceny, objemy, pohyby) z CoinGecku
+  [✓] Sleduje 7 oficiálnych textových zdrojov (blogy + vývojárske oznámenia)
+  [✓] Sám odfiltruje 90–95 % šumu LACNO, bez AI (len malé % ide na drahú AI)
+  [✓] Vytiahne z obsahu iba overiteľné FAKTY (právna ochrana — viď sekcia 5)
+  [✓] Zoskupí správy o tej istej udalosti z viacerých zdrojov
+  [✓] Rozhodne, čo je dosť dôležité na článok (prah dôležitosti)
+  [✓] Napíše originálny slovenský článok (titulok, perex, telo, zdroje)
+  [✓] Sleduje náklady na AI do centa
+  [✓] Poistka: nič sa nepublikuje automaticky (manuálne schválenie)
+
+  PRÍKLADY REÁLNE VYGENEROVANÝCH ČLÁNKOV (z ostrých dát):
+    • "Bitcoin klesol o 8,3 % na 61 240 USD"
+    • "MemeCore klesol za 24 hodín o takmer 18 percent"
+    • "Ethereum Foundation dokončila organizačnú reštrukturalizáciu"
+    • "Token Ethena si za 24 hodín pripísal takmer 7 percent"
+
+
+--------------------------------------------------------------------------------
+  3. AKO TO FUNGUJE — VÝROBNÁ LINKA (PIPELINE)
+--------------------------------------------------------------------------------
+
+Každá správa prejde reťazou krokov. Každý krok má svoj "stav" vo fronte;
+agent zoberie položky vo svojom stave a posunie ich do ďalšieho. Žiadny agent
+nehovorí priamo s druhým — komunikujú VÝHRADNE cez túto frontu.
+
+   ZDROJE              →  [01 SCOUT]        objaví a stiahne surové dáta
+                                            (CoinGecko + RSS/Atom feedy)
+                              │  stav: raw
+                              ▼
+                          [02 GATEWAY]      filtre PRED AI: prah pohybu,
+                                            čerstvosť, duplicity
+                              │  stav: filtered   (tu padne 90–95 % objemu)
+                              ▼
+                          [04 COLLECTOR]    normalizuje dáta do jednotného tvaru
+                              │  stav: collected
+                              ▼
+                          [05 VERIFICATION] vytiahne LEN fakty (právny štít)
+                              │  stav: facts_ready
+                              ▼
+                          [06 CHIEF EDITOR] zoskupí udalosti + rozhodne dôležitosť
+                              │  stav: clustered
+                              ▼
+                          [07 WRITER]       napíše originálny SK článok
+                              │  stav: written
+                              ▼
+                       (08–12: korektúra → právne → SEO → obrázok → publikovanie)
+                                            — zatiaľ pripravené, nie aktívne
+
+
+--------------------------------------------------------------------------------
+  4. FUNKCIE JEDNOTLIVÝCH AGENTOV (čo presne robia)
+--------------------------------------------------------------------------------
+
+  01 SCOUT (Prieskumník)         — LIVE
+     Len objavuje. Stiahne top 100 mincí z CoinGecku a najnovšie položky
+     zo 7 oficiálnych feedov. Nič nehodnotí, len vloží do fronty.
+     AI: žiadna.
+
+  02 EVENT GATEWAY (Brána)       — LIVE
+     Lacná hrubá filtrácia bez AI. Cenové dáta: pustí ďalej len pohyb
+     >= 5 %. Text: len čerstvé (<= 7 dní) a nie duplicitné. Tu odpadne
+     väčšina objemu — preto je systém lacný.
+     AI: žiadna.
+
+  04 COLLECTOR (Zberač)          — LIVE
+     Zjednotí rôzne zdroje (čísla aj text) do jedného formátu, ktorý
+     očakáva ďalší krok.
+     AI: žiadna.
+
+  05 VERIFICATION (Fact Extractor) — LIVE  *** PRÁVNY ZÁKLADNÝ KAMEŇ ***
+     Z obsahu vytiahne IBA atomické fakty do štruktúry (cena, percento,
+     dátum, tvrdenie + zdroj). Pôvodné vety zdroja ZAHODÍ. Pri číslach
+     nepotrebuje AI vôbec; pri texte použije najlacnejší model (Haiku).
+     AI: lacná vrstva (len pri texte).
+
+  06 CHIEF EDITOR (Šéfredaktor)  — LIVE
+     "Mozog" redakcie. Zoskupí fakty o tej istej udalosti naprieč zdrojmi
+     do jedného článku a rozhodne, či udalosť stojí za článok (prah
+     dôležitosti). Oznámenia berie vždy; cenové pohyby podľa veľkosti.
+     AI: zatiaľ žiadna (softvérovo); priestor na AS dolaďovanie pripravený.
+
+  07 WRITER (Redaktor)           — LIVE
+     Napíše originálny slovenský článok. Dostane LEN fakty (nikdy nie
+     pôvodný text!). Používa najsilnejší model (Sonnet), lebo je na konci
+     lievika a beží len na vyfiltrovaných správach.
+     AI: silná vrstva (Sonnet).
+
+  08–12 (Korektor, Právne, SEO, Obrázok, Publisher) — PRIPRAVENÉ, NEAKTÍVNE
+     Kostry existujú. Po ich dokončení článok prejde jazykovou korektúrou,
+     právnou kontrolou, SEO optimalizáciou, dostane obrázok a publikuje sa.
+
+
+--------------------------------------------------------------------------------
+  5. PREČO JE TO PRÁVNE BEZPEČNÉ (kľúčová konkurenčná výhoda)
+--------------------------------------------------------------------------------
+
+Bežný problém AI agregátorov: prepisovanie cudzích článkov = riziko porušenia
+autorských práv. Náš systém to rieši architektúrou:
+
+  • REDAKTOR NIKDY NEVIDÍ PÔVODNÝ TEXT. Dostane len štruktúrované fakty.
+    Medzi zdrojom a redaktorom stojí "Fact Extractor" (krok 05), ktorý
+    pôvodné formulácie zahodí. Fakty a čísla nie sú chránené autorským právom.
+
+  • SOURCING MODEL: staviame na PRIMÁRNYCH zdrojoch (oficiálne blogy,
+    vývojárske oznámenia, dáta z búrz). Keď niečo prevezmeme od média,
+    uvedie sa atribúcia "podľa X" + odkaz — nie tichý prepis.
+
+  • Každý fakt si nesie svoj zdroj. Systém automaticky vie, kedy MUSÍ
+    citovať, a kontroluje to (článok bez povinnej citácie sa zamietne).
+
+
+--------------------------------------------------------------------------------
+  6. PRINCÍP "SOFTWARE FIRST, AI SECOND" (prečo je to lacné)
+--------------------------------------------------------------------------------
+
+AI je najdrahšia vrstva, preto sa používa až keď lacnejšie zlyhá. Poradie
+eskalácie: bežný kód / pravidlá  →  Haiku (lacný model)  →  Sonnet (silný).
+
+  REÁLNY PRÍKLAD Z OSTRÉHO BEHU:
+    100 mincí stiahnutých  →  95 zahodených zadarmo softvérom  →
+    5 prešlo na AI  →  5 článkov.   Náklad: $0,04 (štyri centy).
+
+  Cenník AI:
+    • Jeden cenový článok (bez AI v extrakcii):  ~$0,006
+    • Jeden textový článok (s lacnou AI):         ~$0,008
+    • 95 % objemu sa vyrieši ZA $0,00
+
+
+--------------------------------------------------------------------------------
+  7. TECHNOLÓGIE
+--------------------------------------------------------------------------------
+
+  • Node.js (agenti, pipeline)
+  • Supabase (PostgreSQL databáza = fronta + logy nákladov + audit)
+  • Anthropic Claude API (Haiku = lacná vrstva, Sonnet = písanie)
+  • CoinGecko API (trhové dáta, Layer A)
+  • RSS/Atom feedy (oficiálne oznámenia, Layer B/C)
+  • cron (hodinová automatizácia)
+  • Cieľ nasadenia: Netlify + GitHub CI/CD
+
+  ZDROJE NA LAUNCH (KRYPTO ONLY):
+    Layer A (dáta):   CoinGecko (live), pripravené: DexScreener, DefiLlama, GeckoTerminal
+    Layer B (text):   Ethereum Foundation blog + GitHub release feedy
+                      (go-ethereum, Bitcoin Core, Solana, Uniswap, Chainlink, Lighthouse)
+    Pridať zdroj = jeden riadok v konfigurácii. Téma zdrojov je škálovateľná.
+
+
+--------------------------------------------------------------------------------
+  8. ČO EŠTE NIE JE HOTOVÉ (čestne)
+--------------------------------------------------------------------------------
+
+  • Downstream agenti 08–12 (korektúra, právne, SEO, obrázky, publikovanie)
+    sú zatiaľ kostry — preto sa nič nepublikuje, články čakajú v stave "written".
+  • Zoskupovanie udalostí je zatiaľ hrubé (podľa subjektu + typu udalosti).
+  • Prevádzka je zatiaľ LOKÁLNA — cron beží len keď je počítač zapnutý.
+    Pre 24/7 treba nasadenie na server / Netlify.
+  • Cenové články sú zatiaľ krátke ("cena sa hla o X %"); bohatší kontext
+    pribudne prepojením s textovými zdrojmi.
+
+
+--------------------------------------------------------------------------------
+  9. ZHRNUTIE PRE PREZENTÁCIU (3 vety)
+--------------------------------------------------------------------------------
+
+  1. Máme funkčný, samobežný systém, ktorý z reálnych dát automaticky
+     vyrába originálne slovenské krypto správy — za zlomky centa za článok.
+
+  2. Je postavený právne bezpečne: redaktor nikdy nevidí cudzí text,
+     pracuje len s faktami a zdroje sa atribuujú.
+
+  3. Beží na princípe "lacný softvér najprv, drahá AI až keď treba",
+     takže 90–95 % práce stojí nula.
+
+================================================================================

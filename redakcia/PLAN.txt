@@ -1,0 +1,191 @@
+================================================================================
+  NOVINKO REDAKCIA — JEDNODUCHÝ PLÁN (čo máme, čo ďalej)
+  Písané po ľudsky, bez technického žargónu. Stav: 29. jún 2026
+================================================================================
+
+--------------------------------------------------------------------------------
+  STRATÉGIA (rozhodnuté 6.7.2026): KRYPTO + AI DO DOKONALOSTI
+--------------------------------------------------------------------------------
+
+Cieľ: byť najprestížnejší tech magazín na Slovensku. Vývoj sa sústreďuje
+VÝHRADNE na sekcie Krypto a AI — dotiahnuť ich do hĺbky, nie pridávať ďalšie.
+Svet/Šport (zatiaľ starý generátor v novinko-clean) ostávajú DOPLNKOVÉ —
+nerozširujeme novinko-redakcia o ne, kým Krypto+AI nie sú na špičkovej úrovni.
+KROK 8 nižšie (postupná konvergencia s novinko-clean) je kvôli tomuto
+POZASTAVENÝ — nerobíme ho na časovú os, len keď/ak sa k tomu vrátime.
+
+--------------------------------------------------------------------------------
+  ČO UŽ MÁŠ (a beží to samo)
+--------------------------------------------------------------------------------
+
+Máš funkčnú "robotickú redakciu", ktorá:
+  • každú hodinu sama stiahne krypto dáta a oficiálne oznámenia,
+  • sama zahodí 95 % nezaujímavého (lacno, bez AI),
+  • z toho dôležitého vytiahne fakty,
+  • napíše originálny slovenský článok,
+  • a počká na schválenie (nič sa nepublikuje samo).
+
+To je hotové a otestované na reálnych dátach. Toto je tvoj základ.
+Detailný popis je v súbore: STAV-PROJEKTU.txt
+
+
+--------------------------------------------------------------------------------
+  AKO TO ČÍTAŤ: čo robí náš produkt iným
+--------------------------------------------------------------------------------
+
+Nepredávame "veľkosť" (milióny článkov). Predávame DVE veci:
+  1. DÔVERYHODNOSŤ  — články sú právne čisté a pravdivé.
+  2. NÍZKE NÁKLADY   — 95 % roboty stojí nula.
+
+Takže všetko, čo budeme robiť ďalej, slúži len týmto dvom cieľom.
+Všetko ostatné (zložité "škálovacie" veci) odkladáme, kým nás k nim
+nedotlačí reálny rast. Teraz by nás len spomalili.
+
+
+--------------------------------------------------------------------------------
+  PLÁN ĎALŠÍCH KROKOV (v poradí, jednoducho)
+--------------------------------------------------------------------------------
+
+  TERAZ:
+    [ ] Nechať robota pár hodín/dní zbierať reálne články.
+        → TY nič nemusíš robiť, beží to samo.
+
+  KROK 1 — VÝBER DÔLEŽITÝCH SPRÁV NA ZVEREJNENIE   ✅ HOTOVO
+    Nechceme veľa článkov — chceme tých pár PODSTATNÝCH. Šéfredaktor (06)
+    dá každej správe "skóre dôležitosti" (veľkosť pohybu, význam aktíva,
+    objem obchodov, typ udalosti, súbeh viacerých zdrojov) a vyberie len
+    tie najdôležitejšie — EŠTE PRED tým, než sa napíšu.
+    Ty nastavíš latku ("len skóre >= X") alebo kvótu ("max 5 za hodinu")
+    a máš posledné slovo, čo ide von.
+    PREČO: kvalita a výber namiesto množstva. Menej článkov, nižší náklad.
+
+  KROK 2 — ROZŠÍRIŤ ZDROJE (regulácie...)   ✅ HOTOVO (SEC, ESMA, ECB)
+    Pridať oficiálne zdroje pre MiCA / EÚ / regulátorov / centrálne banky
+    a oficiálne firemné blogy. Práve regulačné a politické správy bývajú
+    najdôležitejšie. Detail v sekcii ZDROJE nižšie.
+    PREČO: bez toho nám chýbajú najpodstatnejšie typy správ.
+
+  KROK 3 — "Kontrola pravdy"   ✅ HOTOVO
+    Krok, ktorý overí, že každý fakt v článku naozaj sedí so zdrojom.
+    Chráni nás, aby AI nevymyslela nepravdu.
+    PREČO: nepravdivá správa s naším menom je najväčšie riziko.
+
+  KROK 4 — Odolnosť + poistka na náklady   ✅ HOTOVO
+    Keď zdroj alebo AI dočasne zlyhá, systém to skúsi znova namiesto
+    straty správy. Plus strop na denné náklady.
+
+  KROK 5 — Lacnejšie cenové články (šablóny)   ✅ HOTOVO
+
+  KROK 6 — Pamäť o tom, z čoho a ako každý článok vznikol (dôkaz + učenie)
+
+  KROK 7 — Dokončiť cestu k publikovaniu (kroky 08-12: korektúra →
+    právne → SEO → obrázok → publikovanie). Stále s tvojím schválením.
+
+  KROK 8 — Zjednotiť novinko-redakcia a novinko-clean do JEDNÉHO systému (2026-07-05)
+    Máme dva oddelené projekty: novinko-clean (pôvodný, živý web + staré
+    generátory Krypto/Svet/Šport) a novinko-redakcia (nový, právne
+    bezpečnejší pipeline). Zatiaľ sú prepojené len cez spoločný Google Sheet.
+    Táto roztrieštenosť už raz spôsobila reálny zmätok (nekonzistentný
+    Netlify deploy, generate-krypto bežal súbežne s novinko-redakcia
+    a duplikoval krypto obsah — 5.7.2026 sme generate-krypto vypli).
+
+    POSTUP — postupná konvergencia, NIE jeden veľký merge naraz:
+      [x] Krypto + AI sekcia: preberá výhradne novinko-redakcia.
+          generate-krypto v novinko-clean vypnutý (schedule zakomentovaný
+          v netlify.toml, súbor ostal nedotknutý pre prípad potreby).
+      [ ] Svet a Šport zostávajú v novinko-clean (starý generátor),
+          kým ich novinko-redakcia nerozšíri o tieto sekcie.
+      [ ] Až keď novinko-redakcia dokončí vlastný publish pipeline
+          (KROK 7 vyššie) a prípadne pridá Svet/Šport ako ďalšie sekcie
+          (rovnaký vzor ako AI desk), dá sa generate-svet/generate-sport
+          rovnako nahradiť a novinko-clean napokon vypnúť úplne.
+    PREČO postupne: novinko-clean je živý, fungujúci web — veľký
+    jednorazový presun by bol zbytočne rizikový. Sekcia po sekcii je
+    pomalšie, ale bezpečnejšie a vždy vieme, čo presne beží kde.
+
+  PARALELNE (nie kód, ale dôležité):
+    [ ] Skontrolovať licencie zdrojov (či ich smieme komerčne použiť).
+
+
+--------------------------------------------------------------------------------
+  ZDROJE — odkiaľ vziať MiCA, reguláciu, štát, dôležité osoby
+--------------------------------------------------------------------------------
+
+Dnešné zdroje (ceny + vývojárske oznámenia) toto NEPOKRÝVAJÚ. Doplníme:
+
+  ĽAHKÉ A ČISTÉ (oficiálne, primárne — pridáme ako prvé):
+    • Regulátori EÚ:  ESMA (MiCA), Európska komisia (digitálne financie)
+    • Centrálne banky: ECB (tlačové správy, prejavy)
+    • Regulátori US:  SEC (tlačové správy, súdne podania), CFTC
+    • Národní:        BaFin, FCA a pod.
+    • Oficiálne firemné blogy: Coinbase, Binance, a16z, Paradigm...
+    → Všetko verejné tlačové správy = PRÁVNE NAJBEZPEČNEJŠÍ obsah vôbec.
+    → Technicky: pridať riadok do feeds.js, presne ako pri krypto feedoch.
+
+  ŤAŽKÉ (vyjadrenia konkrétnych dôležitých ĽUDÍ):
+    • Najčistejšie: cez oficiálne kanály ich firiem/nadácií (blogy vyššie).
+    • Priamo z Twitteru/X: technicky aj právne komplikované (platené API,
+      podmienky používania) — riešime opatrne a neskôr.
+    • Keď správu prvé prinesie médium: použijeme len S ATRIBÚCIOU
+      "podľa X" + odkaz (náš sourcing model), nie tichý prepis.
+
+  POZNÁMKA: regulačné udalosti (MiCA a pod.) dostanú vo výbere dôležitosti
+  (KROK 1) VYSOKÉ skóre — sú to typovo najdôležitejšie správy.
+
+--------------------------------------------------------------------------------
+  NA POROZMÝŠĽANIE (budúcnosť, nie teraz) — VIACJAZYČNÁ VERZIA
+--------------------------------------------------------------------------------
+
+Nápad: spraviť aj inojazyčné verzie (angličtina a/alebo ďalšie jazyky).
+
+PREČO TO IDE LACNO:
+  Náš Writer nepíše z cudzieho textu, ale z FAKTOV, ktoré sú jazykovo
+  neutrálne. Tie isté fakty → slovenský / anglický / český / poľský článok.
+  Je to "1x extrakcia faktov → N jazykov → N webov". Pridať jazyk =
+  v podstate ďalšia verzia Writera s parametrom jazyka. Architektúra je
+  na to už pripravená.
+
+DVA HÁČIKY (dôležité pri rozhodovaní):
+  1. ANGLIČTINA JE PRÁVNE RIZIKOVEJŠIA než slovenčina.
+     SK: anglický vstup → slovenský výstup = prirodzene transformatívne.
+     EN: anglický vstup → anglický výstup = menší odstup od originálu,
+     tenší bezpečnostný margin. Potrebovala by viac opatrnosti.
+  2. ANGLIČTINA = najpreplnenejší trh (CoinDesk, Cointelegraph, stovky
+     ďalších + AI agregátory). Slovenčina = malá, podobsluhovaná nika =
+     naša VÝHODA.
+
+SMER NA ZVÁŽENIE:
+  Naša sila nie je "slovenčina", ale "jeden faktový stroj → veľa jazykov".
+  Preto skôr ďalšie PODOBSLUHOVANÉ jazyky (čeština, poľština, maďarčina...)
+  než súboj s CoinDeskom v angličtine. Stredoeurópsky multi-jazyk je
+  obhájiteľnejší než ďalší anglický web.
+
+KEDY: až po dotiahnutí slovenčiny (výber, kontrola pravdy, publikovanie).
+  Toto je "Fáza 3" z architektonického review. Lacné pridať neskôr.
+
+--------------------------------------------------------------------------------
+  AKO TO BUDEME ROBIŤ ĎALEJ
+--------------------------------------------------------------------------------
+
+  • Vždy ti pred každým krokom po ľudsky poviem, ČO ideme robiť a PREČO.
+  • Pôjdeme pomalšie a po jednom kroku, nech máš prehľad.
+  • Ty nemusíš rozumieť kódu — stačí, že rozumieš, čo ktorý krok robí
+    pre produkt. Od toho som tu ja.
+
+================================================================================
+
+--------------------------------------------------------------------------------
+  AKTUÁLNY REŽIM: ZBEROVÝ (AI_ENABLED=false) — od 29.6. večer
+--------------------------------------------------------------------------------
+
+Robot ZBIERA a VYBERÁ dôležité správy, ale NEPÍŠE ich (žiadny AI náklad).
+Dôvod: nemá zmysel platiť za články, ktoré zatiaľ nevidíme a nepublikujeme.
+
+  • Vybrané dôležité udalosti čakajú v stave 'clustered' (pripravené).
+  • Zapnúť písanie = v .env zmeniť AI_ENABLED na true.
+
+ČO TOTO ODOMKÝNA AKO ĎALŠIU PRIORITU:
+  Aby malo zmysel platiť za písanie, musíme vedieť články (1) VIDIEŤ a
+  (2) PUBLIKOVAŤ. Preto sa ďalej oplatí spraviť jednoduchý spôsob, ako
+  vybrané správy uvidíš (prehľad/zoznam), a potom cestu k publikovaniu.
+  Až potom má zmysel zapnúť platené písanie.

@@ -1,0 +1,17 @@
+{
+  "name": "novinko-redakcia",
+  "version": "0.1.0",
+  "description": "AI-asistovaná spravodajská redakcia (NovaCore architektúra)",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "jsonwebtoken": "^9.0.3",
+    "replicate": "^1.4.0",
+    "rss-parser": "^3.13.0",
+    "ws": "^8.21.0"
+  }
+}

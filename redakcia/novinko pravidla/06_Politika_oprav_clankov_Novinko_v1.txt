@@ -1,0 +1,62 @@
+NOVINKO Dokument 06
+
+POLITIKA OPRÁV ČLÁNKOV Verzia 1.0
+
+1.  ÚČEL Stanoviť jednotný postup pri opravách, aktualizáciách a
+    doplneniach publikovaných článkov.
+
+2.  ZÁKLADNÉ ZÁSADY
+
+-   Chyby sa opravujú bez zbytočného odkladu.
+-   Transparentnosť má prednosť pred utajením chyby.
+-   Každá významná oprava musí byť evidovaná.
+
+3.  TYPY ZMIEN A. Pravopisné opravy
+
+-   bez oznámenia čitateľovi.
+
+B. Faktické opravy - oprava nesprávnych údajov, - doplnenie správnych
+údajov.
+
+C. Aktualizácie - nové informácie po publikovaní, - vývoj udalosti.
+
+D. Stiahnutie článku - závažné právne alebo faktické dôvody.
+
+4.  POSTUP
+
+5.  Identifikácia chyby.
+
+6.  Overenie správnych údajov.
+
+7.  Oprava článku.
+
+8.  Evidencia zmeny.
+
+9.  Aktualizácia histórie verzií.
+
+10. HISTÓRIA VERZIÍ Ku každému článku sa eviduje:
+
+-   dátum zmeny,
+-   dôvod zmeny,
+-   autor zmeny,
+-   AI model (ak bol použitý),
+-   verzia článku.
+
+6.  ŽIADOSŤ O OPRAVU Každá žiadosť sa:
+
+-   zaeviduje,
+-   posúdi,
+-   vybaví v primeranej lehote,
+-   archivuje.
+
+7.  TRANSPARENTNOSŤ Významné opravy môžu byť označené poznámkou:
+    “Aktualizované dňa …”
+
+8.  AUDIT Pôvodná verzia článku sa interne archivuje. Auditná stopa
+    nesmie byť odstránená.
+
+9.  AI PRAVIDLÁ AI nesmie prepisovať históriu článku. Každá AI úprava
+    musí byť zaznamenaná.
+
+10. REVÍZIA Dokument sa pravidelne aktualizuje podľa legislatívnych a
+    redakčných požiadaviek.

@@ -1,0 +1,71 @@
+NOVINKO Dokument 10
+
+GDPR A OCHRANA OSOBNÝCH ÚDAJOV Verzia 1.0
+
+1.  ÚČEL Stanoviť pravidlá spracúvania osobných údajov v súlade s GDPR a
+    platnými právnymi predpismi SR.
+
+2.  ZÁSADY SPRACÚVANIA
+
+-   zákonnosť,
+-   transparentnosť,
+-   minimalizácia údajov,
+-   presnosť,
+-   obmedzenie uchovávania,
+-   integrita,
+-   dôvernosť.
+
+3.  SPRACÚVANÉ ÚDAJE
+
+-   kontaktné údaje,
+-   údaje z kontaktných formulárov,
+-   údaje potrebné na vybavenie žiadostí,
+-   technické údaje o návšteve webu.
+
+4.  ÚČELY SPRACÚVANIA
+
+-   prevádzka webu,
+-   komunikácia,
+-   vybavenie žiadostí,
+-   bezpečnosť systému,
+-   plnenie zákonných povinností.
+
+5.  PRÁVA DOTKNUTÝCH OSÔB
+
+-   prístup k údajom,
+-   oprava,
+-   výmaz,
+-   obmedzenie spracúvania,
+-   prenosnosť údajov,
+-   námietka,
+-   podanie sťažnosti.
+
+6.  UCHOVÁVANIE ÚDAJOV Údaje sa uchovávajú iba počas nevyhnutnej doby
+    alebo podľa zákonných lehôt.
+
+7.  BEZPEČNOSŤ
+
+-   šifrovanie,
+-   riadenie prístupov,
+-   zálohovanie,
+-   auditné záznamy,
+-   ochrana API kľúčov.
+
+8.  AI A OSOBNÉ ÚDAJE
+
+-   AI spracúva iba údaje potrebné na konkrétnu úlohu.
+-   Nepoužíva údaje na iné účely.
+-   Citlivé údaje podliehajú zvýšenej kontrole.
+
+9.  INCIDENTY Pri podozrení na únik údajov:
+
+10. zaevidovať incident,
+
+11. analyzovať rozsah,
+
+12. prijať nápravné opatrenia,
+
+13. splniť oznamovacie povinnosti podľa GDPR.
+
+14. REVÍZIA Dokument sa pravidelne aktualizuje podľa legislatívnych
+    zmien.

@@ -1,0 +1,64 @@
+NOVINKO Dokument 02
+
+ETICKÝ KÓDEX Verzia 1.0
+
+1.  ÚČEL Etický kódex stanovuje hodnoty a pravidlá, ktorými sa riadi
+    redakcia Novinko a AI systém NovaCore.
+
+2.  HODNOTY
+
+-   Pravdivosť
+-   Presnosť
+-   Objektivita
+-   Transparentnosť
+-   Nezávislosť
+-   Zodpovednosť
+
+3.  REDAKČNÉ ZÁSADY
+
+-   Overovať informácie pred publikovaním.
+-   Jasne oddeľovať správy od komentárov.
+-   Nezavádzať čitateľa titulkom ani obsahom.
+-   Nezverejňovať neoverené tvrdenia ako fakty.
+
+4.  AI ETIKA AI nesmie:
+
+-   vytvárať neexistujúce fakty,
+-   meniť význam citácií,
+-   manipulovať obsah,
+-   vytvárať clickbait založený na nepravdách.
+
+AI musí: - uviesť neistotu, ak existuje, - pracovať iba s overenými
+zdrojmi, - zachovať pôvodný význam faktov.
+
+5.  KONFLIKT ZÁUJMOV
+
+-   Redakcia koná nezávisle.
+-   Obchodné záujmy nesmú ovplyvňovať obsah.
+-   Sponzorovaný obsah musí byť označený.
+
+6.  OCHRANA OSÔB
+
+-   Rešpektovať dôstojnosť osôb.
+-   Chrániť maloletých.
+-   Rešpektovať prezumpciu neviny.
+-   Nezverejňovať citlivé údaje bez zákonného dôvodu.
+
+7.  OPRAVY
+
+-   Chyby opravovať bez zbytočného odkladu.
+-   Zachovať históriu zmien.
+-   Transparentne označiť významné opravy.
+
+8.  SPRÁVANIE REDAKCIE
+
+-   Zdvorilá komunikácia.
+-   Overovanie kritiky.
+-   Žiadna diskriminácia.
+-   Žiadne šírenie nenávisti.
+
+9.  ZODPOVEDNOSŤ Každé publikačné rozhodnutie musí byť dohľadateľné a
+    auditovateľné.
+
+10. REVÍZIA Etický kódex sa reviduje minimálne raz ročne alebo pri
+    významnej legislatívnej zmene.

@@ -1,0 +1,53 @@
+NOVINKO Dokument 05
+
+TRANSPARENTNOSŤ AI Verzia 1.0
+
+1.  ÚČEL Stanoviť pravidlá transparentného používania umelej
+    inteligencie pri tvorbe a spracovaní obsahu.
+
+2.  ZÁKLADNÉ ZÁSADY
+
+-   AI je pomocný nástroj redakcie.
+-   AI nenahrádza zodpovednosť vydavateľa.
+-   Čitateľ nesmie byť zavádzaný o spôsobe vzniku obsahu.
+
+3.  POUŽITIE AI AI môže byť použitá na:
+
+-   monitoring udalostí,
+-   analýzu údajov,
+-   prepis audia,
+-   preklad,
+-   sumarizáciu,
+-   návrh článku,
+-   SEO,
+-   kontrolu pravopisu.
+
+4.  AI NESMIE
+
+-   vytvárať nepravdivé informácie,
+-   zatajiť neistotu,
+-   vydávať fikciu za fakt,
+-   porušovať autorské práva.
+
+5.  OZNAČOVANIE Ak je to potrebné, Novinko môže informovať, že obsah bol
+    vytvorený alebo spracovaný s využitím AI.
+
+6.  AUDIT Ku každému článku sa interne eviduje:
+
+-   AI model,
+-   verzia promptu,
+-   dátum spracovania,
+-   použité zdroje,
+-   história úprav.
+
+7.  ĽUDSKÝ DOHĽAD Pri právne alebo spoločensky citlivých témach môže byť
+    vyžadovaná ľudská kontrola pred publikovaním.
+
+8.  OCHRANA ÚDAJOV AI nesmie spracúvať osobné údaje nad rámec platných
+    právnych predpisov.
+
+9.  AKTUALIZÁCIE Politika transparentnosti sa pravidelne reviduje podľa
+    vývoja technológií a legislatívy.
+
+10. ZÁVEREČNÉ USTANOVENIA Tento dokument je súčasťou interného systému
+    riadenia kvality AI redakcie Novinko.

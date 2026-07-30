@@ -1,0 +1,118 @@
+NOVINKO Dokument 01
+
+REDAKČNÝ PORIADOK Verzia 1.0 (pracovný návrh)
+
+1.  ÚČEL Redakčný poriadok stanovuje pravidlá fungovania redakcie
+    Novinko a AI platformy NovaCore. Je záväzný pre všetky redakčné
+    procesy, AI agentov a budúcich členov redakcie.
+
+2.  POSLANIE
+
+-   prinášať presné, overené a aktuálne informácie,
+-   uprednostňovať pravdivosť pred rýchlosťou,
+-   využívať AI ako nástroj, nie ako náhradu zodpovednosti,
+-   budovať dôveru čitateľov.
+
+3.  ZÁKLADNÉ REDAKČNÉ PRINCÍPY
+
+-   presnosť,
+-   objektivita,
+-   transparentnosť,
+-   zákonnosť,
+-   nezávislosť,
+-   zodpovednosť.
+
+4.  ORGANIZAČNÁ ŠTRUKTÚRA
+
+-   Vydavateľ
+-   Šéfredaktor
+-   AI Editorial Engine
+-   Fact Checking
+-   Legal Compliance
+-   Publisher
+-   Archivácia a Audit
+
+5.  PUBLIKAČNÝ PROCES
+
+6.  Získanie udalosti.
+
+7.  Overenie zdrojov.
+
+8.  Extrakcia faktov.
+
+9.  Kontrola duplicít.
+
+10. Vytvorenie originálneho článku.
+
+11. Právna kontrola.
+
+12. Publikovanie.
+
+13. Archivácia.
+
+14. ZDROJE INFORMÁCIÍ Prednosť majú:
+
+-   štátne orgány,
+-   oficiálne organizácie,
+-   regulátori,
+-   tlačové správy,
+-   oficiálne účty,
+-   overené médiá.
+
+7.  OVEROVANIE
+
+-   Každé tvrdenie musí mať zdroj.
+-   Pri neistote sa článok nepublikuje.
+-   Závažné tvrdenia sa overujú z viacerých zdrojov.
+
+8.  BREAKING NEWS
+
+-   označiť ako Breaking News,
+-   priebežne aktualizovať,
+-   evidovať všetky zmeny.
+
+9.  CITÁCIE
+
+-   priame citácie musia byť presné,
+-   uvádzať autora a zdroj,
+-   nemení sa význam výroku.
+
+10. AI PRAVIDLÁ AI nesmie:
+
+-   vytvárať nepravdivé informácie,
+-   kopírovať cudzie články,
+-   vytvárať falošné citácie.
+
+AI musí: - zachovať kontext, - pracovať iba s overenými údajmi, -
+označiť neisté informácie.
+
+11. OCHRANA OSOBNOSTI
+
+-   rešpektovať prezumpciu neviny,
+-   chrániť maloletých,
+-   rešpektovať súkromie,
+-   používať primeraný jazyk.
+
+12. OPRAVY
+
+-   chyby opravovať bezodkladne,
+-   zachovať históriu zmien,
+-   evidovať dôvod opravy.
+
+13. REKLAMA
+
+-   reklama musí byť jasne označená,
+-   sponzorovaný obsah nesmie byť vydávaný za redakčný.
+
+14. ARCHIVÁCIA Ku každému článku uchovávať:
+
+-   zdroje,
+-   čas,
+-   verzie,
+-   AI model,
+-   prompt,
+-   auditnú stopu.
+
+15. ZÁVEREČNÉ USTANOVENIA Dokument je základným interným predpisom
+    redakcie Novinko a pravidelne sa aktualizuje podľa legislatívnych
+    zmien a rozvoja systému NovaCore.
