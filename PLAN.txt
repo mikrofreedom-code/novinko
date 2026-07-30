@@ -4,6 +4,17 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  STRATÉGIA (rozhodnuté 6.7.2026): KRYPTO + AI DO DOKONALOSTI
+--------------------------------------------------------------------------------
+
+Cieľ: byť najprestížnejší tech magazín na Slovensku. Vývoj sa sústreďuje
+VÝHRADNE na sekcie Krypto a AI — dotiahnuť ich do hĺbky, nie pridávať ďalšie.
+Svet/Šport (zatiaľ starý generátor v novinko-clean) ostávajú DOPLNKOVÉ —
+nerozširujeme novinko-redakcia o ne, kým Krypto+AI nie sú na špičkovej úrovni.
+KROK 8 nižšie (postupná konvergencia s novinko-clean) je kvôli tomuto
+POZASTAVENÝ — nerobíme ho na časovú os, len keď/ak sa k tomu vrátime.
+
+--------------------------------------------------------------------------------
   ČO UŽ MÁŠ (a beží to samo)
 --------------------------------------------------------------------------------
 
@@ -69,6 +80,28 @@ nedotlačí reálny rast. Teraz by nás len spomalili.
 
   KROK 7 — Dokončiť cestu k publikovaniu (kroky 08-12: korektúra →
     právne → SEO → obrázok → publikovanie). Stále s tvojím schválením.
+
+  KROK 8 — Zjednotiť novinko-redakcia a novinko-clean do JEDNÉHO systému (2026-07-05)
+    Máme dva oddelené projekty: novinko-clean (pôvodný, živý web + staré
+    generátory Krypto/Svet/Šport) a novinko-redakcia (nový, právne
+    bezpečnejší pipeline). Zatiaľ sú prepojené len cez spoločný Google Sheet.
+    Táto roztrieštenosť už raz spôsobila reálny zmätok (nekonzistentný
+    Netlify deploy, generate-krypto bežal súbežne s novinko-redakcia
+    a duplikoval krypto obsah — 5.7.2026 sme generate-krypto vypli).
+
+    POSTUP — postupná konvergencia, NIE jeden veľký merge naraz:
+      [x] Krypto + AI sekcia: preberá výhradne novinko-redakcia.
+          generate-krypto v novinko-clean vypnutý (schedule zakomentovaný
+          v netlify.toml, súbor ostal nedotknutý pre prípad potreby).
+      [ ] Svet a Šport zostávajú v novinko-clean (starý generátor),
+          kým ich novinko-redakcia nerozšíri o tieto sekcie.
+      [ ] Až keď novinko-redakcia dokončí vlastný publish pipeline
+          (KROK 7 vyššie) a prípadne pridá Svet/Šport ako ďalšie sekcie
+          (rovnaký vzor ako AI desk), dá sa generate-svet/generate-sport
+          rovnako nahradiť a novinko-clean napokon vypnúť úplne.
+    PREČO postupne: novinko-clean je živý, fungujúci web — veľký
+    jednorazový presun by bol zbytočne rizikový. Sekcia po sekcii je
+    pomalšie, ale bezpečnejšie a vždy vieme, čo presne beží kde.
 
   PARALELNE (nie kód, ale dôležité):
     [ ] Skontrolovať licencie zdrojov (či ich smieme komerčne použiť).
