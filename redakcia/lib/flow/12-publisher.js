@@ -74,20 +74,56 @@ async function requestApproval(item) {
 // Koľko článkov maximálne zverejniť/navrhnúť za beh (= za hodinu pri hodinovom crone).
 const MAX_PER_RUN = Number(process.env.MAX_ARTICLES_PER_RUN ?? 2);
 
+// ---- EXPIRÁCIA ČAKAJÚCICH ČLÁNKOV ----
+// Spravodajstvo sa kazí: článok, ktorý týždeň visí bez rozhodnutia, sa nesmie
+// dať zverejniť — vyzeral by ako dnešná správa. Reálny prípad (31.7.2026): vo
+// fronte stále čakal recap z 24.7. s titulkom „Krypto trh DNES oslaboval".
+// Denný prehľad je snímka jedného dňa (krátka trvanlivosť), bežná správa
+// (oznámenie, regulácia) starne pomalšie.
+const RECAP_MAX_AGE_H = Number(process.env.RECAP_MAX_AGE_H ?? 14);
+const PENDING_MAX_AGE_H = Number(process.env.PENDING_MAX_AGE_H ?? 72);
+
+function jeExpirovany(item, now) {
+  const zaklad = item.raw_data?.approval_requested_at ?? item.updated_at ?? item.created_at;
+  if (!zaklad) return false;
+  const isRecap = item.article?.kind === 'market_recap' || item.raw_data?._src === 'market_recap';
+  const limit = isRecap ? RECAP_MAX_AGE_H : PENDING_MAX_AGE_H;
+  const vekH = (now - new Date(zaklad).getTime()) / 3600000;
+  return vekH > limit ? { vekH: Math.round(vekH), limit } : false;
+}
+
 export async function runBatch(limit = 50, { dryRun = false } = {}) {
   const manualApproval = process.env.MANUAL_APPROVAL === 'true';
   const allowPublish = process.env.ALLOW_PUBLISH === 'true';
 
   const claimed = await claim(STAGE.input, limit);
+
+  // Najprv vyhoď to, čo sa už skazilo — nech to neblokuje ani nezvádza ku kliku.
+  // Týka sa aj položiek s odoslanou žiadosťou: starý klik na ✅ potom neurobí nic,
+  // lebo telegram-webhook.js koná len nad stavom 'imaged'.
+  const now = Date.now();
+  const zive = [];
+  let expired = 0;
+  for (const item of claimed) {
+    const exp = jeExpirovany(item, now);
+    if (!exp) { zive.push(item); continue; }
+    if (!dryRun) {
+      await advance(item.id, 'rejected', {
+        error: `${AGENT}: expirované — čakalo ${exp.vekH} h bez rozhodnutia (limit ${exp.limit} h), obsah je už neaktuálny`,
+      });
+    }
+    expired++;
+  }
+
   // Položky, čo už čakajú na ľudské rozhodnutie v Telegrame — nechaj tak, neponúkaj znova.
-  const items = claimed.filter((it) => !it.raw_data?.approval_requested);
+  const items = zive.filter((it) => !it.raw_data?.approval_requested);
 
   // ŠKRT: zverejni/navrhni len top N najdôležitejších PER SEKCIA; zvyšok počká v 'imaged'.
   const top = topPerSection(items, MAX_PER_RUN,
     (it) => it.article?.section ?? it.facts?.section,
     (it) => it.article?.importance ?? it.facts?.importance);
 
-  const res = { ok: 0, failed: 0, skipped: Math.max(items.length - top.length, 0) };
+  const res = { ok: 0, failed: 0, expirovane: expired, skipped: Math.max(items.length - top.length, 0) };
   for (const item of top) {
     try {
       if (manualApproval && !allowPublish && !dryRun) {

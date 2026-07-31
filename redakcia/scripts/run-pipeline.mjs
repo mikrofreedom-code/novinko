@@ -10,6 +10,7 @@ import { db } from '../lib/_shared/queue.js';
 import { retryTransientErrors } from '../lib/_shared/retry.js';
 import { generatePrehlad } from './prehlad.mjs';
 import { generateWeb } from './web.mjs';
+import { pruneQueue } from './prune-queue.mjs';
 import * as evergreen from '../lib/_shared/evergreen.js';
 import * as scout from '../lib/flow/01-scout.js';
 import * as gateway from '../lib/flow/02-event-gateway.js';
@@ -87,6 +88,17 @@ async function main() {
     .select('agent, model, cost_usd').order('created_at', { ascending: false }).limit(10);
   const total = (costs ?? []).reduce((s, c) => s + Number(c.cost_usd), 0);
   console.log(`   volaní: ${costs?.length ?? 0}, spolu: $${total.toFixed(6)}`);
+
+  // Údržba raz denne. Scout vloží ~200 riadkov za beh a gateway ich väčšinu
+  // hneď zamietne — za mesiac z toho bolo 166 000 mŕtvych riadkov.
+  // Beží o PRUNE_HOUR, nie každú hodinu: je to lacné, ale zbytočné 23×.
+  if (new Date().getHours() === Number(process.env.PRUNE_HOUR ?? 4)) {
+    log('údržba — čistenie fronty (terminálne stavy staršie než retencia)');
+    try {
+      const p = await pruneQueue({ apply: true });
+      console.log(`   zmazaných ${p.spolu} riadkov starších než ${p.hranica} (retencia ${p.retentionDays} dní)`);
+    } catch (e) { console.log('   ⚠️ čistenie preskočené:', e.message); }
+  }
 
   log('prehlad.html + web — obnovujem prehľad a verejnú stránku');
   const p = await generatePrehlad();
