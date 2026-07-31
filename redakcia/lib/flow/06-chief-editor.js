@@ -100,6 +100,25 @@ function mergeClusterFacts(items, rep) {
   };
 }
 
+// ---- EDITORIÁLNA POLITIKA: z čoho NEROBÍME samostatný článok ----
+// Rozhodnutie 2026-07-31: čisté číselné pohyby sa nepublikujú ako samostatné
+// správy. Boli repetitívne (v jednej fronte čakalo 2× „Cena Shiba Inu vzrástla
+// o 15,2 %" a 2× „Index strachu a chamtivosti (25)") a neniesli žiadny kontext
+// — len prečíslované to isté.
+//
+// Dáta sa ZBIERAJÚ ĎALEJ. Vstupujú do DENNÉHO PREHĽADU TRHU (13-market-recap),
+// ktorý si ich ťahá priamo z CoinGecku/DefiLlamy/Fear&Greed a spracuje ich do
+// jedného zmysluplného textu. Tento filter teda recap nijako neochudobní —
+// gatherTodaysEvents() tieto typy zámerne ignoruje aj tak.
+//
+// VRÁTIŤ SPÄŤ: odober typ zo zoznamu nižšie alebo nastav NO_ARTICLE_EVENT_TYPES
+// v .env. POZOR: šablóny na tieto typy boli zmazané, takže po znovuzapnutí ich
+// bude písať Sonnet (drahšie) — vtedy zváž radšej vrátiť aj price-template.js.
+const NO_ARTICLE_EVENT_TYPES = new Set(
+  (process.env.NO_ARTICLE_EVENT_TYPES ?? 'price_move,tvl_shift,sentiment')
+    .split(',').map((s) => s.trim()).filter(Boolean),
+);
+
 // ---- BRÁNA DÔLEŽITOSTI ----
 // Vráti { worthy, score, reason }. Skóre 0-100 počíta _shared/importance.js
 // (typ udalosti, veľkosť pohybu, kapitalizácia, likvidita, súbeh zdrojov).
@@ -120,6 +139,19 @@ function assessNewsworthiness(facts) {
 async function processCluster(items) {
   const rep = pickRepresentative(items);
   const facts = mergeClusterFacts(items, rep);
+
+  // Editoriálna politika ide PRED bránu dôležitosti: nemá zmysel počítať skóre
+  // niečomu, čo aj tak nepublikujeme. Zároveň sa tým ušetrí Writer aj obrázok.
+  const evt = facts.event_type ?? 'other';
+  if (NO_ARTICLE_EVENT_TYPES.has(evt)) {
+    for (const item of items) {
+      await advance(item.id, 'rejected', {
+        error: `${AGENT}: typ '${evt}' sa nepublikuje samostatne (dáta idú do denného prehľadu trhu)`,
+      });
+    }
+    return { clustered: 0, merged: 0, rejected: items.length };
+  }
+
   const gate = assessNewsworthiness(facts);
 
   if (!gate.worthy) {

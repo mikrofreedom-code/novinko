@@ -36,6 +36,3 @@
 [functions."generate-sport"]
   schedule = "25 */2 * * *"
 
-# Skener mimoriadnych správ.
-[functions."breaking-scanner"]
-  schedule = "*/30 * * * *"

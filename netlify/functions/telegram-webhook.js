@@ -51,6 +51,17 @@ exports.handler = async (event) => {
       return { statusCode: 200, body: "ok" };
     }
 
+    // POISTKA: konať smieme LEN nad položkou, ktorá stále čaká na rozhodnutie.
+    // Bez tejto kontroly by druhý klik na ✅ zapísal článok do hárku DRUHÝKRÁT
+    // a klik na starú správu by zverejnil aj to, čo medzitým niekto zamietol
+    // (napr. hromadné zrušenie cenových článkov 31.7.2026).
+    if (item.status !== "imaged") {
+      const popis = { published: "už je zverejnené", rejected: "medzitým zamietnuté", error: "skončilo s chybou" }[item.status] || `stav: ${item.status}`;
+      await callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text: `Nič sa nestalo — ${popis}.`, show_alert: true });
+      await markDecided(item, chatId, messageId, `⏸️ NEAKTUÁLNE (${popis})`);
+      return { statusCode: 200, body: "ok" };
+    }
+
     if (action === "approve") {
       const article = item.article;
       if (!article || !article.headline || !article.body) throw new Error("item.article chýba headline/body");

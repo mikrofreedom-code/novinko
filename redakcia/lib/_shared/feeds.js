@@ -26,13 +26,10 @@ export const FEEDS = [
   { name: 'ECB press', url: 'https://www.ecb.europa.eu/rss/press.xml', layer: 'C', source_type: 'primary', entity: null, cryptoFilter: true },
   { name: 'FCA (UK)', url: 'https://www.fca.org.uk/news/rss.xml', layer: 'C', source_type: 'primary', entity: null, cryptoFilter: true },
   { name: 'NBS (Slovensko)', url: 'https://nbs.sk/en/feed/', layer: 'C', source_type: 'primary', entity: null, cryptoFilter: true },
-  { name: 'CFTC press releases', url: 'https://www.cftc.gov/RSS/RSSGP/rssgp.xml', layer: 'C', source_type: 'primary', entity: null, cryptoFilter: true },
 
   // --- Krypto PR wire (Layer C) — tlačové správy projektov, určené na šírenie ---
   { name: 'Chainwire (krypto PR)', url: 'https://chainwire.org/feed/', layer: 'C', source_type: 'primary', entity: null },
 
-  // --- On-chain analytika/výskum (Layer C) — vlastné dáta firmy, nie prevzaté správy ---
-  { name: 'Glassnode Insights', url: 'https://insights.glassnode.com/rss/', layer: 'C', source_type: 'primary', entity: null },
 
   // --- Governance fóra projektov (Layer C) — oficiálne návrhy/rozhodnutia DAO ---
   { name: 'Uniswap governance', url: 'https://gov.uniswap.org/latest.rss', layer: 'C', source_type: 'primary', entity: 'Uniswap' },
@@ -40,7 +37,6 @@ export const FEEDS = [
   { name: 'Optimism governance', url: 'https://gov.optimism.io/latest.rss', layer: 'C', source_type: 'primary', entity: 'Optimism' },
   { name: 'Arbitrum governance', url: 'https://forum.arbitrum.foundation/latest.rss', layer: 'C', source_type: 'primary', entity: 'Arbitrum' },
   { name: 'Lido governance', url: 'https://research.lido.fi/latest.rss', layer: 'C', source_type: 'primary', entity: 'Lido' },
-  { name: 'MakerDAO governance', url: 'https://forum.makerdao.com/latest.rss', layer: 'C', source_type: 'primary', entity: 'Maker' },
   { name: 'Ethereum Magicians', url: 'https://ethereum-magicians.org/latest.rss', layer: 'C', source_type: 'primary', entity: 'Ethereum' },
 
   // --- Ekosystém (Layer B) ---

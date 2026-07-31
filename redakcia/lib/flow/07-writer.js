@@ -26,7 +26,6 @@
 
 import { claim, advance } from '../_shared/queue.js';
 import { ask } from '../_shared/ai-gateway.js';
-import { tryPriceTemplate, tryTvlTemplate, trySentimentTemplate } from '../_shared/price-template.js';
 import { liveFor } from '../sections/index.js';
 
 export const STAGE = {
@@ -128,10 +127,11 @@ export async function run(item) {
     throw new Error('item.facts chýba alebo je prázdne — Writer nemá z čoho písať');
   }
 
-  // Dátové udalosti (cena/TVL/nálada) → šablóna bez AI (lacné). Inak → Sonnet.
-  let base = tryPriceTemplate(fc) || tryTvlTemplate(fc) || trySentimentTemplate(fc);
-
-  if (!base) {
+  // Šablóny na cenu/TVL/náladu boli zrušené 2026-07-31 spolu s celou kategóriou
+  // samostatných číselných článkov — tie typy udalostí zamieta už 06-chief-editor
+  // (NO_ARTICLE_EVENT_TYPES). Sem sa teda dostane len skutočná správa → Sonnet.
+  let base;
+  {
     const basePrompt = factsForPrompt(fc);
     // Občas model vloží citát v rovných úvodzovkách " ", čo rozbije JSON výstup
     // (viď WRITER_SYSTEM). Radšej než to nechať spadnúť na chybu, skús ešte raz
