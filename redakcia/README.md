@@ -32,10 +32,10 @@ posunie na VÝSTUPNÝ status. Žiadny krok nevolá iný priamo — len mení sta
 | 05 | Verification    | 05-verification.js          | collected → facts_ready| 🔴 MVP PRVÝ   | 2  |
 | 06 | Chief Editor    | 06-chief-editor.js          | facts_ready → clustered| 🔴 MVP        | 1-2|
 | 07 | Writer          | 07-writer.js                | clustered → written    | 🔴 MVP        | 3  |
-| 08 | Proofreader     | 08-proofreader.js           | written → proofed      | 🟡 ľahké      | 2  |
-| 09 | Legal           | 09-legal.js                 | proofed → legal_ok     | 🟡 checklist  | 0  |
+| 08 | Proofreader     | 08-proofreader.js           | written → proofed      | 🟢 hotové     | 2  |
+| 09 | Legal           | 09-legal.js                 | proofed → legal_ok     | 🟢 hotové     | 0  |
 | 10 | SEO             | 10-seo.js                   | legal_ok → seo_done    | ⚪ future     | —  |
-| 11 | Image           | 11-image.js                 | seo_done → imaged      | 🟢 máš (Flux) | —  |
+| 11 | Image           | 11-image.js                 | legal_ok → imaged      | 🟢 máš (Flux) | —  |
 | 12 | Publisher       | 12-publisher.js             | imaged → published     | 🟢 máš        | —  |
 | 13 | Analytics       | 13-analytics.js             | published → —          | ⚪ future     | —  |
 | 14 | Learning Engine | 14-learning-engine.js       | — → —                  | ⚪ future     | —  |

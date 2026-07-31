@@ -2,7 +2,7 @@
 // 11. Image
 // ------------------------------------------------------------
 // ROLA:          Vygeneruje vlastný obrázok cez Flux Schnell. Vlastný = právna ochrana.
-// VSTUP status:  written   (dočasne; 08-10 sú stuby, preskakujú sa)
+// VSTUP status:  legal_ok  (od 2026-07-31; predtým 'written', lebo 08-10 boli stuby)
 // VÝSTUP status: imaged
 // STAV:          🟢 MVP (Flux Schnell + Supabase Storage)
 // AI vrstva:     — (obrazový model cez Replicate)
@@ -18,7 +18,9 @@ import { ask } from '../_shared/ai-gateway.js';
 export const STAGE = {
   index: 11,
   name: "Image",
-  input: "written",
+  // Obrázok sa generuje AŽ po korektúre (08) a právnej kontrole (09) — nemá
+  // zmysel platiť za obrázok k článku, ktorý neprejde bránou.
+  input: "legal_ok",
   output: "imaged",
 };
 

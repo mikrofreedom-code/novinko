@@ -14,6 +14,9 @@ const INPUT_STATUS = {
   '05-verification': 'collected',
   '06-chief-editor': 'facts_ready',
   '07-writer': 'clustered',
+  '08-proofreader': 'written',
+  '09-legal': 'proofed',
+  '11-image': 'legal_ok',
 };
 
 // Dočasné chyby (oplatí sa skúsiť znova). Budget guard ZÁMERNE nie je dočasný.

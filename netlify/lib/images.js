@@ -58,9 +58,28 @@ async function generateImage(title, category, id, customPrompt) {
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
     const prompt = (customPrompt && customPrompt.trim()) || buildPrompt(title, category);
 
-    const out = await replicate.run("black-forest-labs/flux-schnell", {
-      input: { prompt, aspect_ratio: "16:9", output_format: "webp", num_outputs: 1 },
-    });
+    // Opakuj pri prechodných chybách Replicate: 429 (limit pri nízkom kredite)
+    // a 404 "No adapter found for model" — to druhé nie je zlá referencia modelu,
+    // ale výpadok na ich strane (overené 2026-07-31: /v1/models vracia 200,
+    // pritom volanie predikcie striedavo 404-uje). Bez opakovania ostal článok
+    // bez obrázka. Rovnaká logika ako v redakcia/lib/_shared/images.js.
+    const input = { prompt, aspect_ratio: "16:9", output_format: "webp", num_outputs: 1 };
+    let out;
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      try { out = await replicate.run("black-forest-labs/flux-schnell", { input }); break; }
+      catch (e) {
+        const m = /retry.?after["\s:]+(\d+)/i.exec(e.message);
+        const is429 = /\b429\b|throttl|rate limit/i.test(e.message);
+        const isNoAdapter = /no adapter found for model/i.test(e.message);
+        if ((is429 || isNoAdapter) && attempt < 4) {
+          const wait = is429 ? ((m ? Number(m[1]) : 11) + 1) * 1000 : 3000 * attempt;
+          console.error(`[image] ${is429 ? "429 rate limit" : "404 no-adapter (prechodné)"}, čakám ${wait / 1000}s…`);
+          await new Promise((r) => setTimeout(r, wait));
+          continue;
+        }
+        throw e;
+      }
+    }
     const buffer = Buffer.from(await out[0].blob().then((b) => b.arrayBuffer()));
 
     const supabase = makeSupabase();

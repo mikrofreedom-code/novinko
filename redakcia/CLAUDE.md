@@ -21,6 +21,13 @@ written → proofed → legal_ok → seo_done → imaged → published
 Každý agent berie položky v jednom vstupnom statuse a posúva ich do ďalšieho.
 Nikdy nepreskakuj stav. Nikdy nemeň status mimo vlastnej zodpovednosti agenta.
 
+**Stav reťaze (2026-07-31):** `seo_done` je JEDINÝ, ktorý sa zatiaľ preskakuje —
+`10-seo` je stub, takže `09-legal` posiela rovno do `legal_ok` a `11-image`
+odtiaľ berie. Kroky `08` a `09` sú od 31.7.2026 implementované a bežia.
+Do 31.7.2026 sa preskakovali všetky tri (08, 09, 10) a `11-image` čítal rovno
+`written` — nebežala teda žiadna korektúra ani právna kontrola. Neopakuj to:
+keď pridávaš krok, VŽDY skontroluj, či naň nadväzujúci krok mení svoj `input`.
+
 ## Štruktúra projektu (1:1 s NovaCore NEWS FLOW)
 
 ```

@@ -17,6 +17,8 @@ import * as collector from '../lib/flow/04-collector.js';
 import * as verification from '../lib/flow/05-verification.js';
 import * as chiefEditor from '../lib/flow/06-chief-editor.js';
 import * as writer from '../lib/flow/07-writer.js';
+import * as proofreader from '../lib/flow/08-proofreader.js';
+import * as legal from '../lib/flow/09-legal.js';
 import * as marketRecap from '../lib/flow/13-market-recap.js';
 import * as image from '../lib/flow/11-image.js';
 import * as publisher from '../lib/flow/12-publisher.js';
@@ -50,6 +52,14 @@ async function main() {
   log('13-market-recap — denný prehľad trhu (raz ráno) → written');
   try { console.log('  ', await marketRecap.run()); }
   catch (e) { console.log('   ⚠️ recap preskočený:', e.message); }
+
+  // Korektúra a právna kontrola bežia AŽ TU, teda aj na denný recap vyššie —
+  // práve v ňom sa 30.7. objavila vymyslená príčinná súvislosť.
+  log('08-proofreader — nepodložené tvrdenia a register → proofed');
+  console.log('  ', await proofreader.runBatch(30));
+
+  log('09-legal — atribúcia, citácie, investičné rady (bez AI) → legal_ok');
+  console.log('  ', await legal.runBatch(30));
 
   log('11-image — Flux Schnell obrázok → imaged (pripravené na publikovanie)');
   console.log('  ', await image.runBatch(30));

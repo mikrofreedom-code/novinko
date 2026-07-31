@@ -60,15 +60,22 @@ export async function generateImage(title, id, opts = {}) {
     const input = { prompt, aspect_ratio: '16:9', output_format: 'webp', num_outputs: 1 };
 
     // Replicate má pri nízkom kredite limit 6/min (burst 1) → pri 429 počkaj a skús znova.
+    //
+    // 404 "No adapter found for model" (2026-07-31): Replicate ho občas vráti aj
+    // pri existujúcom modeli — v jednom behu padli 2 z 3 volaní, tretie prešlo,
+    // a priame overenie modelu cez /v1/models hneď nato vrátilo 200. Je to teda
+    // PRECHODNÁ chyba na ich strane, nie zlá referencia modelu. Predtým sa brala
+    // ako smrteľná a článok zostal bez obrázka.
     let out;
     for (let attempt = 1; attempt <= 4; attempt++) {
       try { out = await replicate.run('black-forest-labs/flux-schnell', { input }); break; }
       catch (e) {
         const m = /retry.?after["\s:]+(\d+)/i.exec(e.message);
         const is429 = /\b429\b|throttl|rate limit/i.test(e.message);
-        if (is429 && attempt < 4) {
-          const wait = ((m ? Number(m[1]) : 11) + 1) * 1000;
-          console.error(`[image] 429 rate limit, čakám ${wait / 1000}s…`);
+        const isNoAdapter = /no adapter found for model/i.test(e.message);
+        if ((is429 || isNoAdapter) && attempt < 4) {
+          const wait = is429 ? ((m ? Number(m[1]) : 11) + 1) * 1000 : 3000 * attempt;
+          console.error(`[image] ${is429 ? '429 rate limit' : '404 no-adapter (prechodné)'}, čakám ${wait / 1000}s…`);
           await new Promise((r) => setTimeout(r, wait));
           continue;
         }
