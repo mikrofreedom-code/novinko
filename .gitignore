@@ -23,3 +23,6 @@ redakcia/web/
 
 # Systémové
 .DS_Store
+
+# Výstup buildu webu (skladá ho scripts/build-site.sh)
+_site/

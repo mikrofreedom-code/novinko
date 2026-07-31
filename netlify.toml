@@ -1,5 +1,11 @@
+# Zverejňuje sa LEN _site/, ktorý poskladá scripts/build-site.sh.
+# Predtým tu bolo publish = ".", čo zverejňovalo celý repozitár — na webe boli
+# verejne dostupné netlify/lib/*.js aj package.json (overené HTTP 200), a po
+# zlúčení s redakciou by pribudli CLAUDE.md, PLAN.txt a db/schema.sql.
+# Podrobnosti v scripts/build-site.sh.
 [build]
-  publish = "."
+  command = "bash scripts/build-site.sh"
+  publish = "_site"
   functions = "netlify/functions"
 
 [functions]

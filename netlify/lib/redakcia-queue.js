@@ -3,8 +3,11 @@
 // staršiemu projektu a používajú sa len na úložisko obrázkov).
 //
 // .env (Netlify, site-level — zdieľané s novinko-redakcia):
-//   REDAKCIA_SUPABASE_URL=https://kypwhjpedbtodehrviub.supabase.co
-//   REDAKCIA_SUPABASE_SERVICE_KEY=...
+//   REDAKCIA_SUPABASE_URL=<URL Supabase projektu redakcie>
+//   REDAKCIA_SUPABASE_SERVICE_KEY=<service role kľúč>
+// Konkrétne hodnoty ZÁMERNE nie sú v kóde: tento súbor sa balí do funkcie
+// telegram-webhook a Netlify skener tajomstiev zhodu s hodnotou premennej
+// vyhodnotí ako únik a zhodí build.
 const { createClient } = require("@supabase/supabase-js");
 // Node < 22 nemá natívny WebSocket; supabase-js ho vyžaduje pri inicializácii
 // realtime klienta (aj keď realtime nepoužívame — je to len import-time check).
