@@ -8,6 +8,15 @@
   publish = "_site"
   functions = "netlify/functions"
 
+# Skener tajomstiev nekontroluje len zverejnený priečinok, ale aj súbory
+# repozitára. Priečinok redakcia/ je lokálna pipeline — na Netlify sa nenasadzuje
+# ani nezverejňuje, len tam leží. Obsahuje pritom content/krypto-skola/.images.json
+# s verejnými URL obrázkov, ktoré začínajú hodnotou SUPABASE_URL. Skener to
+# vyhodnotí ako únik premennej a zhodí build (deploye 1653552 a 2066b29).
+# Vynechávame teda celý priečinok — nie kontrolu ako takú, tá pre web platí ďalej.
+[build.environment]
+  SECRETS_SCAN_OMIT_PATHS = "redakcia/**"
+
 [functions]
   node_bundler = "esbuild"
 
