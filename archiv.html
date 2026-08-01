@@ -125,6 +125,13 @@
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
+  // Adresa obrázka ide do src="…"; pustíme len http(s), nie `javascript:`/`data:`.
+  function safeLink(url) {
+    try {
+      const u = new URL(url, location.origin);
+      return ['http:', 'https:'].includes(u.protocol) ? esc(u.href) : '';
+    } catch { return ''; }
+  }
 
   function parseCSVLine(line) {
     const cols = []; let cur = "", inQuotes = false;
@@ -169,8 +176,8 @@
     let html = '<div class="arch-list">';
     html += next.map(a => `
       <a href="/clanok.html?id=${encodeURIComponent(a.id)}" class="arch-item">
-        ${a.image ? `<img src="${a.image}" alt="" class="arch-img" loading="lazy">` : ''}
-        <span class="arch-cat label-${a.category}">${CAT_LABELS[a.category] || a.category}</span>
+        ${a.image ? `<img src="${safeLink(a.image)}" alt="" class="arch-img" loading="lazy">` : ''}
+        <span class="arch-cat label-${esc(a.category)}">${esc(CAT_LABELS[a.category] || a.category)}</span>
         <span class="arch-body">
           <span class="arch-title">${esc(a.title)}</span>
           ${a.perex ? `<span class="arch-perex">${esc(a.perex)}</span>` : ''}

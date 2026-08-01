@@ -28,10 +28,33 @@ function decodeBody(chunks, contentType = "") {
   }
 }
 
+// Adresy, na ktoré sťahovanie nikdy nesmie ísť: vnútro siete a cloudové
+// metadáta. Feedy sú síce z pevného zoznamu, ale presmerovanie určuje CUDZÍ
+// server — stačí, aby jeden zdroj odpovedal `302 → http://169.254.169.254/…`
+// a naša funkcia mu poslušne stiahne metadáta prostredia. Preto kontrolujeme
+// KAŽDÝ krok presmerovania, nielen pôvodnú adresu.
+const BLOKOVANE_HOSTY = [
+  /^localhost$/i,
+  /^127\./, /^0\./, /^10\./, /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^169\.254\./,                 // link-local + metadáta AWS/GCP
+  /^\[?::1\]?$/, /^\[?f[cd]/i,   // IPv6 loopback a unique-local
+  /\.internal$/i, /\.local$/i,
+];
+
+function adresaJeBezpecna(url) {
+  let u;
+  try { u = new URL(url); } catch { return false; }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+  const host = u.hostname.replace(/^\[|\]$/g, "");
+  return !BLOKOVANE_HOSTY.some((re) => re.test(host));
+}
+
 // GET ľubovoľného URL s podporou presmerovaní a timeoutom.
 function fetchUrl(url, { timeout = 6000, redirects = 0 } = {}) {
   return new Promise((resolve, reject) => {
     if (redirects > 5) return reject(new Error("Príliš veľa presmerovaní"));
+    if (!adresaJeBezpecna(url)) return reject(new Error("Zablokovaná adresa (vnútorná sieť)"));
     const client = url.startsWith("https") ? https : http;
     const req = client.get(url, { headers: { "User-Agent": UA } }, (res) => {
       // presmerovanie
@@ -94,4 +117,4 @@ function httpsGet(hostname, path, headers = {}, { timeout = 15000 } = {}) {
   });
 }
 
-module.exports = { fetchUrl, httpsPost, httpsGet };
+module.exports = { fetchUrl, httpsPost, httpsGet, adresaJeBezpecna };
