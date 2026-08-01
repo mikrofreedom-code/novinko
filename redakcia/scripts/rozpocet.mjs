@@ -74,14 +74,29 @@ console.log(`  ${'SPOLU'.padEnd(11)}            ${eur(stropSpolu).padStart(8)}/d
 console.log(`  rozpočet ${ROZPOCET.toFixed(2)}/deň → ${stropSpolu <= ROZPOCET ? '✅ zmestí sa' : '❌ NEZMESTÍ SA'} `
   + `(využitie ${(stropSpolu / ROZPOCET * 100).toFixed(0)} %)`);
 
-console.log(`\nČO KTORÁ ÚROVEŇ STOJÍ (extrakcie na strope ${CAP_EXTRAKCII}/beh)`);
-console.log('─'.repeat(64));
-console.log(`  článkov/h   článkov/deň        $/deň      $/mesiac`);
+// Koľko extrakcií reálne prebehne za deň (nie strop, ale skutočnosť).
+const extrakciiZaDen = extrakcia.n / dni;
+const extrakcieDnes = extrakciiZaDen * extrakcia.kus;
+
+console.log(`\nČO KTORÁ ÚROVEŇ STOJÍ`);
+console.log('─'.repeat(78));
+console.log('  Účet = články + extrakcia. Extrakcia je na počte článkov NEZÁVISLÁ,');
+console.log(`  preto je v každom riadku rovnaká — nie je súčasťou ceny článku.`);
+console.log(`    · dnešný objem: ${extrakciiZaDen.toFixed(0)} extrakcií/deň = ${eur(extrakcieDnes)}/deň`);
+console.log(`    · strop:        ${CAP_EXTRAKCII * BEHOV_ZA_DEN} extrakcií/deň = ${eur(stropExtrakcie)}/deň\n`);
+console.log('  článkov/h  článkov/deň   len články    + extrakcia dnes    + extrakcia na strope');
 for (const n of [1, 2, 3, 4, 5, 6]) {
-  const d = stropExtrakcie + n * BEHOV_ZA_DEN * naClanok;
-  const znak = n === CAP_CLANKOV ? ' ←  teraz' : '';
-  console.log(`  ${String(n).padStart(6)}   ${String(n * BEHOV_ZA_DEN).padStart(10)}   ${eur(d).padStart(10)}   ${('$' + (d * 30).toFixed(2)).padStart(10)}${znak}`);
+  const clanky = n * BEHOV_ZA_DEN * naClanok;
+  const dnes = clanky + extrakcieDnes;
+  const strop = clanky + stropExtrakcie;
+  const znak = n === CAP_CLANKOV ? '  ← teraz' : '';
+  console.log(
+    `  ${String(n).padStart(7)}  ${String(n * BEHOV_ZA_DEN).padStart(11)}   ${eur(clanky).padStart(10)}`
+    + `   ${(eur(dnes) + '/deň').padStart(16)}   ${(eur(strop) + '/deň').padStart(18)}${znak}`,
+  );
 }
+console.log(`\n  mesačne pri ${CAP_CLANKOV} článkoch/h:  dnešný objem $${((CAP_CLANKOV * BEHOV_ZA_DEN * naClanok + extrakcieDnes) * 30).toFixed(2)}`
+  + `   ·   strop $${((CAP_CLANKOV * BEHOV_ZA_DEN * naClanok + stropExtrakcie) * 30).toFixed(2)}`);
 
 console.log(`\nPOZNÁMKA`);
 console.log('─'.repeat(64));
