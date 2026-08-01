@@ -18,8 +18,28 @@ function safeChar(code) {
   try { return String.fromCodePoint(code); } catch { return ""; }
 }
 
+// Odstráni HTML značky. Volať až PO decodeEntities (viď parseRSS) — v opačnom
+// poradí prejde `&lt;img src=x onerror=…&gt;`, ktoré sa až potom dekóduje na
+// živý tag.
+//
+// Vzor je `</?[a-zA-Z]…` a nie `<[^>]+>` zámerne: druhý by z bežného textu
+// („5 < 10 > 3", „a <-> b") vyhrýzol kus vety. Značka musí začínať písmenom.
 function stripHtml(s) {
-  return String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "");
+  return String(s || "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<\/?[a-zA-Z][^>]*>/g, "");
+}
+
+// Odkaz z feedu ide na hlavnej stránke priamo do href="…", preto sem pustíme
+// len čisté http(s). `javascript:` a `data:` sú rovno XSS; medzera alebo
+// úvodzovka v URL zase dovolí ujsť z atribútu (`https://x" onmouseover="…`).
+// V platnej URL nič z toho byť nesmie, takže sa nič legitímne nezahodí.
+function safeLink(link) {
+  const s = String(link || "").trim();
+  if (!/^https?:\/\//i.test(s)) return "";
+  if (/[\s"'<>`]/.test(s)) return "";
+  return s;
 }
 
 function safeDateISO(s) {
@@ -67,17 +87,17 @@ function parseRSS(xml, { source = "", category = "", limit = Infinity } = {}) {
   for (const block of blocks) {
     if (items.length >= limit) break;
 
-    const title = decodeEntities(stripHtml(pick(block, "title"))).replace(/\s+/g, " ").trim();
+    const title = stripHtml(decodeEntities(pick(block, "title"))).replace(/\s+/g, " ").trim();
 
     let link = pick(block, "link").trim();
     if (!link) {
       const m = block.match(/<link\b[^>]*href="([^"]+)"/i);
       link = m ? m[1].trim() : "";
     }
-    link = decodeEntities(link).trim();
+    link = safeLink(decodeEntities(link).trim());
 
     const rawDesc = pick(block, "description") || pick(block, "summary") || pick(block, "content");
-    const description = decodeEntities(stripHtml(rawDesc)).replace(/\s+/g, " ").slice(0, 220).trim();
+    const description = stripHtml(decodeEntities(rawDesc)).replace(/\s+/g, " ").slice(0, 220).trim();
 
     const pubDate = safeDateISO(pick(block, "pubDate") || pick(block, "published") || pick(block, "updated"));
 
@@ -97,4 +117,4 @@ function parseRSS(xml, { source = "", category = "", limit = Infinity } = {}) {
   return items;
 }
 
-module.exports = { parseRSS, decodeEntities, stripHtml, safeDateISO, looksLikeSport };
+module.exports = { parseRSS, decodeEntities, stripHtml, safeLink, safeDateISO, looksLikeSport };

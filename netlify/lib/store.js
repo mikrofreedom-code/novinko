@@ -49,4 +49,53 @@ async function releaseLock(key) {
   try { await s.delete(key); } catch { /* ignoruj */ }
 }
 
-module.exports = { connect, saveNews, loadNews, acquireLock, releaseLock };
+// --- Obmedzenie pokusov (brute force na heslo) ---
+// Počítadlo NEÚSPEŠNÝCH pokusov pre kľúč (u nás IP volajúceho) v posuvnom okne.
+// Beží cez Blobs, nie cez pamäť procesu — funkcia je bezstavová a Netlify jej
+// púšťa viac inštancií naraz, takže lokálne počítadlo by útočník obišiel tým,
+// že ho jednoducho trafí inú inštanciu.
+//
+// Keď Blobs nie sú dostupné (lokálny beh), pokusy NEobmedzujeme — radšej
+// funkčný web než zamknutý. Na produkcii Blobs sú.
+const RL_WINDOW_MS = 15 * 60 * 1000;
+const RL_MAX_FAILURES = 8;
+
+function rlKey(key) {
+  return `rl-${String(key || "unknown").replace(/[^a-zA-Z0-9_.-]/g, "_").slice(0, 80)}`;
+}
+
+async function recentFailures(key) {
+  const s = store();
+  if (!s) return 0;
+  try {
+    const rec = await s.get(rlKey(key), { type: "json" });
+    if (!rec || !Array.isArray(rec.hits)) return 0;
+    return rec.hits.filter((t) => Date.now() - t < RL_WINDOW_MS).length;
+  } catch { return 0; }
+}
+
+async function recordFailure(key) {
+  const s = store();
+  if (!s) return;
+  try {
+    let hits = [];
+    try {
+      const rec = await s.get(rlKey(key), { type: "json" });
+      if (rec && Array.isArray(rec.hits)) hits = rec.hits;
+    } catch { /* prvý pokus */ }
+    hits = hits.filter((t) => Date.now() - t < RL_WINDOW_MS);
+    hits.push(Date.now());
+    await s.setJSON(rlKey(key), { hits });
+  } catch { /* ignoruj */ }
+}
+
+async function clearFailures(key) {
+  const s = store();
+  if (!s) return;
+  try { await s.delete(rlKey(key)); } catch { /* ignoruj */ }
+}
+
+module.exports = {
+  connect, saveNews, loadNews, acquireLock, releaseLock,
+  recentFailures, recordFailure, clearFailures, RL_MAX_FAILURES,
+};

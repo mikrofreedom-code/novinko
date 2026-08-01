@@ -12,6 +12,7 @@ const { getQueueItem, advanceQueueItem } = require("../lib/redakcia-queue");
 const { callBotApi, sendArticle, esc } = require("../lib/telegram");
 const { appendRow } = require("../lib/sheets");
 const { articleToRow } = require("../lib/article-row");
+const { safeEqual } = require("../lib/guard");
 
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
 
@@ -28,9 +29,18 @@ async function markDecided(item, chatId, messageId, label) {
 }
 
 exports.handler = async (event) => {
+  // Zlyháva ZATVORENE: bez nastaveného TELEGRAM_WEBHOOK_SECRET neprejde nikto.
+  // Predtým tu bolo `if (WEBHOOK_SECRET && headerSecret !== WEBHOOK_SECRET)` —
+  // teda keby premenná na Netlify chýbala alebo bola prázdna (preklep, nový
+  // deploy, obnova prostredia), kontrola sa preskočila CELÁ a hocikto mohol
+  // poslať callback_query a publikovať či zamietať články.
+  if (!WEBHOOK_SECRET) {
+    console.error("[telegram-webhook] TELEGRAM_WEBHOOK_SECRET nie je nastavený — odmietam všetko.");
+    return { statusCode: 503, body: "webhook nie je nakonfigurovaný" };
+  }
   const headers = event.headers || {};
   const headerSecret = headers["x-telegram-bot-api-secret-token"] || headers["X-Telegram-Bot-Api-Secret-Token"];
-  if (WEBHOOK_SECRET && headerSecret !== WEBHOOK_SECRET) {
+  if (!safeEqual(headerSecret, WEBHOOK_SECRET)) {
     return { statusCode: 403, body: "forbidden" };
   }
 

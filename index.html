@@ -585,18 +585,32 @@
     if (diff < 86400) return `${Math.floor(diff/3600)} hod`;
     return `${Math.floor(diff/86400)} d`;
   }
+  // ─── BEZPEČNOSTNÉ HELPERY ───
+  // Titulky, perexy a odkazy pochádzajú z cudzích RSS feedov a vkladajú sa cez
+  // innerHTML. Bez escapovania stačí jeden kompromitovaný zdroj a jeho titulok
+  // sa na novinko.sk spustí ako skript. Rovnaké helpery má clanok.html a archiv.html.
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function safeLink(url) {
+    try {
+      const u = new URL(url, location.origin);
+      return ['http:', 'https:'].includes(u.protocol) ? esc(u.href) : '#';
+    } catch { return '#'; }
+  }
   function targetAttr(link) {
     return link && link.startsWith('http') && !link.includes('novinko.netlify') && !link.includes('localhost') ? 'target="_blank" rel="noopener"' : '';
   }
   function ownImg(i, cls) {
     if (!(i.image && i.source === 'tím Novinko')) return '';
-    const img = `<img src="${i.image}" alt="" class="${cls}" loading="lazy">`;
+    const img = `<img src="${safeLink(i.image)}" alt="" class="${cls}" loading="lazy">`;
     // Štítok „AI ilustrácia" len na väčšie obrázky (na drobné náhľady by bol stiesnený).
     const big = /mag-feature-img|story-featured-img|news-item-img|skola-card-img/.test(cls);
     return big ? `<span class="img-wrap">${img}<span class="ai-tag">AI ilustrácia</span></span>` : img;
   }
   function metaHTML(i) {
-    return `<div class="news-meta"><span class="news-source">${i.source}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
+    return `<div class="news-meta"><span class="news-source">${esc(i.source)}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
   }
   function byDateDesc(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }
 
@@ -641,17 +655,17 @@
     el.innerHTML = `<div class="story-featured fade-in">
       <div class="story-featured-left">
         ${ownImg(f, 'story-featured-img')}
-        <span class="story-label label-${f.category}">${lbl}</span>
-        <a href="${f.link}" ${targetAttr(f.link)} class="story-headline-xl">${f.title}</a>
-        ${f.description ? `<div class="story-summary">${f.description}</div>` : ''}
-        <div class="story-byline"><span class="story-byline-source">${f.source}</span><span class="story-byline-sep">—</span><span class="story-byline-time">${timeAgo(f.pubDate)}</span></div>
+        <span class="story-label label-${esc(f.category)}">${esc(lbl)}</span>
+        <a href="${safeLink(f.link)}" ${targetAttr(f.link)} class="story-headline-xl">${esc(f.title)}</a>
+        ${f.description ? `<div class="story-summary">${esc(f.description)}</div>` : ''}
+        <div class="story-byline"><span class="story-byline-source">${esc(f.source)}</span><span class="story-byline-sep">—</span><span class="story-byline-time">${timeAgo(f.pubDate)}</span></div>
       </div>
       <div class="story-featured-right">
-        ${sec.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="story-secondary">
+        ${sec.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="story-secondary">
           ${ownImg(i, 'story-secondary-img')}
           <div class="story-secondary-text">
-            <span class="story-label label-${i.category}">${CAT_LABELS[i.category] || i.category || ''}</span>
-            <div class="story-headline-md">${i.title}</div>
+            <span class="story-label label-${esc(i.category)}">${esc(CAT_LABELS[i.category] || i.category || '')}</span>
+            <div class="story-headline-md">${esc(i.title)}</div>
             <div class="story-byline"><span class="story-byline-time">${timeAgo(i.pubDate)}</span></div>
           </div>
         </a>`).join('')}
@@ -670,15 +684,15 @@
     const f = items[0], list = items.slice(1, 4);
     return `<section class="mag-sec fade-in">${magHead(s)}
       <div class="mag-tier1">
-        <a href="${f.link}" ${targetAttr(f.link)} class="mag-feature">
+        <a href="${safeLink(f.link)}" ${targetAttr(f.link)} class="mag-feature">
           ${ownImg(f, 'mag-feature-img')}
-          <div class="mag-feature-title">${f.title}</div>
-          ${f.description ? `<div class="mag-feature-perex">${f.description}</div>` : ''}
+          <div class="mag-feature-title">${esc(f.title)}</div>
+          ${f.description ? `<div class="mag-feature-perex">${esc(f.description)}</div>` : ''}
           ${metaHTML(f)}
         </a>
         <div class="mag-side">
-          ${list.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="mag-side-item">
-            <div class="mag-side-title">${i.title}</div>${metaHTML(i)}
+          ${list.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="mag-side-item">
+            <div class="mag-side-title">${esc(i.title)}</div>${metaHTML(i)}
           </a>`).join('')}
         </div>
       </div>
@@ -688,8 +702,8 @@
     const list = items.slice(0, 6);
     return `<section class="mag-sec fade-in">${magHead(s)}
       <div class="mag-grid2">
-        ${list.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="mag-cell">
-          <div class="mag-cell-title">${i.title}</div>${metaHTML(i)}
+        ${list.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="mag-cell">
+          <div class="mag-cell-title">${esc(i.title)}</div>${metaHTML(i)}
         </a>`).join('')}
       </div>
     </section>`;
@@ -700,9 +714,9 @@
       if (!items.length) return '';
       return `<div class="digest-col">
         <div class="digest-col-title label-${s.id}"><a href="#" data-cat="${s.id}">${s.label} →</a></div>
-        ${items.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="digest-item">
-          <div class="digest-item-title">${i.title}</div>
-          <div class="digest-item-time">${i.source} · ${timeAgo(i.pubDate)}</div>
+        ${items.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="digest-item">
+          <div class="digest-item-title">${esc(i.title)}</div>
+          <div class="digest-item-time">${esc(i.source)} · ${timeAgo(i.pubDate)}</div>
         </a>`).join('')}
       </div>`;
     }).filter(Boolean).join('');
@@ -730,19 +744,19 @@
     const items = (DATA[EDU.id] || []).slice(0, 6);
     if (!items.length) { el.innerHTML = ''; return; }
     el.innerHTML = `<div class="section-head"><span class="section-head-title">Krypto škola</span><span class="section-head-count">vysvetlivky pre začiatočníkov</span></div>
-      <div class="skola-grid">${items.map(i => `<a href="${i.link}" ${targetAttr(i.link)} class="skola-card">
+      <div class="skola-grid">${items.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="skola-card">
         ${ownImg(i, 'skola-card-img')}
         <div class="skola-card-body"><span class="story-label label-krypto-skola">Krypto škola</span>
-        <div class="skola-card-title">${i.title}</div>${i.description ? `<div class="skola-card-perex">${i.description}</div>` : ''}</div>
+        <div class="skola-card-title">${esc(i.title)}</div>${i.description ? `<div class="skola-card-perex">${esc(i.description)}</div>` : ''}</div>
       </a>`).join('')}</div>`;
   }
 
   function renderTrending(items) {
     const el = document.getElementById('trendingList');
     if (!el) return;
-    el.innerHTML = items.slice(0, 6).map((i, n) => `<a href="${i.link}" ${targetAttr(i.link)} class="trending-item">
+    el.innerHTML = items.slice(0, 6).map((i, n) => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="trending-item">
       <div class="trending-num">${n + 1}</div>
-      <div><div class="trending-text">${i.title}</div><div class="trending-source">${i.source} · ${timeAgo(i.pubDate)}</div></div>
+      <div><div class="trending-text">${esc(i.title)}</div><div class="trending-source">${esc(i.source)} · ${timeAgo(i.pubDate)}</div></div>
     </a>`).join('');
   }
 
@@ -755,11 +769,11 @@
     return h + '</div>';
   }
   function newsItemHTML(i) {
-    return `<a href="${i.link}" ${targetAttr(i.link)} class="news-item fade-in">
+    return `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="news-item fade-in">
       ${ownImg(i, 'news-item-img')}
       <div class="news-item-body">
-        <span class="story-label label-${i.category}">${CAT_LABELS[i.category] || i.category || ''}</span>
-        <div class="news-title">${i.title}</div>${metaHTML(i)}
+        <span class="story-label label-${esc(i.category)}">${esc(CAT_LABELS[i.category] || i.category || '')}</span>
+        <div class="news-title">${esc(i.title)}</div>${metaHTML(i)}
       </div>
     </a>`;
   }
