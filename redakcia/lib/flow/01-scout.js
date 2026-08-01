@@ -144,6 +144,7 @@ async function scoutFeeds() {
             source_type: feed.source_type,
             layer: feed.layer,
             entity_hint: feed.entity ?? null,
+            desk: feed.desk === true,                  // research desk → smie niesť fakty kind="analysis"
             // brána pustí len témy danej sekcie (cross-topic feedy: regulátori, NVIDIA…)
             keyword_filter: feed.keywordFilter ?? feed.cryptoFilter ?? false,
             title: it.title,

@@ -95,7 +95,13 @@ function mergeClusterFacts(items, rep) {
     extracted_at: rep.facts?.extracted_at ?? new Date().toISOString(),
     clustered_at: new Date().toISOString(),
     source_count: new Set(merged.map((f) => f.source_url)).size,
-    attribution_required: merged.some((f) => f.source_type === 'secondary'),
+    // POZOR: musí sedieť s buildFacts() v 05-verification — zlučovanie clusteru
+    // túto hodnotu prepočítava odznova, takže keby tu podmienka na 'analysis'
+    // chýbala, výklad desku by po zlúčení stratil povinnú atribúciu a legálna
+    // poistka vo Writerovi by sa nespustila.
+    attribution_required: merged.some(
+      (f) => f.source_type === 'secondary' || f.kind === 'analysis',
+    ),
     facts: merged,
   };
 }
@@ -143,7 +149,21 @@ async function processCluster(items) {
   // Editoriálna politika ide PRED bránu dôležitosti: nemá zmysel počítať skóre
   // niečomu, čo aj tak nepublikujeme. Zároveň sa tým ušetrí Writer aj obrázok.
   const evt = facts.event_type ?? 'other';
-  if (NO_ARTICLE_EVENT_TYPES.has(evt)) {
+
+  // VÝNIMKA S PODMIENKOU PODSTATY (2026-08-01)
+  // Pohyb ceny sa nepublikuje ako holé číslo — to je dôvod, prečo je
+  // 'price_move' na zozname vyššie a prečo tam ZOSTÁVA. Ale keď k pohybu máme
+  // doložený VÝKLAD od research desku (fakty kind="analysis", vždy s
+  // atribúciou), už to nie je prečíslované „BTC klesol o 3 %" — je to článok
+  // „prečo BTC klesol", aký píše seriózny krypto denník.
+  //
+  // Latka je zámerne na dvoch výkladoch: jeden jediný by z toho spravil
+  // tlmočenie názoru jednej burzy. Ladí sa cez MIN_ANALYSIS_FACTS.
+  const MIN_ANALYSIS_FACTS = Number(process.env.MIN_ANALYSIS_FACTS ?? 2);
+  const analysisFacts = (facts.facts ?? []).filter((f) => f.kind === 'analysis');
+  const maVyklad = analysisFacts.length >= MIN_ANALYSIS_FACTS;
+
+  if (NO_ARTICLE_EVENT_TYPES.has(evt) && !maVyklad) {
     for (const item of items) {
       await advance(item.id, 'rejected', {
         error: `${AGENT}: typ '${evt}' sa nepublikuje samostatne (dáta idú do denného prehľadu trhu)`,

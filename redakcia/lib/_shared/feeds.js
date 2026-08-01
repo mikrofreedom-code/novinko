@@ -43,6 +43,30 @@ export const FEEDS = [
   { name: 'Solana news', url: 'https://solana.com/news/rss.xml', layer: 'B', source_type: 'primary', entity: 'Solana' },
 
   // ==========================================================
+  // RESEARCH DESKY BÚRZ A ANALYTICKÝCH DOMOV (Layer C) — desk: true
+  // ----------------------------------------------------------
+  // PREČO (2026-08-01): dovtedy sme vedeli povedať LEN „čo sa stalo" (cena,
+  // TVL, nálada) — žiadny zdroj nenosil „PREČO". Preto sa pohyby ceny ani
+  // nepublikovali: bez príčiny je z toho holé číslo bez hodnoty.
+  //
+  // Tieto zdroje publikujú VLASTNÝ trhový komentár. Reportujeme fakt, ŽE to
+  // tvrdia — teda „podľa Bitfinex Alpha…" — nikdy to nevydávame za svoj
+  // záver. To je Model 2 (atribuovaná agregácia) z CLAUDE.md.
+  //
+  // desk: true je jediné, čo odomkne fakty kind="analysis" (viď 05-verification).
+  // Bez tohto príznaku žiadny zdroj príčinu do článku nedostane.
+  //
+  // Overené 2026-08-01 (HTTP 200 + platný feed + čerstvosť). Nefungovali a preto
+  // TU NIE SÚ: Coinbase (403), Glassnode (403), Messari/a16z/Paradigm/VanEck (404),
+  // Binance Research (202), Grayscale (429), Bybit/Delphi (200 bez položiek).
+  { name: 'Bitfinex Alpha', url: 'https://blog.bitfinex.com/feed/', layer: 'C', source_type: 'primary', entity: null, desk: true },
+  { name: 'Kraken Intelligence', url: 'https://blog.kraken.com/feed', layer: 'C', source_type: 'primary', entity: null, desk: true },
+  { name: 'Deribit Insights', url: 'https://insights.deribit.com/feed/', layer: 'C', source_type: 'primary', entity: null, desk: true },
+  { name: 'BitMEX Research', url: 'https://blog.bitmex.com/feed/', layer: 'C', source_type: 'primary', entity: null, desk: true },
+  { name: 'Chainalysis', url: 'https://www.chainalysis.com/blog/rss/', layer: 'C', source_type: 'primary', entity: null, desk: true },
+  { name: 'CoinShares', url: 'https://blog.coinshares.com/feed', layer: 'C', source_type: 'primary', entity: null, desk: true },
+
+  // ==========================================================
   // SEKCIA: AI (Umelá inteligencia) — section: 'ai'
   // Primárne oznámenia labov + oficiálne blogy + GitHub releases nástrojov.
   // Cross-topic feedy (NVIDIA, Google Research) → keywordFilter: true (pusti len AI témy).

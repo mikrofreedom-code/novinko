@@ -53,8 +53,19 @@ A) UNSUPPORTED CLAIM — any statement of fact not traceable to FACTS.
 B) SPECULATION / INVENTED CAUSALITY — sentences that guess motives, causes or
    market impact ("mohlo prispieť", "zvyšuje nervozitu", "investori zrejme",
    "to naznačuje", "v pozadí rezonovala"). Remove them, even if the underlying
-   fact is real. Reporting a fact is allowed; explaining WHY it happened is not,
-   unless FACTS say so explicitly.
+   fact is real.
+
+   EXCEPTION — ATTRIBUTED ANALYSIS. FACTS may contain entries with
+   kind="analysis": a research desk's own explanation of why the market moved.
+   A causal sentence is allowed if and only if BOTH hold:
+     (a) it traces to such an analysis fact, AND
+     (b) the text attributes it to that desk ("podľa {source_name}",
+         "{source_name} to pripisuje…", "analytici {source_name} uvádzajú…").
+   If (a) holds but the attribution is missing, do NOT delete the sentence —
+   ADD the attribution and mark the issue "reworded". If the causal claim
+   traces to nothing in FACTS, delete it as before.
+   Causality without attribution must never survive. An analysis fact must
+   never be presented as verified fact or as the newsroom's own conclusion.
 
 C) OFF-TOPIC — content outside the article's section/entity that was pulled in
    as "context" without the facts linking it. Remove.

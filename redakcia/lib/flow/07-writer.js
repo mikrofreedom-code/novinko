@@ -78,6 +78,16 @@ FAKTY S "kind":
 - kind="background": kontext o subjekte (čo firma/projekt je/robí) — použi na
   jeden-dva úvodné/vysvetľujúce odsahy, nech čitateľ bez predchádzajúcich
   znalostí chápe kontext. Nie je to hlavná správa, len pozadie.
+- kind="analysis": VÝKLAD research desku (burza, analytický dom), prečo sa niečo
+  na trhu stalo. Platia preň tri veci a všetky sú povinné:
+  1. Je to JEDINÝ podklad, z ktorého smieš napísať PREČO niečo nastalo. Bez
+     takéhoto faktu opíš len to, ČO sa stalo — nikdy nedopĺňaj príčinu sám.
+  2. VŽDY ho uveď s atribúciou: „podľa {source_name}", „{source_name} to
+     pripisuje…", „analytici {source_name} upozorňujú…". Nikdy ho nepodávaj
+     ako overený fakt ani ako vlastný záver redakcie.
+  3. Ak si výkladov viac a protirečia si, uveď oba s atribúciou. Nevyberaj si.
+  Formulácie ako „trh zrejme reagoval", „investori pravdepodobne" bez zdroja
+  sú ZAKÁZANÉ — to je dohad, nie spravodajstvo.
 - kind="fact" (predvolené): bežný atomický fakt ako doteraz.
 - Viac faktov v podklade = viac reálneho materiálu na odseky. Použi ich všetky,
   ktoré dávajú zmysel, namiesto toho, aby si väčšinu ignoroval.`;

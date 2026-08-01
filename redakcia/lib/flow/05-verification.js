@@ -80,10 +80,42 @@ function factsFromMetrics(metrics, meta) {
 }
 
 // ---------- Layer B/C: text → atomické fakty (Haiku) ----------
-const EXTRACT_SYSTEM = `You are a legally-critical fact extractor for a crypto news desk.
+// `desk` = zdroj je research desk búrzy/analytického domu (viď feeds.js).
+// LEN takýto zdroj smie priniesť fakt kind="analysis" — teda VÝKLAD, prečo sa
+// niečo na trhu stalo. Bežné oznámenie (release, regulátor, governance) žiadnu
+// príčinu neprináša a nesmie: inak by sme publikovali dohad ako fakt.
+const kindsFor = (desk) => desk
+  ? '"fact"|"quote"|"background"|"analysis"'
+  : '"fact"|"quote"|"background"';
+
+const ANALYSIS_RULE = `
+- kind="analysis" (ONLY for this source type): the desk's own market commentary
+  explaining WHY something moved — drivers, positioning, flows, macro context.
+  Rephrase into a neutral claim (do NOT copy their sentences), max ~25 words.
+  Extract these ONLY when the source actually argues a cause. Never infer a
+  cause yourself, never merge two unrelated statements into a causal one.
+  This is the ONLY kind allowed to express causality. Everything the desk
+  presents as its own reading of the market belongs here, NOT in kind="fact".`;
+
+// Bez tohto pravidla model príčinu jednoducho prepašuje ako obyčajný fakt —
+// overené 2026-08-01: z vety „our desk believes the decline was driven by
+// liquidations" vyrobil fact „Leveraged long liquidations contributed to the
+// price decline". Writer by to potom podal ako overený fakt BEZ atribúcie,
+// teda presne to, čomu má celá táto architektúra brániť.
+const NO_CAUSALITY_RULE = `
+- MARKET CAUSALITY IS NOT A FACT: never extract a statement that explains WHY a
+  price, volume, flow or market moved ("liquidations drove the decline", "fell
+  due to ETF outflows", "amid macro uncertainty", "contributed to the drop").
+  That is interpretation, and this source is not authorised to carry it — drop
+  such statements entirely, even when the source states them confidently.
+  Extract only WHAT happened.
+  EXCEPTION: an entity explaining its OWN action is a fact and stays
+  ("the exchange paused withdrawals after a security incident").`;
+
+const extractSystem = (desk) => `You are a legally-critical fact extractor for a crypto news desk.
 Output ONLY valid JSON, no prose, no code fences.
-Schema: {"entity": string|null, "event_type": one of [${EVENT_TYPES.join(', ')}], "facts": [{"kind": "fact"|"quote"|"background", "statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "confidence": number}]}
-Rules:
+Schema: {"entity": string|null, "event_type": one of [${EVENT_TYPES.join(', ')}], "facts": [{"kind": ${kindsFor(desk)}, "statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "confidence": number}]}
+Rules:${desk ? ANALYSIS_RULE : NO_CAUSALITY_RULE}
 - THOROUGHNESS: extract EVERY distinct verifiable fact present in the text, not just
   the single most obvious one. A typical article should yield several facts, not one or two.
 - One fact = one statement (atomic).
@@ -105,7 +137,10 @@ function stripFences(s) {
   return s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 }
 
-async function factsFromText(item, meta) {
+// Exportované kvôli behu nasucho (scripts/dry-run-desk.mjs) — overenie
+// extrakcie na reálnom článku bez zápisu do fronty. Rovnaký zámer ako
+// dryRun v 08-proofreader.
+export async function factsFromText(item, meta) {
   let text = [item.raw_data?.title, item.raw_data?.text].filter(Boolean).join('\n\n');
   if (!text) return { entity: meta.entity ?? null, event_type: 'other', facts: [] };
 
@@ -129,7 +164,7 @@ async function factsFromText(item, meta) {
       tier: 'cheap',
       agent: AGENT,
       queueId: item.id,
-      system: EXTRACT_SYSTEM,
+      system: extractSystem(meta.desk === true),
       prompt: text,
       maxTokens,
       temperature: 0,
@@ -155,7 +190,12 @@ async function factsFromText(item, meta) {
   }
 
   const event_type = EVENT_TYPES.includes(parsed.event_type) ? parsed.event_type : 'other';
-  const VALID_KINDS = ['fact', 'quote', 'background'];
+  // POISTKA KÓDOM, nielen promptom: 'analysis' pripúšťame výhradne od deskov.
+  // Keby model vrátil 'analysis' aj inde (alebo sa raz zmenil prompt), tu to
+  // spadne späť na obyčajný fakt — príčina sa tak nemá ako prepašovať dnu.
+  const VALID_KINDS = meta.desk === true
+    ? ['fact', 'quote', 'background', 'analysis']
+    : ['fact', 'quote', 'background'];
   const facts = (Array.isArray(parsed.facts) ? parsed.facts : []).map((f) => ({
     kind: VALID_KINDS.includes(f.kind) ? f.kind : 'fact',
     claim: typeof f.statement === 'string' ? f.statement.slice(0, 200) : 'fact',
@@ -193,7 +233,12 @@ async function factsFromText(item, meta) {
 
 // ---------- Spoluj fakty do finálneho facts JSON ----------
 function buildFacts({ entity, event_type, facts, section }) {
-  const attribution_required = facts.some((f) => f.source_type === 'secondary');
+  // Výklad desku sa BEZ atribúcie publikovať nesmie — je to ich názor, nie
+  // overený fakt. Preto 'analysis' vynucuje „podľa X" rovnako ako sekundárny
+  // zdroj; Writer bez nej neprejde (kontrola v 07-writer).
+  const attribution_required = facts.some(
+    (f) => f.source_type === 'secondary' || f.kind === 'analysis',
+  );
   return {
     entity: entity ?? null,
     event_type: event_type ?? 'other',
@@ -215,6 +260,7 @@ function readMeta(rd) {
     source_type: rd.source_type === 'secondary' ? 'secondary' : 'primary',
     entity: rd.entity ?? null,
     layer: rd.layer ?? null,
+    desk: rd.desk === true,
     section: rd.section ?? 'krypto',
   };
 }

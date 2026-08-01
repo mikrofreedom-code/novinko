@@ -80,6 +80,7 @@ function normalizeFeed(rd) {
     source_type: rd.source_type ?? 'primary',
     layer: rd.layer ?? 'B',
     entity: rd.entity_hint ?? null,
+    desk: rd.desk === true,
     title: rd.title,
     text: rd.text ?? '',
   };
