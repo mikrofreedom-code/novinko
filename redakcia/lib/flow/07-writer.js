@@ -206,6 +206,40 @@ export async function run(item) {
 // = za hodinu na sekciu). Každá sekcia má vlastný slot → krypto neprebíja AI.
 const MAX_PER_RUN = Number(process.env.MAX_ARTICLES_PER_RUN ?? 2);
 
+// Globálny strop na CELÝ beh, naprieč sekciami.
+//
+// PREČO EXISTUJE: MAX_ARTICLES_PER_RUN je strop NA SEKCIU. Pri dvoch živých
+// sekciách (krypto + ai) by „3" znamenalo až 6 článkov za hodinu — nie 3, ako
+// by človek čakal. Tento strop hovorí, koľko ich smie byť dokopy.
+const MAX_TOTAL_PER_RUN = Number(process.env.MAX_ARTICLES_TOTAL_PER_RUN ?? 3);
+
+// Vyberá zo sekcií STRIEDAVO (najlepší z krypta, najlepší z AI, druhý
+// z krypta…), kým sa nenaplní strop. Striedanie je zámerné: keby sa len
+// zoradilo podľa dôležitosti, silnejšia sekcia by tú druhú vytlačila úplne
+// a AI by týždne nemalo ani jeden článok.
+export function roundRobinCap(items, total, sectionOf, importanceOf) {
+  const by = new Map();
+  for (const it of items) {
+    const sec = sectionOf(it) ?? 'krypto';
+    if (!by.has(sec)) by.set(sec, []);
+    by.get(sec).push(it);
+  }
+  for (const arr of by.values()) {
+    arr.sort((a, b) => (importanceOf(b) ?? 0) - (importanceOf(a) ?? 0));
+  }
+  const out = [];
+  let pridalSa = true;
+  while (out.length < total && pridalSa) {
+    pridalSa = false;
+    for (const arr of by.values()) {
+      if (out.length >= total) break;
+      const dalsi = arr.shift();
+      if (dalsi) { out.push(dalsi); pridalSa = true; }
+    }
+  }
+  return out;
+}
+
 // Vyber top `cap` položiek (podľa importance) v KAŽDEJ sekcii samostatne.
 export function topPerSection(items, cap, sectionOf, importanceOf) {
   const by = new Map();
@@ -235,8 +269,10 @@ export async function runBatch(limit = 50) {
   // nechaj čakať v 'clustered' — žiadny Sonnet/obrázok/publish, kým sa neprepnú.
   const writable = items.filter((it) => liveFor(it.facts?.section ?? 'krypto'));
   const parked = items.length - writable.length;
-  // ŠKRT: top N najdôležitejších PER SEKCIA (aby krypto neprebíjalo AI a ďalšie).
-  const top = topPerSection(writable, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
+  // ŠKRT 1: top N najdôležitejších PER SEKCIA (aby krypto neprebíjalo AI a ďalšie).
+  const perSekcia = topPerSection(writable, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
+  // ŠKRT 2: globálny strop na celý beh, striedavo zo sekcií.
+  const top = roundRobinCap(perSekcia, MAX_TOTAL_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
 
   const results = { ok: 0, failed: 0, skipped: Math.max(writable.length - top.length, 0), parked };
   for (const item of top) {

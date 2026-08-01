@@ -48,8 +48,11 @@ if (cakaju.length) {
 
 // Odhad, koľko by stálo spracovať všetko naraz — podľa reálneho priemeru
 // z ai_cost_log, nie podľa cenníka.
+// Zoradené od najnovšieho — staršia vzorka by dala inú priemernú cenu než
+// scripts/rozpocet.mjs a čísla by si protirečili.
 const { data: ceny } = await db.from('ai_cost_log')
-  .select('cost_usd').eq('agent', '05-verification').limit(500);
+  .select('cost_usd').eq('agent', '05-verification')
+  .order('created_at', { ascending: false }).limit(500);
 if (ceny?.length) {
   const priemer = ceny.reduce((s, r) => s + Number(r.cost_usd || 0), 0) / ceny.length;
   console.log(`\npriemerná cena extrakcie: $${priemer.toFixed(4)}`);
