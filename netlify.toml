@@ -23,12 +23,17 @@
 [dev]
   publish = "."
 
+# Content-Security-Policy tu ZÁMERNE nie je — generuje ju scripts/gen-csp.mjs
+# do _site/_headers pri každom builde, lebo obsahuje SHA-256 hashe inline
+# skriptov. Natvrdo zapísaná by sa pri prvej úprave HTML rozišla s obsahom
+# a ticho by zhodila všetok JavaScript na webe.
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
 
 # ─── CRON ÚLOHY ───
 # Pripravuje hotové spravodajstvo do cache (vďaka tomu je web rýchly).

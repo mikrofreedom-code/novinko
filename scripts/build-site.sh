@@ -33,5 +33,11 @@ for f in "${VOLITELNE[@]}"; do
   [ -f "$f" ] && cp -- "$f" "$OUT"/
 done
 
+# CSP sa generuje AŽ TERAZ, keď sú HTML súbory na mieste — hashe inline
+# skriptov sa počítajú z ich reálneho obsahu, takže sa nemôžu rozísť s kódom.
+# Musí byť za kopírovaním VOLITELNE, aby prípadný _headers z repozitára
+# neprepísal ten vygenerovaný.
+node scripts/gen-csp.mjs "$OUT"
+
 echo "web poskladaný do $OUT/ — $(find "$OUT" -type f | wc -l) súborov:"
 find "$OUT" -type f -printf '  %f\n' | sort
