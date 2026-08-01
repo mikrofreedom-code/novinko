@@ -32,6 +32,7 @@
 import { claim, advance } from '../_shared/queue.js';
 import { askFull } from '../_shared/ai-gateway.js';
 import { groundFacts, quoteGrounded } from '../_shared/grounding.js';
+import { prescore } from '../_shared/prescore.js';
 import { fetchFullArticleText } from '../_shared/fetch-article.js';
 
 // Pod touto dĺžkou RSS súhrnu skús dotiahnuť celý článok zo zdroja (viac
@@ -305,15 +306,47 @@ export async function run(item) {
 }
 
 // ---------- Dávkové spracovanie celej fronty v stave `collected` ----------
-export async function runBatch(limit = 40) {
+// Koľko PLATENÝCH extrakcií (text → Haiku) sa smie spraviť za jeden beh.
+// Číselné položky (Layer A) sem nerátame — tie nestoja nič a idú vždy.
+//
+// Toto je hlavná úspora: extrakcia žrala 76 % rozpočtu a 9 z 10 volaní padlo
+// na položku, ktorú vzápätí zahodila brána dôležitosti. Strop + poradie podľa
+// prescore() znamená, že za peniaze ide to najsľubnejšie, nie to najstaršie.
+// Zvyšok nezaniká — ostáva v 'collected' a príde na rad v ďalšom behu.
+const MAX_EXTRACTIONS_PER_RUN = Number(process.env.MAX_EXTRACTIONS_PER_RUN ?? 12);
+
+// Koľko kandidátov si vôbec vytiahnuť, aby bolo z čoho vyberať.
+const CANDIDATE_POOL = Number(process.env.EXTRACTION_POOL ?? 200);
+
+export async function runBatch(limit = CANDIDATE_POOL) {
   const aiEnabled = process.env.AI_ENABLED !== 'false';
   const items = await claim(STAGE.input, limit);
-  const results = { ok: 0, failed: 0, parked: 0 };
-  for (const item of items) {
-    const rd = item.raw_data ?? {};
-    // Zberový režim: textové položky (potrebujú Haiku) NEspracúvaj, nech čakajú.
-    // Číselné (Layer A) sú zadarmo → spracuj vždy.
-    if (!aiEnabled && (rd.text || rd.title) && !rd.metrics) { results.parked++; continue; }
+
+  // Zadarmo (Layer A, čísla) vs. platené (text cez Haiku).
+  const zadarmo = items.filter((it) => (it.raw_data ?? {}).metrics);
+  const platene = items.filter((it) => {
+    const rd = it.raw_data ?? {};
+    return !rd.metrics && (rd.text || rd.title);
+  });
+
+  // Zberový režim: platené necháme čakať, číselné spracujeme.
+  const vybrane = aiEnabled
+    ? platene
+      .map((it) => ({ it, s: prescore(it.raw_data ?? {}).score }))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, MAX_EXTRACTIONS_PER_RUN)
+      .map((x) => x.it)
+    : [];
+
+  const results = {
+    ok: 0,
+    failed: 0,
+    // čakajú na ďalší beh (neminuli sme na ne nič)
+    parked: platene.length - vybrane.length,
+    zadarmo: zadarmo.length,
+  };
+
+  for (const item of [...zadarmo, ...vybrane]) {
     try {
       await run(item);
       results.ok++;

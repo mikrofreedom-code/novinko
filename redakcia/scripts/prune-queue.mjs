@@ -81,6 +81,52 @@ export async function pruneQueue({ apply = false } = {}) {
   return res;
 }
 
+// ── NÁHROBKY: zahoď OBSAH zamietnutých položiek, riadok nechaj ──
+//
+// Zamietnutá položka si drží celý text zdroja, hoci ho už nikto nikdy
+// nepoužije — a to je ~99 % jej objemu. Mažeme teda obsah hneď, nie až po
+// 21 dňoch retencie.
+//
+// NEMAŽEME CELÝ RIADOK a nemažeme ani `dedup_key`: insertFeedRows() ho
+// kontroluje proti celej tabuľke bez ohľadu na stav (viď varovanie hore).
+// Keby kľúč zmizol, scout tú istú správu vloží znova, kým je vo feede — a
+// extrakcia by sa zaplatila druhýkrát. Náhrobok teda musí kľúč prežiť.
+const TOMBSTONE_STATUSES = ['rejected', 'merged'];
+const TOMBSTONE_BATCH = Number(process.env.TOMBSTONE_BATCH ?? 500);
+
+export async function stripRejectedPayload({ apply = false } = {}) {
+  const res = { najdene: 0, ocistene: 0 };
+
+  for (const status of TOMBSTONE_STATUSES) {
+    // Len tie, čo ešte obsah majú (title je spoľahlivý indikátor — náhrobok ho nemá).
+    const { data: davka, error } = await db.from('queue')
+      .select('id, raw_data')
+      .eq('status', status)
+      .not('raw_data->>title', 'is', null)
+      .limit(TOMBSTONE_BATCH);
+    if (error) throw new Error(`náhrobky ${status}: ${error.message}`);
+    if (!davka?.length) continue;
+
+    res.najdene += davka.length;
+    if (!apply) continue;
+
+    for (const row of davka) {
+      const rd = row.raw_data ?? {};
+      const nahrobok = { _tombstone: true };
+      // Zachovaj VÝHRADNE to, na čom stojí dedup a dohľadateľnosť.
+      if (rd.dedup_key) nahrobok.dedup_key = rd.dedup_key;
+      if (rd._src) nahrobok._src = rd._src;
+      if (rd.source_url) nahrobok.source_url = rd.source_url;
+
+      const { error: e } = await db.from('queue')
+        .update({ raw_data: nahrobok }).eq('id', row.id);
+      if (e) throw new Error(`náhrobok ${row.id}: ${e.message}`);
+      res.ocistene++;
+    }
+  }
+  return res;
+}
+
 // Spustené priamo z terminálu (nie importom z pipeline).
 if (import.meta.url === `file://${process.argv[1]}`) {
   const apply = process.argv.includes('--apply');
