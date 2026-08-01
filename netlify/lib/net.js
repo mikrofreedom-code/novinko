@@ -4,6 +4,30 @@ const http = require("http");
 
 const UA = "Mozilla/5.0 (compatible; Novinko/1.0; +https://novinko.netlify.app)";
 
+// Zloží telo odpovede z BUFFEROV a dekóduje ho až na konci, naraz.
+//
+// PREČO TAKTO (2026-08-01): predtým tu bolo `result += chunk`, kde chunk je
+// Buffer. Reťazcová konkatenácia zavolá chunk.toString() na KAŽDOM chunku
+// zvlášť — a keď viacbajtový znak (č, š, ž, á…) padne na hranicu dvoch
+// chunkov, rozpadne sa na dva neplatné kusy a vzniknú „�". V hárku sa takto
+// pokazilo 61 z 1036 článkov („FIFA za��ala…", „Ruské ��toky…"), pretože týmto
+// kódom chodí aj odpoveď z Anthropic API s hotovým slovenským textom.
+// Buffer.concat() + jedno dekódovanie hranice chunkov rieši.
+//
+// charset: RSS feedy nie sú vždy v UTF-8 (staršie SK weby posielajú
+// windows-1250 / iso-8859-2). Preto ho čítame z hlavičky Content-Type.
+function decodeBody(chunks, contentType = "") {
+  const buf = Buffer.concat(chunks);
+  const m = /charset=["']?([\w-]+)/i.exec(contentType);
+  const charset = (m ? m[1] : "utf-8").toLowerCase();
+  if (charset === "utf-8" || charset === "utf8") return buf.toString("utf8");
+  try {
+    return new TextDecoder(charset).decode(buf);   // Node 20 vie aj windows-1250
+  } catch {
+    return buf.toString("utf8");                    // neznáme kódovanie → skús UTF-8
+  }
+}
+
 // GET ľubovoľného URL s podporou presmerovaní a timeoutom.
 function fetchUrl(url, { timeout = 6000, redirects = 0 } = {}) {
   return new Promise((resolve, reject) => {
@@ -21,10 +45,9 @@ function fetchUrl(url, { timeout = 6000, redirects = 0 } = {}) {
         res.resume();
         return reject(new Error(`HTTP ${res.statusCode}`));
       }
-      let data = "";
-      res.setEncoding("utf8");
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => resolve(data));
+      const chunks = [];
+      res.on("data", (chunk) => chunks.push(chunk));
+      res.on("end", () => resolve(decodeBody(chunks, res.headers["content-type"])));
     });
     req.on("error", reject);
     req.setTimeout(timeout, () => { req.destroy(); reject(new Error("Timeout")); });
@@ -40,9 +63,12 @@ function httpsPost(hostname, path, body, headers = {}, { timeout = 30000 } = {})
       headers: { "Content-Length": Buffer.byteLength(data), ...headers },
     };
     const req = https.request(options, (res) => {
-      let result = "";
-      res.on("data", (chunk) => (result += chunk));
-      res.on("end", () => { try { resolve(JSON.parse(result)); } catch { resolve(result); } });
+      const chunks = [];
+      res.on("data", (chunk) => chunks.push(chunk));
+      res.on("end", () => {
+        const result = decodeBody(chunks, res.headers["content-type"]);
+        try { resolve(JSON.parse(result)); } catch { resolve(result); }
+      });
     });
     req.on("error", reject);
     req.setTimeout(timeout, () => { req.destroy(); reject(new Error("Timeout")); });
@@ -55,9 +81,12 @@ function httpsPost(hostname, path, body, headers = {}, { timeout = 30000 } = {})
 function httpsGet(hostname, path, headers = {}, { timeout = 15000 } = {}) {
   return new Promise((resolve, reject) => {
     const req = https.request({ hostname, path, method: "GET", headers }, (res) => {
-      let result = "";
-      res.on("data", (chunk) => (result += chunk));
-      res.on("end", () => { try { resolve(JSON.parse(result)); } catch { resolve(result); } });
+      const chunks = [];
+      res.on("data", (chunk) => chunks.push(chunk));
+      res.on("end", () => {
+        const result = decodeBody(chunks, res.headers["content-type"]);
+        try { resolve(JSON.parse(result)); } catch { resolve(result); }
+      });
     });
     req.on("error", reject);
     req.setTimeout(timeout, () => { req.destroy(); reject(new Error("Timeout")); });
