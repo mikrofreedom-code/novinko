@@ -4,8 +4,10 @@
 // (validácia, zlý formát) necháva tak. Počet pokusov je obmedzený.
 
 import { db } from './queue.js';
+import { todaySpendUsd } from './cost.js';
 
 const MAX_RETRIES = Number(process.env.MAX_RETRIES ?? 3);
+const DAILY_BUDGET = Number(process.env.DAILY_BUDGET_USD ?? 5);
 
 // Agent → jeho vstupný stav (kam vrátiť na re-spracovanie).
 const INPUT_STATUS = {
@@ -33,8 +35,27 @@ export async function retryTransientErrors(limit = 200) {
     const agent = err.split(':')[0]?.trim();
     const input = INPUT_STATUS[agent];
 
-    // Preskoč: neznámy agent, permanentná chyba, alebo budget guard.
-    if (!input || /budget/i.test(err) || !TRANSIENT.test(err)) { res.skipped++; continue; }
+    if (!input) { res.skipped++; continue; }
+
+    // BUDGET GUARD — vlastná kategória, ani dočasná ani trvalá.
+    //
+    // Dovtedy platil za TRVALÝ, takže položka zostala v 'error' NAVŽDY — aj po
+    // polnoci, keď je rozpočet zase voľný. Deň, v ktorom sa strop dosiahol, tak
+    // nenávratne zožral všetko, čo ešte čakalo v rade. Pri nízkom strope (a ten
+    // je zmyslom poistky) by sa to dialo pravidelne.
+    //
+    // Vraciame ju späť, len čo je dnešný náklad zase pod stropom. Kým je nad
+    // ním, necháme ju čakať — opakovať teraz by znamenalo znova naraziť.
+    // NErátame to ako pokus: položka za minutý rozpočet nemôže a nesmie kvôli
+    // nemu spáliť svoje tri pokusy na skutočné chyby.
+    if (/budget/i.test(err)) {
+      if (await todaySpendUsd() >= DAILY_BUDGET) { res.skipped++; continue; }
+      await db.from('queue').update({ status: input, error: null }).eq('id', item.id);
+      res.reset++;
+      continue;
+    }
+
+    if (!TRANSIENT.test(err)) { res.skipped++; continue; }
 
     const retries = (item.raw_data?._retry ?? 0) + 1;
     if (retries > MAX_RETRIES) { res.gaveUp++; continue; } // vzdaj sa (ostáva error)
