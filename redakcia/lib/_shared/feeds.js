@@ -36,7 +36,10 @@ export const FEEDS = [
   { name: 'Aave governance', url: 'https://governance.aave.com/latest.rss', layer: 'C', source_type: 'primary', entity: 'Aave' },
   { name: 'Optimism governance', url: 'https://gov.optimism.io/latest.rss', layer: 'C', source_type: 'primary', entity: 'Optimism' },
   { name: 'Arbitrum governance', url: 'https://forum.arbitrum.foundation/latest.rss', layer: 'C', source_type: 'primary', entity: 'Arbitrum' },
-  { name: 'Lido governance', url: 'https://research.lido.fi/latest.rss', layer: 'C', source_type: 'primary', entity: 'Lido' },
+  // Lido governance — VYHODENÉ 2026-08-02. Najhorší pomer v celom zozname:
+  // 54 položiek, $0.303 na extrakciu, ANI JEDEN článok. Fórum rieši prevažne
+  // interné parametre protokolu, ktoré neprejdú bránou dôležitosti.
+  // { name: 'Lido governance', url: 'https://research.lido.fi/latest.rss', layer: 'C', source_type: 'primary', entity: 'Lido' },
   { name: 'Ethereum Magicians', url: 'https://ethereum-magicians.org/latest.rss', layer: 'C', source_type: 'primary', entity: 'Ethereum' },
 
   // --- Ekosystém (Layer B) ---
@@ -85,11 +88,19 @@ export const FEEDS = [
   // GitHub releases AI nástrojov/knižníc (Layer B) — rovnaký mechanizmus ako krypto
   { name: 'Hugging Face Transformers releases', url: 'https://github.com/huggingface/transformers/releases.atom', layer: 'B', source_type: 'primary', entity: 'Hugging Face', section: 'ai' },
   { name: 'vLLM releases', url: 'https://github.com/vllm-project/vllm/releases.atom', layer: 'B', source_type: 'primary', entity: 'vLLM', section: 'ai' },
-  { name: 'llama.cpp releases', url: 'https://github.com/ggml-org/llama.cpp/releases.atom', layer: 'B', source_type: 'primary', entity: null, section: 'ai' },
+  // llama.cpp releases — VYHODENÉ 2026-08-02. Release notes k verziám: článok
+  // z toho vznikol ($0.111 / 9 položiek / 5 článkov), ale redakcia ich
+  // sústavne zahadzovala. Platiť za obsah, ktorý sa aj tak nepoužije, nemá
+  // zmysel. Vrátiť = odkomentovať riadok.
+  // { name: 'llama.cpp releases', url: 'https://github.com/ggml-org/llama.cpp/releases.atom', layer: 'B', source_type: 'primary', entity: null, section: 'ai' },
 
   // Ďalší lab + robotika + startupy (čisto AI/robotika/startup obsah → bez filtra)
   { name: 'Mistral AI blog', url: 'https://mistral.ai/rss.xml', layer: 'B', source_type: 'primary', entity: 'Mistral AI', section: 'ai' },
-  { name: 'Hugging Face LeRobot releases', url: 'https://github.com/huggingface/lerobot/releases.atom', layer: 'B', source_type: 'primary', entity: 'Hugging Face', section: 'ai' },
+  // Hugging Face LeRobot releases — VYHODENÉ 2026-08-02. 21 položiek, $0.171,
+  // nula článkov. Release notes robotickej knižnice sú príliš úzka téma.
+  // POZOR: hlavný blog Hugging Face (vyššie) ZOSTÁVA — ten dal 9 článkov
+  // z 9 položiek za $0.016/kus a patrí k najlepším zdrojom vôbec.
+  // { name: 'Hugging Face LeRobot releases', url: 'https://github.com/huggingface/lerobot/releases.atom', layer: 'B', source_type: 'primary', entity: 'Hugging Face', section: 'ai' },
   { name: 'Y Combinator blog', url: 'https://www.ycombinator.com/blog/rss', layer: 'B', source_type: 'primary', entity: null, section: 'ai' },
 
   // Cross-topic hardvér/firemné newsroomy (majú aj ne-AI obsah) → keywordFilter
