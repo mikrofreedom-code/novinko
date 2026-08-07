@@ -227,11 +227,21 @@ export function roundRobinCap(items, total, sectionOf, importanceOf) {
   for (const arr of by.values()) {
     arr.sort((a, b) => (importanceOf(b) ?? 0) - (importanceOf(a) ?? 0));
   }
+  // Sekcie zoraď podľa toho, aký silný má každá NAJLEPŠÍ článok.
+  //
+  // Bez tohto by pri strope 1 vyhrala vždy tá sekcia, ktorá je v poradí prvá
+  // (a to je len dôsledok poradia položiek z databázy) — druhá by sa nedostala
+  // na rad nikdy a zároveň by mohol vypadnúť podstatne dôležitejší článok.
+  // Takto pri strope 1 vyjde globálne najdôležitejší kus a pri vyššom strope
+  // striedanie funguje ďalej ako predtým.
+  const poradie = [...by.values()].sort(
+    (a, b) => (importanceOf(b[0]) ?? 0) - (importanceOf(a[0]) ?? 0),
+  );
   const out = [];
   let pridalSa = true;
   while (out.length < total && pridalSa) {
     pridalSa = false;
-    for (const arr of by.values()) {
+    for (const arr of poradie) {
       if (out.length >= total) break;
       const dalsi = arr.shift();
       if (dalsi) { out.push(dalsi); pridalSa = true; }
