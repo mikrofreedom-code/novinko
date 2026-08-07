@@ -164,7 +164,11 @@ function recapTemplate(m, dir) {
     const sk = FNG_SK[m.fng.classification] ?? m.fng.classification;
     const moveTxt = m.fngPrev && m.fngPrev.value !== m.fng.value
       ? ` (včera ${m.fngPrev.value})` : '';
-    p3.push(`Index strachu a chamtivosti ukazuje „${sk}" s hodnotou ${m.fng.value} zo 100${moveTxt}.`);
+    // Index sa MUSÍ pomenovať: existuje viac indexov strachu a chamtivosti
+    // s odlišnou metodikou (alternative.me vs CoinMarketCap) a ich hodnoty sa
+    // bežne líšia o 10+ bodov. Bez zdroja čitateľ porovná naše číslo s iným
+    // indexom a považuje ho za chybu — presne to sa 2026-08-07 aj stalo.
+    p3.push(`Index strachu a chamtivosti (alternative.me) ukazuje „${sk}" s hodnotou ${m.fng.value} zo 100${moveTxt}.`);
   }
   if (m.tvlMover) {
     p3.push(`Z DeFi protokolov sa najvýraznejšie pohlo ${m.tvlMover.name} — TVL ${pct(m.tvlMover.change)} `
@@ -176,7 +180,7 @@ function recapTemplate(m, dir) {
 }
 
 // ---------- AI verzia (Sonnet) — vplete do dát aj udalosti dňa ----------
-const RECAP_SYSTEM = `Si slovenský redaktor krypto denníka. Píšeš KRÁTKY ranný prehľad trhu pre bežného čitateľa.
+export const RECAP_SYSTEM = `Si slovenský redaktor krypto denníka. Píšeš KRÁTKY ranný prehľad trhu pre bežného čitateľa.
 Dostaneš IBA štruktúrované dáta (čísla) a zoznam UDALOSTÍ, ktoré sa dnes stali. Nič iné nevieš.
 Výstup je IBA validný JSON, bez code fences: {"headline": string, "perex": string, "body": string, "attribution_used": boolean}
 
@@ -185,6 +189,17 @@ Výstup je IBA validný JSON, bez code fences: {"headline": string, "perex": str
 - Skús naznačiť, ČO za tým môže byť — ALE LEN cez poskytnuté udalosti dňa. NETVRDÍ kauzalitu ako istotu:
   použi opatrné formulácie „k nálade mohlo prispieť", „v pozadí rezonovalo", „medzi témami dňa bolo".
 - Ak žiadne udalosti nie sú, kauzalitu NEVYMÝŠĽAJ — napíš len faktický stav trhu.
+
+NÁLADA TRHU (fear_greed) — povinné, ak je v dátach:
+- VŽDY uveď DNEŠNÚ hodnotu ako číslo, spolu s názvom indexu:
+  „Index strachu a chamtivosti od alternative.me je na hodnote {value} zo 100 ({label})".
+- fear_greed_yesterday smieš spomenúť LEN ako porovnanie a LEN vtedy, keď si
+  už uviedol dnešnú hodnotu. NIKDY nesmie byť včerajšie číslo jediné v texte.
+  (2026-08-07 vyšiel prehľad s vetou „nálada sa zlepšila oproti včerajšku
+  (vtedy 25)" — dnešná hodnota 29 v ňom nebola vôbec a čitateľ pochopil
+  včerajších 25 ako aktuálny stav.)
+- Názov indexu je povinný: existuje viac indexov strachu a chamtivosti
+  s odlišnou metodikou a ich hodnoty sa bežne líšia o 10 aj viac bodov.
 
 PRAVIDLÁ:
 - Použi VÝHRADNE poskytnuté čísla a udalosti. Žiadne vonkajšie poznatky, žiadne dohady o cenách.
@@ -197,7 +212,7 @@ function stripFences(s) {
   return s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 }
 
-function aiPayload(m, events, dir) {
+export function aiPayload(m, events, dir) {
   return JSON.stringify({
     market_direction: dir,
     bitcoin_24h_pct: m.btc?.change ?? null,
