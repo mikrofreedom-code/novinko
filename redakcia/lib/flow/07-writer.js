@@ -49,11 +49,20 @@ Schéma výstupu: {"headline": string, "perex": string, "body": string, "attribu
 - VYNECHAJ technické drobnosti: hashe, digesty, identifikátory, presné čísla verzií
   (rc.0, beta, v2.52.1…), SHA, adresy kontraktov a podobné — bežný čitateľ ich nepotrebuje.
 - Dôležité čísla (cena, percento, dátum, väčšia suma, počet) pokojne uveď; technický balast nie.
-- DĹŽKA nech vyplýva z toho, koľko materiálu naozaj máš. Pri bohatom podklade
-  (viac faktov, pozadie, citáty) napíš viacodsekový, substantívny článok ako
-  seriózny denník — nie odflaknutú brevku na dve vety. Pri chudobnom podklade
-  (1-2 fakty) ostaň krátky. NIKDY nepridávaj vatu ani opakovanie len preto,
-  aby bol text dlhší — dĺžka je dôsledok materiálu, nie cieľ sám osebe.
+- DĹŽKA nech vyplýva z toho, koľko materiálu naozaj máš, a ROZVIŇ ho naplno.
+  Orientačne podľa počtu faktov v podklade:
+    1-3 fakty    → krátka správa, 2-3 vety, neroztahuj
+    4-8 faktov   → 3-4 odseky, zhruba 200-300 slov
+    9+ faktov    → 5-7 odsekov, zhruba 350-500 slov
+  Doteraz vznikali články okolo 120 slov aj tam, kde bolo faktov dosť — väčšina
+  materiálu sa jednoducho nepoužila. To je chyba: keď je fakt v podklade,
+  patrí do článku.
+- KAŽDÝ podstatný fakt si zaslúži vlastnú vetu a tam, kde to dáva zmysel, aj
+  vlastný odsek s kontextom — čo to znamená, koho sa to týka, čo tomu
+  predchádzalo. Nevymenúvaj fakty v jednom zoznamovom odseku za sebou.
+- NIKDY nepridávaj vatu, opakovanie ani prázdne prechodové vety len preto, aby
+  bol text dlhší. Rozviň LÁTKU, nie počet slov. Keď materiál nestačí na dlhší
+  článok, kratší je správna odpoveď — vata je horšia než stručnosť.
 - Štruktúra pri bohatšom podklade (voľne, nie rigidne): úvodný odsek (čo sa
   stalo + prečo je to dôležité) → pozadie/kontext, ak je → detaily → citáty,
   ak sú → širšie súvislosti/dôsledky.
@@ -169,9 +178,29 @@ export async function run(item) {
     if (!parsed.headline || !parsed.body) {
       throw new Error('Writer výstup nemá headline/body');
     }
-    // Legálna poistka: ak boli potrebné atribúcie, ale model žiadnu neuviedol → chyba.
-    if (fc.attribution_required && parsed.attribution_used !== true) {
-      throw new Error('attribution_required, ale Writer neuviedol žiadnu atribúciu „podľa X"');
+    // Legálna poistka: ak boli potrebné atribúcie, musí byť atribúcia v texte.
+    //
+    // NEVERÍME PRÍZNAKU attribution_used. Model ho vie zabudnúť nastaviť aj
+    // vtedy, keď atribúciu do textu poctivo napísal — overené 2026-08-08 behom
+    // nasucho: v tele bolo 5× „podľa CoinShares", pritom attribution_used=false.
+    // Hotový a správne atribuovaný článok tak spadol na tejto kontrole
+    // (vo fronte 3 takéto chyby). Preto hľadáme meno zdroja priamo v texte
+    // a príznak berieme len ako doplnkový signál.
+    // Príznak sa NEberie ako dôkaz ani opačne: keby stačil, model by ho vedel
+    // nastaviť na true aj bez toho, aby zdroj v texte vôbec spomenul. Rozhoduje
+    // výlučne text. Meno hľadáme aj v skrátenej podobe (prvé slovo), lebo
+    // „Bitfinex Alpha" sa v článku legitímne píše ako „podľa Bitfinexu".
+    if (fc.attribution_required) {
+      const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const mena = [...new Set((fc.facts ?? []).map((f) => f.source_name).filter(Boolean))];
+      const vTexte = mena.some((n) => {
+        const prve = n.split(/[\s(]+/)[0];
+        const vzor = prve.length >= 4 ? prve : n;      // krátke slovo by trafilo hocičo
+        return new RegExp(esc(vzor), 'i').test(parsed.body);
+      });
+      if (!vTexte) {
+        throw new Error(`attribution_required, ale v texte nie je meno žiadneho zdroja (${mena.join(', ')})`);
+      }
     }
     base = {
       headline: String(parsed.headline).trim(),

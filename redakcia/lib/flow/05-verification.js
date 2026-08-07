@@ -118,7 +118,13 @@ Output ONLY valid JSON, no prose, no code fences.
 Schema: {"entity": string|null, "event_type": one of [${EVENT_TYPES.join(', ')}], "facts": [{"kind": ${kindsFor(desk)}, "statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "confidence": number}]}
 Rules:${desk ? ANALYSIS_RULE : NO_CAUSALITY_RULE}
 - THOROUGHNESS: extract EVERY distinct verifiable fact present in the text, not just
-  the single most obvious one. A typical article should yield several facts, not one or two.
+  the single most obvious one. Be concrete about volume: a full source article
+  (roughly 800+ words) should yield 12-20 facts, a short announcement 4-8.
+  Under-extracting is the common failure — if you produced fewer than 10 facts
+  from a long text, re-read it and look for what you skipped: numbers, dates,
+  names, stated positions, sequence of events, consequences, who said what.
+  ("several facts" proved too vague — the median yield was 7 facts even from
+  6000-character sources, which caps every article at ~120 words.)
 - One fact = one statement (atomic).
 - Default kind="fact": NEVER copy the source's original sentences or phrasing —
   rephrase into a neutral, minimal factual claim, max ~15 words. No opinions,
