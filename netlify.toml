@@ -50,9 +50,18 @@
 # [functions."generate-krypto"]
 #   schedule = "5 */4 * * *"
 
-[functions."generate-svet"]
-  schedule = "15 */5 * * *"
-
-[functions."generate-sport"]
-  schedule = "25 */2 * * *"
+# generate-svet a generate-sport VYPNUTÉ (2026-08-09, pred ostrým štartom):
+# obe patria k pôvodnej, prepisovacej vetve. Pri ostrom štarte 10.8. sa archív
+# resetuje na nulu (redakcia/scripts/reset-pred-startom.mjs) a od toho momentu
+# doň smie pribúdať výhradne fact-only obsah novej redakcie. Keby tieto dve
+# funkcie bežali ďalej, do pár hodín po resete by archív znovu plnili články
+# zo starej vetvy — Šport každé 2 h, Svet každých 5 h.
+#
+# Súbory generate-svet.js a generate-sport.js ostávajú v repozitári nedotknuté,
+# len bez schedule — samy sa nespustia. Zapnutie = odkomentovať.
+# [functions."generate-svet"]
+#   schedule = "15 */5 * * *"
+#
+# [functions."generate-sport"]
+#   schedule = "25 */2 * * *"
 
