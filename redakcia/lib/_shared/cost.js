@@ -10,6 +10,32 @@ const PRICING = {
 // Cache dnešného nákladu (refresh každých 60 s; logCost ho priebežne navyšuje).
 let _spend = { ts: 0, val: 0 };
 
+// ---- PRIEBEŽNÝ STROP (rozloženie rozpočtu cez deň) ----
+//
+// PREČO: pôvodná poistka bola „míňaj, kým nedôjde, potom stop". Rozpočet sa tým
+// minul ráno a redakcia bola do polnoci ticho — namerané 6.8.2026 strop o 13:01,
+// 7.8.2026 už o 08:01. Web tak vyzeral, že po obede prestal existovať.
+//
+// Teraz sa rozpočet uvoľňuje priebežne: o polnoci je k dispozícii len náskok,
+// o 22:00 celý denný strop. Deň sa tým nepredraží — len sa minie rovnomerne.
+//
+// NÁSKOK: bez neho by prvé behy po polnoci nemali z čoho žiť (o 00:30 by bolo
+// povolené ~1 % rozpočtu = ani jedno volanie). Dve hodiny náskoku dajú hneď na
+// štarte dňa priestor zhruba na jeden celý beh.
+const DAILY_BUDGET = Number(process.env.DAILY_BUDGET_USD ?? 5);
+const HEAD_START_H = Number(process.env.BUDGET_HEAD_START_H ?? 2);
+
+export function dailyBudgetUsd() {
+  return DAILY_BUDGET;
+}
+
+// Koľko z denného rozpočtu smie byť minuté PRÁVE TERAZ.
+// Deň sa počíta rovnako ako v todaySpendUsd() — od LOKÁLNEJ polnoci.
+export function allowanceUsd(now = new Date()) {
+  const hodin = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+  return Math.min(DAILY_BUDGET, (DAILY_BUDGET * (hodin + HEAD_START_H)) / 24);
+}
+
 export async function logCost({ agent, model, usage, queueId }) {
   const i = usage?.input_tokens ?? 0, o = usage?.output_tokens ?? 0;
   const [pin, pout] = PRICING[model] ?? [0, 0];

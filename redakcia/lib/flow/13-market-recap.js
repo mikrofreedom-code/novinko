@@ -18,6 +18,7 @@
 
 import { db } from '../_shared/queue.js';
 import { ask } from '../_shared/ai-gateway.js';
+import { parseModelJson } from '../_shared/json.js';
 import { topMarkets } from '../_shared/coingecko.js';
 import { fearGreed, FNG_SK } from '../_shared/feargreed.js';
 import { topProtocols } from '../_shared/defillama.js';
@@ -208,10 +209,6 @@ PRAVIDLÁ:
 - "headline": max ~10 slov. "perex": 1–2 vety. "body": 2–4 krátke odseky (prázdny riadok medzi nimi).
 - Píš plynulo a striedmo, radšej kratšie. Žiadny markdown nadpis.`;
 
-function stripFences(s) {
-  return s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-}
-
 export function aiPayload(m, events, dir) {
   return JSON.stringify({
     market_direction: dir,
@@ -263,8 +260,7 @@ async function buildAndInsert({ dryRun = false } = {}) {
       system: RECAP_SYSTEM, prompt: aiPayload(m, events, dir),
       maxTokens: 1100, temperature: 0.5,
     });
-    let parsed = null;
-    try { parsed = JSON.parse(stripFences(raw)); } catch { parsed = null; }
+    const parsed = parseModelJson(raw).value ?? null;
     if (parsed?.headline && parsed?.body) {
       base = {
         headline: String(parsed.headline).trim(),

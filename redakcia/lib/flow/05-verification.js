@@ -31,6 +31,7 @@
 
 import { claim, advance } from '../_shared/queue.js';
 import { askFull } from '../_shared/ai-gateway.js';
+import { parseModelJson } from '../_shared/json.js';
 import { groundFacts, quoteGrounded } from '../_shared/grounding.js';
 import { prescore } from '../_shared/prescore.js';
 import { fetchFullArticleText } from '../_shared/fetch-article.js';
@@ -140,10 +141,6 @@ Rules:${desk ? ANALYSIS_RULE : NO_CAUSALITY_RULE}
 - If a fact carries a number, put it in "value" + "unit" and keep "statement" qualitative.
 - Do NOT invent sources, names, or URLs. Output no attribution fields.`;
 
-function stripFences(s) {
-  return s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-}
-
 // Exportované kvôli behu nasucho (scripts/dry-run-desk.mjs) — overenie
 // extrakcie na reálnom článku bez zápisu do fronty. Rovnaký zámer ako
 // dryRun v 08-proofreader.
@@ -185,16 +182,15 @@ export async function factsFromText(item, meta) {
   }
   const raw = res.text;
 
-  let parsed;
-  try {
-    parsed = JSON.parse(stripFences(raw));
-  } catch {
+  const pokus = parseModelJson(raw);
+  if (!pokus.ok) {
     // Rozlíš urezanú odpoveď od skutočne pokazenej — inak sa príčina nedá dohľadať.
     const dovod = res.truncated
       ? `odpoveď urezaná aj pri ${EXTRACT_MAX_TOKENS * 2} tokenoch (zdroj je príliš dlhý)`
       : 'model nevrátil platný JSON';
     throw new Error(`Fact extractor returned non-JSON: ${dovod}: ${raw.slice(0, 200)}`);
   }
+  const parsed = pokus.value;
 
   const event_type = EVENT_TYPES.includes(parsed.event_type) ? parsed.event_type : 'other';
   // POISTKA KÓDOM, nielen promptom: 'analysis' pripúšťame výhradne od deskov.

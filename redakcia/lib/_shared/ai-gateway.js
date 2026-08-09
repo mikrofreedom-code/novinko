@@ -1,7 +1,7 @@
 // AI GATEWAY — agent pýta SCHOPNOSŤ (cheap/smart), nie model.
 // Model vymeníš tu, na jednom mieste. Loguje náklady.
 import Anthropic from '@anthropic-ai/sdk';
-import { logCost, todaySpendUsd } from './cost.js';
+import { logCost, todaySpendUsd, allowanceUsd, dailyBudgetUsd } from './cost.js';
 
 // SDK sám retryuje 429/529/5xx + sieťové chyby s exponenciálnym odstupom.
 const anthropic = new Anthropic({
@@ -10,7 +10,6 @@ const anthropic = new Anthropic({
   timeout: Number(process.env.AI_TIMEOUT_MS ?? 60000),
 });
 const MODELS = { cheap: process.env.MODEL_CHEAP, smart: process.env.MODEL_SMART };
-const DAILY_BUDGET = Number(process.env.DAILY_BUDGET_USD ?? 5);
 
 // askFull() vracia aj stopReason. Volajúci, ktorý čaká JSON, tak vie rozlíšiť
 // „model odpovedal nezmysel" od „odpoveď sa urezala na limite tokenov" — druhý
@@ -18,10 +17,16 @@ const DAILY_BUDGET = Number(process.env.DAILY_BUDGET_USD ?? 5);
 // urezané odpovede hlásili ako „returned non-JSON" a správa sa zahodila
 // (medzi 30.6. a 9.7.2026 takto padlo 356 položiek).
 export async function askFull({ tier, system, prompt, agent, queueId, maxTokens = 1500, temperature = 0.2 }) {
-  // POISTKA NÁKLADOV: keď dnešný náklad dosiahne strop, AI sa zastaví.
+  // POISTKA NÁKLADOV: strop nie je denný nárazník, ale PRIEBEŽNÝ — uvoľňuje sa
+  // s pribúdajúcimi hodinami (viď allowanceUsd v cost.js). Položka, ktorá tu
+  // spadne, nie je stratená: retry.js ju vráti späť, len čo strop dorastie.
   const spent = await todaySpendUsd();
-  if (spent >= DAILY_BUDGET) {
-    throw new Error(`budget guard: dnešný AI náklad $${spent.toFixed(2)} dosiahol strop $${DAILY_BUDGET}`);
+  const allowance = allowanceUsd();
+  if (spent >= allowance) {
+    throw new Error(
+      `budget guard: dnešný AI náklad $${spent.toFixed(2)} dosiahol priebežný strop `
+      + `$${allowance.toFixed(2)} (denný $${dailyBudgetUsd().toFixed(2)})`,
+    );
   }
 
   const model = MODELS[tier] ?? MODELS.cheap;

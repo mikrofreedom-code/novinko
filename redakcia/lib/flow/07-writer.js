@@ -26,6 +26,7 @@
 
 import { claim, advance } from '../_shared/queue.js';
 import { ask } from '../_shared/ai-gateway.js';
+import { parseModelJson } from '../_shared/json.js';
 import { liveFor } from '../sections/index.js';
 
 export const STAGE = {
@@ -101,10 +102,6 @@ FAKTY S "kind":
 - Viac faktov v podklade = viac reálneho materiálu na odseky. Použi ich všetky,
   ktoré dávajú zmysel, namiesto toho, aby si väčšinu ignoroval.`;
 
-function stripFences(s) {
-  return s.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-}
-
 // Unikátne zdroje pre zoznam pod článkom (dedup podľa url).
 function uniqueSources(facts) {
   const seen = new Map();
@@ -159,22 +156,23 @@ export async function run(item) {
       tier: 'smart', agent: AGENT, queueId: item.id,
       system: WRITER_SYSTEM, prompt: basePrompt, maxTokens: 2200, temperature: 0.4,
     });
-    let parsed;
-    try {
-      parsed = JSON.parse(stripFences(raw));
-    } catch {
+    // parseModelJson skúsi aj zachrániť zatúlanú úvodzovku (viď _shared/json.js).
+    // Až keď ani to nepomôže, siahame na DRUHÉ volanie Sonnetu — to je tu
+    // najdrahšia vec v celej pipeline, takže sa oplatí vyhnúť sa mu kódom.
+    let pokus = parseModelJson(raw);
+    if (!pokus.ok) {
       raw = await ask({
         tier: 'smart', agent: AGENT, queueId: item.id,
         system: WRITER_SYSTEM,
         prompt: `${basePrompt}\n\n(Predošlý pokus vrátil nevalidný JSON — pravdepodobne kvôli rovným úvodzovkám " " okolo citátu. Over si, že v "body" nepoužívaš znak " nikde okrem okrajov JSON reťazcov.)`,
         maxTokens: 2200, temperature: 0.4,
       });
-      try {
-        parsed = JSON.parse(stripFences(raw));
-      } catch {
+      pokus = parseModelJson(raw);
+      if (!pokus.ok) {
         throw new Error(`Writer vrátil non-JSON aj po opakovaní: ${raw.slice(0, 200)}`);
       }
     }
+    const parsed = pokus.value;
     if (!parsed.headline || !parsed.body) {
       throw new Error('Writer výstup nemá headline/body');
     }
@@ -242,6 +240,20 @@ const MAX_PER_RUN = Number(process.env.MAX_ARTICLES_PER_RUN ?? 2);
 // by človek čakal. Tento strop hovorí, koľko ich smie byť dokopy.
 const MAX_TOTAL_PER_RUN = Number(process.env.MAX_ARTICLES_TOTAL_PER_RUN ?? 3);
 
+// Ako dlho smie správa čakať vo fronte, kým ju ešte má zmysel napísať.
+//
+// PREČO: pri strope 1 článok/hodinu vzniká rad, a ten sa po každom výpadku
+// (lokálny cron beží len keď je počítač hore — 8.–9.8.2026 stál 23 hodín)
+// natiahne o celú dĺžku výpadku. Namerané 9.8.2026: priemerné oneskorenie od
+// objavenia po zverejnenie 21 h, tri najčerstvejšie články 45, 49 a 49 hodín.
+// To už nie je spravodajstvo.
+//
+// Zastarané položky preto zahadzujeme EŠTE PRED Sonnetom — nielen kvôli
+// dôveryhodnosti, ale aj preto, že 12-publisher ich po 72 h aj tak expiruje
+// (PENDING_MAX_AGE_H). Bez tohto škrtu platíme za napísanie, korektúru aj
+// obrázok niečoho, čo skončí v koši.
+const MAX_AGE_H = Number(process.env.CLUSTERED_MAX_AGE_H ?? 24);
+
 // Vyberá zo sekcií STRIEDAVO (najlepší z krypta, najlepší z AI, druhý
 // z krypta…), kým sa nenaplní strop. Striedanie je zámerné: keby sa len
 // zoradilo podľa dôležitosti, silnejšia sekcia by tú druhú vytlačila úplne
@@ -308,12 +320,34 @@ export async function runBatch(limit = 50) {
   // nechaj čakať v 'clustered' — žiadny Sonnet/obrázok/publish, kým sa neprepnú.
   const writable = items.filter((it) => liveFor(it.facts?.section ?? 'krypto'));
   const parked = items.length - writable.length;
+
+  // ŠKRT 0: vyhoď, čo sa už skazilo. Zámerne AŽ PO filtri sekcií — položka
+  // odložená kvôli nespustenej sekcii nečaká vlastnou vinou a nesmie zhniť.
+  const now = Date.now();
+  const cerstve = [];
+  let zastarane = 0;
+  for (const it of writable) {
+    const vekH = (now - new Date(it.created_at).getTime()) / 3600000;
+    if (vekH <= MAX_AGE_H) { cerstve.push(it); continue; }
+    await advance(it.id, 'rejected', {
+      error: `${AGENT}: zastarané — čakalo ${Math.round(vekH)} h vo fronte (limit ${MAX_AGE_H} h), už to nie je správa`,
+    });
+    zastarane++;
+  }
+
+  // PRI ZHODE DÔLEŽITOSTI UPREDNOSTNI ČERSTVEJŠIU SPRÁVU.
+  // claim() vracia rad zoradený created_at ASC a triedenie podľa importance
+  // nižšie je stabilné — bez tohto prehodenia teda pri rovnakom skóre vyhrávala
+  // NAJSTARŠIA položka. Overené 9.8.2026: najbližší beh by napísal 46 h starú
+  // správu (importance 74), zatiaľ čo rovnako dôležitá 2-hodinová čakala ďalej.
+  cerstve.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
   // ŠKRT 1: top N najdôležitejších PER SEKCIA (aby krypto neprebíjalo AI a ďalšie).
-  const perSekcia = topPerSection(writable, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
+  const perSekcia = topPerSection(cerstve, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
   // ŠKRT 2: globálny strop na celý beh, striedavo zo sekcií.
   const top = roundRobinCap(perSekcia, MAX_TOTAL_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
 
-  const results = { ok: 0, failed: 0, skipped: Math.max(writable.length - top.length, 0), parked };
+  const results = { ok: 0, failed: 0, skipped: Math.max(cerstve.length - top.length, 0), parked, zastarane };
   for (const item of top) {
     try {
       await run(item);

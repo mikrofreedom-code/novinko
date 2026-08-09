@@ -4,10 +4,9 @@
 // (validácia, zlý formát) necháva tak. Počet pokusov je obmedzený.
 
 import { db } from './queue.js';
-import { todaySpendUsd } from './cost.js';
+import { todaySpendUsd, allowanceUsd } from './cost.js';
 
 const MAX_RETRIES = Number(process.env.MAX_RETRIES ?? 3);
-const DAILY_BUDGET = Number(process.env.DAILY_BUDGET_USD ?? 5);
 
 // Agent → jeho vstupný stav (kam vrátiť na re-spracovanie).
 const INPUT_STATUS = {
@@ -48,8 +47,13 @@ export async function retryTransientErrors(limit = 200) {
     // ním, necháme ju čakať — opakovať teraz by znamenalo znova naraziť.
     // NErátame to ako pokus: položka za minutý rozpočet nemôže a nesmie kvôli
     // nemu spáliť svoje tri pokusy na skutočné chyby.
+    //
+    // POROVNÁVAME S PRIEBEŽNÝM STROPOM, nie s denným — presne tým istým, aký
+    // použil ai-gateway pri odmietnutí. S denným by tu platilo „$0.30 < $0.80,
+    // vráť do hry", položka by v tom istom behu zase narazila na priebežný strop
+    // a takto by lietala tam a späť každú hodinu.
     if (/budget/i.test(err)) {
-      if (await todaySpendUsd() >= DAILY_BUDGET) { res.skipped++; continue; }
+      if (await todaySpendUsd() >= allowanceUsd()) { res.skipped++; continue; }
       await db.from('queue').update({ status: input, error: null }).eq('id', item.id);
       res.reset++;
       continue;

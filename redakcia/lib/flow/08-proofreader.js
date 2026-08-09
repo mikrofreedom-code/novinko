@@ -24,6 +24,7 @@
 
 import { claim, advance } from '../_shared/queue.js';
 import { askFull } from '../_shared/ai-gateway.js';
+import { parseModelJson } from '../_shared/json.js';
 import { factsForPrompt } from './07-writer.js';
 
 export const STAGE = {
@@ -94,10 +95,6 @@ Return ONLY valid JSON, no markdown fence:
 Use "reject" only when the article is so unsupported that almost nothing
 survives. Use "ok" when you changed nothing.`;
 
-function stripFences(s) {
-  return String(s ?? '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-}
-
 const wordCount = (s) => String(s ?? '').trim().split(/\s+/).filter(Boolean).length;
 
 // ---------- Spracuj JEDEN článok ----------
@@ -122,23 +119,57 @@ export async function run(item, { dryRun = false } = {}) {
     + `PEREX: ${article.perex ?? ''}\n`
     + `BODY:\n${article.body}`;
 
-  const res = await askFull({
+  const opytajSa = (dodatok = '') => askFull({
     tier: 'cheap',
     agent: AGENT,
     queueId: item.id,
     system: PROOF_SYSTEM,
-    prompt,
+    prompt: prompt + dodatok,
     maxTokens: 3000,
     temperature: 0,
   });
 
-  let parsed;
-  try {
-    parsed = JSON.parse(stripFences(res.text));
-  } catch {
-    const dovod = res.truncated ? 'odpoveď urezaná na limite tokenov' : 'model nevrátil platný JSON';
-    throw new Error(`korektor: ${dovod}: ${res.text.slice(0, 200)}`);
+  const skusParsovat = parseModelJson;
+
+  // Parser hlási „position N" — ukáž kus textu OKOLO tej pozície. Bez toho sa
+  // v 3000-znakovej odpovedi rozbitý znak hľadá naslepo.
+  const okoloChyby = (pokus) => {
+    const m = /position (\d+)/.exec(pokus.chyba ?? '');
+    if (!m || !pokus.cistyText) return '';
+    const p = Number(m[1]);
+    return ` … OKOLO CHYBY >>>${pokus.cistyText.slice(Math.max(0, p - 120), p + 120)}<<<`;
+  };
+
+  // OPAKOVANIE PRI ROZBITOM JSON — rovnaký vzor ako vo Writerovi (07).
+  //
+  // Model si občas vloží rovnú úvodzovku " doprostred reťazca a rozbije tým
+  // vlastný JSON, hoci mu to PROOF_SYSTEM výslovne zakazuje. Namerané
+  // 9.8.2026: 15 takto stratených článkov za týždeň — a to sú články, za ktoré
+  // sme UŽ zaplatili Sonneta (07) a ktoré by hneď za korektorom dostali aj
+  // obrázok. Jedno lacné volanie Haiku navyše je proti tomu zanedbateľné.
+  let res = await opytajSa();
+  let pokus = skusParsovat(res.text);
+  if (!pokus.ok && !res.truncated) {
+    res = await opytajSa(
+      '\n\n(Predošlý pokus vrátil nevalidný JSON — takmer isto kvôli znaku " vnútri'
+      + ' niektorého reťazca. Nepouži znak " nikde okrem okrajov JSON reťazcov;'
+      + ' pre slovenské úvodzovky použi „ a ".)',
+    );
+    pokus = skusParsovat(res.text);
   }
+
+  if (!pokus.ok) {
+    const dovod = res.truncated ? 'odpoveď urezaná na limite tokenov' : 'model nevrátil platný JSON ani po opakovaní';
+    // Do hlášky patrí aj to, čo povedal PARSER, a KONIEC odpovede — nie len jej
+    // začiatok. Prvých 200 znakov vyzerá pri každom páde rovnako („```json{…"),
+    // takže sa z nich nedalo rozoznať useknutú odpoveď od rozbitých úvodzoviek
+    // uprostred; 9.8.2026 to stálo jeden zbytočný diagnostický beh.
+    throw new Error(
+      `korektor: ${dovod} (${pokus.chyba})${okoloChyby(pokus)}`
+      + ` … KONIEC ${res.text.slice(-150)}`,
+    );
+  }
+  const parsed = pokus.value;
 
   const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
 
