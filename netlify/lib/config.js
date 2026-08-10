@@ -9,8 +9,17 @@ const STORE_NAME = "news";          // pripravené spravodajstvo pre frontend
 const PARAGRAPH_DELIM = "¶¶";
 // Koľko článkov maximálne vrátiť na jednu kategóriu
 const MAX_ITEMS = 100;
-// Vlastné články staršie ako toľko hodín sa NEZOBRAZUJÚ na hlavnej (idú do archívu).
-const MAX_AGE_HOURS = 24;
+// Vlastné články staršie ako toľko hodín už nie sú "čerstvé" — na hlavnej klesnú
+// pod čerstvé a ostávajú len ako doplnenie do MIN_OWN_ITEMS. V archíve sú vždy všetky.
+// (2026-08-10: zdvihnuté z 24 na 48 h. Nič sa nemaže, ide len o poradie na hlavnej —
+// mazanie starých NESPRACOVANÝCH správ rieši fronta cez CLUSTERED_MAX_AGE_H.)
+const MAX_AGE_HOURS = 48;
+// Pod toľko položiek nesmie sekcia klesnúť. Keď ich čerstvé (vlastné + RSS)
+// nenaplnia, doplnia sa staršími vlastnými článkami — až na koniec, nikdy nad
+// čerstvé správy. Bez tejto poistky vysychá krypto a ai: sú to jediné kategórie
+// bez zobraziteľných RSS feedov (krypto má 8, všetky anglické → gatherRss ich
+// filtruje; ai nemá vo feeds.js ani jeden).
+const MIN_SECTION_ITEMS = 6;
 module.exports = {
   SHEET_CSV_URL,
   CATS,
@@ -18,4 +27,5 @@ module.exports = {
   PARAGRAPH_DELIM,
   MAX_ITEMS,
   MAX_AGE_HOURS,
+  MIN_SECTION_ITEMS,
 };

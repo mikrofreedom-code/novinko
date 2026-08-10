@@ -4,7 +4,7 @@ const { fetchUrl } = require("./net");
 const { parseRSS } = require("./rss");
 const { FEEDS } = require("./feeds");
 const { fetchSheetItems } = require("./sheets");
-const { CATS, MAX_ITEMS } = require("./config");
+const { CATS, MAX_ITEMS, MAX_AGE_HOURS, MIN_SECTION_ITEMS } = require("./config");
 
 const CAT_ORDER = ["slovensko", "svet", "ekonomika", "sport", "krypto", "ai"];
 
@@ -43,8 +43,23 @@ async function gatherRss(categoryFilter = "all") {
   return out;
 }
 
+// Ťaháme VŠETKY vlastné články (aj staršie než MAX_AGE_HOURS) a vek riešime až
+// pri skladaní kategórie — inak by sa staré zahodili tu a freshFirst by nemal
+// čím doplniť prázdnu sekciu.
 async function gatherSheet() {
-  try { return await fetchSheetItems(); } catch { return []; }
+  try { return await fetchSheetItems({ all: true }); } catch { return []; }
+}
+
+// Rozdelí vlastné články na čerstvé (do MAX_AGE_HOURS) a staršie. Zoznam chodí
+// zo sheets.js zoradený od najnovšieho, takže obe časti si poradie zachovajú.
+function splitByAge(own) {
+  const cutoff = Date.now() - MAX_AGE_HOURS * 60 * 60 * 1000;
+  const fresh = [];
+  const stale = [];
+  for (const it of own) {
+    (new Date(it.pubDate).getTime() >= cutoff ? fresh : stale).push(it);
+  }
+  return { fresh, stale };
 }
 
 function roundRobin(lists) {
@@ -60,10 +75,22 @@ function roundRobin(lists) {
   return out;
 }
 
+// Poradie: čerstvé vlastné → RSS → (len ak by sekcia bola tenká) staršie vlastné.
+//
+// Staršie vlastné idú AŽ NA KONIEC a len keď ich treba. Keby sa dopĺňali vždy a
+// navrch, tak v športe/svete/ekonomike by nad dnešným RSS visel vlastný článok
+// starý aj 100+ h — overené pri teste 2026-08-10. Sekcie so slovenskými feedmi
+// sa naplnia samy, takže sa ich poistka vôbec nedotkne; zachraňuje krypto a ai.
+//
+// Súčasní volajúci sem "all" neposielajú (buildPayload aj buildAll idú po
+// kategóriách cez CAT_ORDER), takže hranica vychádza vždy per sekcia.
 function combineCategory(rss, own, category) {
   const o = category === "all" ? own : own.filter((i) => i.category === category);
   const r = category === "all" ? rss : rss.filter((i) => i.category === category);
-  return [...o, ...r];
+  const { fresh, stale } = splitByAge(o);
+  const base = [...fresh, ...r];
+  if (base.length >= MIN_SECTION_ITEMS) return base;
+  return [...base, ...stale.slice(0, MIN_SECTION_ITEMS - base.length)];
 }
 
 async function buildPayload(category = "all") {
