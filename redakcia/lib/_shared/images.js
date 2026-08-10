@@ -67,8 +67,13 @@ export async function generateImage(title, id, opts = {}) {
     // PRECHODNÁ chyba na ich strane, nie zlá referencia modelu. Predtým sa brala
     // ako smrteľná a článok zostal bez obrázka.
     let out;
+    let lastPrediction = null;
     for (let attempt = 1; attempt <= 4; attempt++) {
-      try { out = await replicate.run('black-forest-labs/flux-schnell', { input }); break; }
+      try {
+        out = await replicate.run('black-forest-labs/flux-schnell', { input },
+                                  (p) => { lastPrediction = p; });
+        break;
+      }
       catch (e) {
         const m = /retry.?after["\s:]+(\d+)/i.exec(e.message);
         const is429 = /\b429\b|throttl|rate limit/i.test(e.message);
@@ -82,7 +87,26 @@ export async function generateImage(title, id, opts = {}) {
         throw e;
       }
     }
-    const buffer = Buffer.from(await out[0].blob().then((b) => b.arrayBuffer()));
+    // run() vráti null, keď serverové čakanie (Prefer: wait, ~60 s) vyprší a predikcia
+    // ešte beží: index.js:172 pokladá za nedokončený IBA stav 'starting', takže pri
+    // 'processing' preskočí dopollovanie, stav nie je 'failed' a vráti prázdny output.
+    // Predikcia pritom normálne dobehne — treba ju len dopollovať. Doteraz to spadlo
+    // na out[0] ako "Cannot read properties of null" (87× v logu do 2026-08-10),
+    // článok išiel bez obrázka a už zaplatená predikcia sa zahodila.
+    if (!out && lastPrediction) {
+      console.error(`[image] run() vrátil null, stav predikcie: ${lastPrediction.status} — dopollujem`);
+      const done = await replicate.wait(lastPrediction, { interval: 1000 });
+      if (done.status === 'failed') throw new Error(`Prediction failed: ${done.error}`);
+      out = done.output;
+    }
+    if (!out || !out[0]) throw new Error('Replicate nevrátil žiadny výstup');
+
+    // run() prechádza výstup cez transform() → FileOutput s .blob(); wait() vracia
+    // surové URL stringy. Po dopollovaní teda príde iný tvar než po úspešnom run().
+    const first = out[0];
+    const buffer = typeof first === 'string'
+      ? Buffer.from(await (await fetch(first)).arrayBuffer())
+      : Buffer.from(await first.blob().then((b) => b.arrayBuffer()));
 
     const supabase = storage();
     const safeId = String(id || Date.now()).replace(/[^a-z0-9_-]/gi, '');
