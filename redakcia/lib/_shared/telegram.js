@@ -11,9 +11,9 @@
 //   TELEGRAM_BOT_TOKEN=123456:ABC...   (z @BotFather)
 //   TELEGRAM_CHAT_ID=@mojkanal alebo -1001234567890   (verejný broadcast po publikovaní)
 //   TELEGRAM_APPROVAL_CHAT_ID=1422827771              (súkromný chat, len pre schválenie)
-//   SITE_URL=https://novinko.netlify.app   (voliteľné; default nižšie)
+//   SITE_URL=https://novinko.sk   (voliteľné; default nižšie)
 
-const SITE_URL = process.env.SITE_URL || 'https://novinko.netlify.app';
+const SITE_URL = process.env.SITE_URL || 'https://novinko.sk';
 
 function esc(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

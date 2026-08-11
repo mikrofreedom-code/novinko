@@ -3,7 +3,7 @@
 // Rovnaký bot a chat ako v novinko-redakcia (lib/_shared/telegram.js).
 const { httpsPost } = require("./net");
 
-const SITE_URL = process.env.SITE_URL || "https://novinko.netlify.app";
+const SITE_URL = process.env.SITE_URL || "https://novinko.sk";
 
 function esc(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

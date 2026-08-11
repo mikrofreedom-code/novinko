@@ -15,7 +15,7 @@ import { sendArticle } from '../lib/_shared/telegram.js';
 import { generateImage } from '../lib/_shared/images.js';
 import { ask } from '../lib/_shared/ai-gateway.js';
 
-const SITE_URL = process.env.SITE_URL || 'https://novinko.netlify.app';
+const SITE_URL = process.env.SITE_URL || 'https://novinko.sk';
 
 // ---- parse draft: frontmatter (key: value) medzi --- a --- , potom telo ----
 function parseDraft(text) {

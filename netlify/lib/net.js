@@ -2,7 +2,7 @@
 const https = require("https");
 const http = require("http");
 
-const UA = "Mozilla/5.0 (compatible; Novinko/1.0; +https://novinko.netlify.app)";
+const UA = "Mozilla/5.0 (compatible; Novinko/1.0; +https://novinko.sk)";
 
 // Zloží telo odpovede z BUFFEROV a dekóduje ho až na konci, naraz.
 //
