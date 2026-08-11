@@ -23,6 +23,23 @@
 [dev]
   publish = "."
 
+# ─── VLASTNÁ DOMÉNA ───
+# Od 11.8.2026 je primárna doména novinko.sk. Nastavenie primárnej domény
+# v Netlify presmeruje www, ale NIE vlastnú *.netlify.app adresu — tá ďalej
+# vracia 200 a rovnaký obsah by visel na dvoch URL (pre Google duplicita).
+#
+# ⚠️ Toto pravidlo presmeruje aj /.netlify/functions/*. Telegram pri webhookoch
+# presmerovania NENASLEDUJE, takže webhook musí byť registrovaný priamo na
+# novinko.sk — inak sa 301 ticho zahodí a schvaľovacie tlačidlá ✅/❌ prestanú
+# fungovať bez akejkoľvek chybovej hlášky. Prehlásené 11.8.2026 cez setWebhook
+# na https://novinko.sk/.netlify/functions/telegram-webhook. Keby sa doména
+# menila znova, prehlás webhook PRED nasadením tohto pravidla.
+[[redirects]]
+  from = "https://novinko.netlify.app/*"
+  to = "https://novinko.sk/:splat"
+  status = 301
+  force = true
+
 # Content-Security-Policy tu ZÁMERNE nie je — generuje ju scripts/gen-csp.mjs
 # do _site/_headers pri každom builde, lebo obsahuje SHA-256 hashe inline
 # skriptov. Natvrdo zapísaná by sa pri prvej úprave HTML rozišla s obsahom
