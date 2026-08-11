@@ -162,10 +162,16 @@ eskalácie: bežný kód / pravidlá  →  Haiku (lacný model)  →  Sonnet (si
   • cron (hodinová automatizácia)
   • Cieľ nasadenia: Netlify + GitHub CI/CD
 
-  ZDROJE NA LAUNCH (KRYPTO ONLY):
-    Layer A (dáta):   CoinGecko (live), pripravené: DexScreener, DefiLlama, GeckoTerminal
+  ZDROJE (DVOJSEKČNÝ WEB: KRYPTO + AI) — aktualizované 11.8.2026:
+    Pôvodne tu stálo "KRYPTO ONLY". Web má dnes dve sekcie a je to potvrdený zámer —
+    podrobnosti a čísla v CLAUDE.md, sekcia "Scope".
+    Spolu 45 zdrojov: 25 krypto + 20 AI (lib/_shared/feeds.js).
+    Layer A (dáta):   CoinGecko + DefiLlama (live), pripravené: DexScreener, GeckoTerminal
+                      POZOR: samostatné články z nich nevznikajú, živia ranný recap.
     Layer B (text):   Ethereum Foundation blog + GitHub release feedy
                       (go-ethereum, Bitcoin Core, Solana, Uniswap, Chainlink, Lighthouse)
+    Layer C (text):   regulátori, governance fóra, research desky, PR wires;
+                      na AI strane aj The Verge / Tom's Hardware / Ars Technica
     Pridať zdroj = jeden riadok v konfigurácii. Téma zdrojov je škálovateľná.
 
 

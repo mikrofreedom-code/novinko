@@ -91,19 +91,46 @@ regex / keywords  →  Haiku  →  Sonnet  →  drahší model (len keď nutné)
 
 Vždy skús lacnejšiu vrstvu prvú. Každé AI volanie ide cez `ai-gateway.js` a loguje sa do `cost.js`.
 
-## Scope na launch: KRYPTO ONLY
+## Scope: DVOJSEKČNÝ WEB — KRYPTO + AI
+
+> Do 2026-08-11 tu stálo „KRYPTO ONLY". Kód to už dávno nerobil a rozpor spôsoboval
+> zmätok, tak je text zosúladený so skutočnosťou. Dvojsekčný web je POTVRDENÝ zámer.
+
+`lib/_shared/feeds.js` má **45 zdrojov: 25 krypto** (bez `section`, default `krypto`)
+**a 20 AI** (`section: 'ai'`). `roundRobinCap()` v `07-writer.js` vyberá zo sekcií
+striedavo — je to zámer, aby silnejšia sekcia tú druhú úplne nevytlačila.
 
 Všetky zdroje nižšie sú PRIMÁRNE (legálne čisté jadro). Sekundárne médiá sa pridávajú len
 cez atribuovanú agregáciu — pozri Sourcing model v Legal architektúre.
 
 - **Layer A (dáta):** DexScreener, CoinGecko, DefiLlama, GeckoTerminal
   → štruktúrované čísla, NIE chránený text. Mapuj kódom (regex), AI len keď zlyhá.
+  ⚠️ **Layer A NEROBÍ samostatné články.** Za 7 dní do 11.8.2026 cezeň pretieklo
+  27 260 cenových položiek a vznikol z nich **0** článkov — žiadny pohyb neprekročil
+  `MIN_MOVE_PCT`. Čísla slúžia v podstate na **ranný recap** (`13-market-recap`) a to
+  je potvrdený zámer, nie porucha. Neponúkaj znižovanie prahu ako „opravu".
 - **Layer B (primárne oznámenia, text):** GitHub release feeds, oficiálne projekt/foundation blogy
 - **Layer C (rozšírené primárne zdroje):**
   - Exchange/firemné blogy a announcements (Coinbase, Binance, Kraken…)
   - Regulátori a súdy (SEC, EU/MiCA, press releases, filings — verejné, nechránené)
   - Governance (Snapshot, Tally — DAO hlasovania, verejné on-chain)
   - Oficiálne PR wires / tlačové správy
+
+**Odkiaľ obsah reálne prichádza** (128 článkov za 7 dní do 11.8.2026):
+
+| zdroj | článkov | poznámka |
+|---|---|---|
+| Chainwire (krypto PR) | 29 | 55 % krypto obsahu stojí na jednom PR wire |
+| The Verge | 24 | Layer C, `keywordFilter` |
+| Tom's Hardware | 14 | Layer C, `keywordFilter` |
+| Ethereum Magicians | 10 | krypto governance |
+| Ars Technica | 8 | Layer C, `keywordFilter` |
+| OpenAI | 7 | AI, primárny |
+
+The Verge + Tom's Hardware + Ars Technica = **46 článkov, 36 % celého webu**. Prechádza
+cez ne aj spotrebná elektronika (recenzie notebookov, zľavy na klávesnice), lebo
+`keywordFilter` je voľný. Používateľ o tom 11.8.2026 vedel a **rozhodol sa ich nechať** —
+neodstraňuj ich a neponúkaj to znova bez toho, aby sa na to sám spýtal.
 
 Video-to-text pipeline (slovenský politický obsah): MVP = oficiálne textové prepisy NR SR (bez ASR).
 Whisper pre tlačovky až v neskoršej fáze. Zatiaľ NEpridávať ASR.
