@@ -94,19 +94,32 @@ export async function generateImage(title, id, opts = {}) {
     // na out[0] ako "Cannot read properties of null" (87× v logu do 2026-08-10),
     // článok išiel bez obrázka a už zaplatená predikcia sa zahodila.
     if (!out && lastPrediction) {
-      console.error(`[image] run() vrátil null, stav predikcie: ${lastPrediction.status} — dopollujem`);
       const done = await replicate.wait(lastPrediction, { interval: 1000 });
       if (done.status === 'failed') throw new Error(`Prediction failed: ${done.error}`);
       out = done.output;
+      const tvar = Array.isArray(out) ? `pole[${out.length}]` : typeof out;
+      console.error(`[image] run() vrátil null (stav ${lastPrediction.status}) — dopollované, výstup: ${tvar}`);
     }
-    if (!out || !out[0]) throw new Error('Replicate nevrátil žiadny výstup');
+    if (!out) throw new Error('Replicate nevrátil žiadny výstup');
 
-    // run() prechádza výstup cez transform() → FileOutput s .blob(); wait() vracia
-    // surové URL stringy. Po dopollovaní teda príde iný tvar než po úspešnom run().
-    const first = out[0];
-    const buffer = typeof first === 'string'
-      ? Buffer.from(await (await fetch(first)).arrayBuffer())
-      : Buffer.from(await first.blob().then((b) => b.arrayBuffer()));
+    // Výstup chodí v TROCH tvaroch a všetky tri treba zvládnuť:
+    //   run()  → pole FileOutput objektov (majú .blob())
+    //   wait() → pole URL stringov, ALEBO samotný URL string
+    //
+    // Ten posledný prípad zhodil 17 z 19 dopollovaní 12.8.2026: out[0] z reťazca
+    // "https://…" vybralo znak "h" a fetch spadol na "Failed to parse URL from h".
+    // Preto sa najprv normalizuje na pole a až potom sa siaha na prvý prvok.
+    const list = Array.isArray(out) ? out : [out];
+    const first = list[0];
+    if (!first) throw new Error('Replicate nevrátil žiadny výstup');
+
+    let buffer;
+    if (typeof first === 'string') {
+      if (!/^https?:\/\//.test(first)) throw new Error(`Replicate vrátil neplatnú URL: ${first.slice(0, 40)}`);
+      buffer = Buffer.from(await (await fetch(first)).arrayBuffer());
+    } else {
+      buffer = Buffer.from(await first.blob().then((b) => b.arrayBuffer()));
+    }
 
     const supabase = storage();
     const safeId = String(id || Date.now()).replace(/[^a-z0-9_-]/gi, '');
