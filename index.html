@@ -294,7 +294,10 @@
       .page-layout { padding-bottom: 70px; }
       footer { margin-bottom: 60px; }
       .masthead-inner { height: 52px; }
-      .logo-tagline { display: none; }
+      /* Tagline sa na mobile SKRÝVAŤ NESMIE — od 2026-08-13 nesie oznámenie
+         o AI (Článok 50 AI Act) a väčšina čitateľov chodí z telefónu. Preto
+         sa len zmenší, nie schová. Predtým tu bolo display: none. */
+      .logo-tagline { font-size: 0.52rem; letter-spacing: 1px; }
       .world-clock { display: none; }
     }
 
@@ -325,7 +328,7 @@
   <div class="masthead-inner">
     <a href="/" class="logo-wrap">
       <span class="logo">novinko<span class="logo-dot">.</span></span>
-      <span class="logo-tagline">z primárnych zdrojov</span>
+      <span class="logo-tagline">Píše AI. Človek kontroluje.</span>
     </a>
     <nav class="nav-filters">
       <button class="filter-btn active" data-cat="all">Všetko</button>

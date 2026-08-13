@@ -36,6 +36,15 @@
     .back-btn:hover { color: var(--accent); }
     .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: #fff; text-decoration: none; }
     .logo span { color: var(--accent); }
+    /* Oznámenie o AI (Článok 50 AI Act) — na stránke článku, kde AI text reálne
+       je. Nesmie sa skrývať na mobile, preto sa len zmenšuje. */
+    .logo-tagline {
+      font-size: 0.58rem; color: rgba(255,255,255,0.55); letter-spacing: 1.2px;
+      text-transform: uppercase; font-weight: 400; white-space: nowrap;
+    }
+    @media (max-width: 600px) {
+      .logo-tagline { font-size: 0.5rem; letter-spacing: 0.8px; }
+    }
 
     .article-wrap {
       max-width: 780px; margin: 0 auto;
@@ -137,6 +146,7 @@
   <div class="header-inner">
     <a href="/" class="back-btn">← Späť</a>
     <a href="/" class="logo">novinko<span>.</span></a>
+    <span class="logo-tagline">Píše AI. Človek kontroluje.</span>
   </div>
 </header>
 
