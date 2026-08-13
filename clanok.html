@@ -244,7 +244,7 @@
       if (!article) { showMessage("Článok nenájdený"); return; }
 
       const vals = Object.values(article);
-      const [aId, title, perex, content, source, date, category, imageUrl] = vals;
+      const [aId, title, perex, content, source, date, category, imageUrl, imageCredit] = vals;
 
       document.title = `${title} — Novinko`;
 
@@ -272,9 +272,13 @@
           // Priečinok v ceste nesie pôvod obrázka: manual/ = fotka od človeka,
           // krypto|ai|evergreen = vygenerované AI. Popisok o AI sa preto zobrazí
           // len pri AI ilustrácii — pod skutočnou fotkou by bol nepravdivý.
-          /\/manual\//.test(imageUrl)
-            ? ''
-            : `<figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption>`
+          // Zadaný zdroj má prednosť: pri prevzatej fotke je atribúcia povinná
+          // podľa autorského práva, kým popisok o AI je len informatívny.
+          imageCredit
+            ? `<figcaption class="img-credit">Foto: ${esc(imageCredit)}</figcaption>`
+            : (/\/manual\//.test(imageUrl)
+                ? ''
+                : `<figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption>`)
         }</figure>` : ''}
         <div class="article-perex">${esc(perex)}</div>
         <div class="ad-slot">

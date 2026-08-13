@@ -50,7 +50,8 @@ export function articleToRow(article, category = 'krypto') {
     `${first.name ?? '—'} | ${first.url ?? ''}`,  // E: zdroj | link
     new Date().toISOString(),                     // F: dátum zverejnenia (ako generate-krypto)
     article.category || category,                 // G: kategória
-    article.image_url || '',                      // H: obrázok (zatiaľ prázdne)
+    article.image_url || '',                      // H: obrázok
+    article.image_credit || '',                   // I: zdroj obrázka (autor/agentúra)
   ];
 }
 
@@ -59,7 +60,7 @@ export async function appendArticleRow(row) {
   const id = process.env.GOOGLE_SHEETS_ID;
   if (!id) throw new Error('chýba GOOGLE_SHEETS_ID');
   const token = await getAccessToken();
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/articles!A:H:append`
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/articles!A:I:append`
             + `?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   const res = await fetch(url, {
     method: 'POST',

@@ -50,7 +50,7 @@ exports.handler = async (event) => {
   await clearFailures(ip);
 
   const { headline, perex, text, source, sourceUrl, category, imageUrl, generateAiImage, imagePrompt,
-          imageBase64, imageType } = body;
+          imageBase64, imageType, imageCredit } = body;
   if (!headline || !text) {
     return { statusCode: 400, body: JSON.stringify({ error: "chýba titulok alebo text článku" }) };
   }
@@ -94,6 +94,12 @@ exports.handler = async (event) => {
     article.image_url = u;
   } else if (generateAiImage || (imagePrompt && imagePrompt.trim())) {
     article.image_url = await generateImage(article.headline, article.category, Date.now(), imagePrompt);
+  }
+
+  // Zdroj obrázka sa uvádza len pri vlastnej fotke. Pri AI ilustrácii by bol
+  // mätúci — tam pôvod hovorí popisok "vytvorené umelou inteligenciou".
+  if (article.image_url && imageCredit && String(imageCredit).trim()) {
+    article.image_credit = String(imageCredit).trim().slice(0, 200);
   }
 
   try {

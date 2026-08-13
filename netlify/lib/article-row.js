@@ -25,6 +25,7 @@ function articleToRow(article, category) {
     new Date().toISOString(),
     article.category || category || "krypto",
     article.image_url || "",
+    article.image_credit || "",   // I: zdroj obrázka (len pri vlastnej fotke)
   ];
 }
 

@@ -25,12 +25,13 @@ async function getAccessToken(serviceAccountKey) {
   if (!res.access_token) throw new Error("Nepodarilo sa získať access token");
   return res.access_token;
 }
-// Pridá jeden riadok do hárku "articles" (stĺpce A:H — H je voliteľný obrázok;
-// staršie volania s 7-prvkovým row bez obrázka fungujú ďalej bez zmeny).
+// Pridá jeden riadok do hárku "articles" (stĺpce A:I — H je voliteľný obrázok,
+// I zdroj obrázka; kratšie riadky fungujú ďalej bez zmeny, chýbajúce stĺpce
+// zostanú prázdne).
 async function appendRow(sheetsId, row, serviceAccountKey) {
   const token = await getAccessToken(serviceAccountKey);
   const path =
-    `/v4/spreadsheets/${sheetsId}/values/articles!A:H:append` +
+    `/v4/spreadsheets/${sheetsId}/values/articles!A:I:append` +
     `?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   return httpsPost("sheets.googleapis.com", path, { values: [row] }, {
     "Content-Type": "application/json",
@@ -83,7 +84,7 @@ async function fetchSheetItems(opts = {}) {
   const items = lines
     .map((line) => {
       const c = parseCSVLine(line);
-      const [id, title, perex, , , date, category, imageUrl] = c;
+      const [id, title, perex, , , date, category, imageUrl, imageCredit] = c;
       if (!id || !title) return null;
       return {
         title,
@@ -91,6 +92,7 @@ async function fetchSheetItems(opts = {}) {
         description: perex || "",
         pubDate: date || new Date().toISOString(),
         image: imageUrl || "",
+        imageCredit: imageCredit || "",
         source: "tím Novinko",
         category: category || "krypto",
       };

@@ -60,6 +60,11 @@
     <small>Vyber súbor z počítača alebo telefónu. Má prednosť pred odkazom aj pred AI ilustráciou. Maximum 4 MB.</small>
   </label>
 
+  <label>Zdroj obrázka (autor, agentúra)
+    <input type="text" name="imageCredit" placeholder="napr. Ján Novák / TASR, alebo Vlastná fotografia">
+    <small>Vyplň pri vlastnej alebo prevzatej fotke — zobrazí sa pod obrázkom v článku. Pri AI ilustrácii nechaj prázdne, tam sa uvádza automatický popisok.</small>
+  </label>
+
   <label>Obrázok (odkaz, voliteľné)
     <input type="url" name="imageUrl" placeholder="https://....supabase.co/... (nechaj prázdne, ak nahrávaš fotku vyššie)">
     <small>Funguje len odkaz do vlastného úložiska (<code>*.supabase.co</code>). Odkaz z iného webu prehliadač zablokuje kvôli CSP, tak ho formulár odmietne.</small>
