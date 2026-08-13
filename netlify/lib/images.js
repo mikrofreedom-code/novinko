@@ -103,4 +103,44 @@ async function generateImage(title, category, id, customPrompt) {
   }
 }
 
-module.exports = { generateImage, buildPrompt };
+// Nahrá VLASTNÚ fotku používateľa (z formulára publikovat.html) a vráti verejnú URL.
+//
+// Ukladá do manual/ zámerne — priečinok nesie informáciu o pôvode obrázka:
+//   krypto/, ai/   → vygenerované AI
+//   manual/        → fotka od človeka
+// clanok.html podľa toho rozhoduje, či zobraziť popisok o AI ilustrácii. Bez toho
+// by pod skutočnou fotkou svietilo "vytvorené umelou inteligenciou", čo je horšie
+// než žiadne označenie. reset-pred-startom.mjs manual/ navyše nemaže.
+const PRIPONY = {
+  "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
+  "image/gif": ".gif", "image/avif": ".avif",
+};
+
+async function uploadUserImage(buffer, contentType) {
+  const ext = PRIPONY[contentType];
+  if (!ext) throw new Error(`nepodporovaný typ obrázka: ${contentType}`);
+  // Presne tie premenné, ktoré číta makeSupabase() — inak by klient spadol až
+  // vnútri na neprehľadné "supabaseKey is required".
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    throw new Error("úložisko nie je nastavené (chýba SUPABASE_URL alebo SUPABASE_SERVICE_KEY)");
+  }
+  const supabase = makeSupabase();
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T-]/g, "");
+  const path = `manual/foto-${stamp}-${Math.random().toString(36).slice(2, 7)}${ext}`;
+
+  let posledna = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const { error } = await supabase.storage.from(BUCKET)
+      .upload(path, buffer, { contentType, upsert: false });
+    if (!error) {
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      return data.publicUrl || "";
+    }
+    posledna = error.message;
+    console.error(`[manual-foto] upload pokus ${attempt}/3: ${error.message}`);
+    if (attempt < 3) await new Promise((r) => setTimeout(r, 1200 * attempt));
+  }
+  throw new Error(`nahratie fotky zlyhalo: ${posledna}`);
+}
+
+module.exports = { generateImage, buildPrompt, uploadUserImage };

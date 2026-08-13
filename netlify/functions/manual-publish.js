@@ -5,7 +5,12 @@
 const { articleToRow } = require("../lib/article-row");
 const { appendRow } = require("../lib/sheets");
 const { sendArticle } = require("../lib/telegram");
-const { generateImage } = require("../lib/images");
+const { generateImage, uploadUserImage } = require("../lib/images");
+
+// Netlify má strop na telo požiadavky ~6 MB a base64 nafúkne dáta o ~37 %.
+// Kontroluje sa aj na strane formulára, ale tam sa to dá obísť — tu je to isté.
+const MAX_FOTO_MB = 4;
+const POVOLENE_TYPY = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 const { safeEqual } = require("../lib/guard");
 const { connect, recentFailures, recordFailure, clearFailures, RL_MAX_FAILURES } = require("../lib/store");
 
@@ -44,7 +49,8 @@ exports.handler = async (event) => {
   }
   await clearFailures(ip);
 
-  const { headline, perex, text, source, sourceUrl, category, imageUrl, generateAiImage, imagePrompt } = body;
+  const { headline, perex, text, source, sourceUrl, category, imageUrl, generateAiImage, imagePrompt,
+          imageBase64, imageType } = body;
   if (!headline || !text) {
     return { statusCode: 400, body: JSON.stringify({ error: "chýba titulok alebo text článku" }) };
   }
@@ -57,8 +63,35 @@ exports.handler = async (event) => {
     sources: [{ name: source ? String(source).trim() : "Novinko", url: sourceUrl ? String(sourceUrl).trim() : "" }],
   };
 
-  if (imageUrl && String(imageUrl).trim().startsWith("http")) {
-    article.image_url = String(imageUrl).trim();
+  // Poradie: nahratá fotka → odkaz → AI ilustrácia.
+  if (imageBase64) {
+    if (!POVOLENE_TYPY.includes(imageType)) {
+      return { statusCode: 400, body: JSON.stringify({ error: `nepodporovaný typ obrázka: ${imageType || "neznámy"}` }) };
+    }
+    const buffer = Buffer.from(String(imageBase64), "base64");
+    if (!buffer.length) {
+      return { statusCode: 400, body: JSON.stringify({ error: "fotku sa nepodarilo prečítať" }) };
+    }
+    if (buffer.length > MAX_FOTO_MB * 1024 * 1024) {
+      return { statusCode: 413, body: JSON.stringify({ error: `fotka má ${(buffer.length / 1024 / 1024).toFixed(1)} MB, maximum je ${MAX_FOTO_MB} MB` }) };
+    }
+    try {
+      article.image_url = await uploadUserImage(buffer, imageType);
+    } catch (e) {
+      return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+    }
+  } else if (imageUrl && String(imageUrl).trim().startsWith("http")) {
+    // CSP webu povoľuje img-src len 'self', data: a https://*.supabase.co. Odkaz
+    // inam by sa zverejnil, ale prehliadač by ho zablokoval a článok by vyšiel bez
+    // obrázka — ticho. Radšej to odmietnuť hneď a povedať prečo.
+    const u = String(imageUrl).trim();
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\//i.test(u)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Odkaz na obrázok z cudzieho webu by CSP zablokovala a článok by vyšiel bez obrázka. Použi pole na nahratie fotky." }),
+      };
+    }
+    article.image_url = u;
   } else if (generateAiImage || (imagePrompt && imagePrompt.trim())) {
     article.image_url = await generateImage(article.headline, article.category, Date.now(), imagePrompt);
   }

@@ -268,7 +268,14 @@
           <span class="article-date"><time datetime="${esc(date)}">${formatDateTime(date)}</time></span>
         </div>
         <h1 class="article-title">${esc(title)}</h1>
-        ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy"><figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption></figure>` : ''}
+        ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">${
+          // Priečinok v ceste nesie pôvod obrázka: manual/ = fotka od človeka,
+          // krypto|ai|evergreen = vygenerované AI. Popisok o AI sa preto zobrazí
+          // len pri AI ilustrácii — pod skutočnou fotkou by bol nepravdivý.
+          /\/manual\//.test(imageUrl)
+            ? ''
+            : `<figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption>`
+        }</figure>` : ''}
         <div class="article-perex">${esc(perex)}</div>
         <div class="ad-slot">
           <!-- Google AdSense banner 728x90 -->
