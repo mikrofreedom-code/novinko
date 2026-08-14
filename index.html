@@ -263,6 +263,8 @@
     .footer-inner { max-width: 1300px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: space-between; }
     .footer-logo { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; color: var(--text); }
     .footer-logo span { color: var(--gold); }
+    /* Evidenčné číslo vedľa loga v pätičke — tlmené, aby logo neprebíjalo. */
+    .footer-ev { font-size: 0.72rem; color: var(--text2); letter-spacing: 0.5px; white-space: nowrap; }
     .footer-text { font-size: 0.72rem; color: var(--muted); font-style: italic; }
 
     .fade-in { animation: fadeIn 0.35s ease forwards; opacity: 0; }
@@ -549,6 +551,9 @@
 <footer>
   <div class="footer-inner">
     <span class="footer-logo">novinko<span>.</span></span>
+    <!-- Evidenčné číslo zo zoznamu periodických publikácií (MK SR). Celý zápis
+         je v tiráži (impressum.html §3), tu je len samotné číslo. -->
+    <span class="footer-ev">EV 176/26/SWP</span>
     <span style="display:flex;gap:18px;align-items:center;font-size:0.78rem;flex-wrap:wrap">
       <a href="/archiv.html" style="color:var(--text2);text-decoration:none;font-weight:600">Archív</a>
       <a href="/impressum.html" style="color:var(--text2);text-decoration:none">Tiráž</a>
