@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# clanok.html je verzia skladaná JavaScriptom — má noindex a slúži už
+# rozposlaným odkazom (Telegram, X). Indexovateľné sú adresy /clanok/<slug>-<id>,
+# ktoré sú v sitemape.
+Disallow: /publikovat.html
+
+Sitemap: https://novinko.sk/sitemap.xml

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { httpsPost, httpsGet, fetchUrl } = require("./net");
 const { parseCSVLine } = require("./csv");
 const { SHEET_CSV_URL, MAX_AGE_HOURS } = require("./config");
+const { slugify } = require("./clanok-render");
 async function getAccessToken(serviceAccountKey) {
   const auth = JSON.parse(serviceAccountKey);
   const now = Math.floor(Date.now() / 1000);
@@ -88,7 +89,11 @@ async function fetchSheetItems(opts = {}) {
       if (!id || !title) return null;
       return {
         title,
-        link: `/clanok.html?id=${encodeURIComponent(id)}`,
+        // Indexovateľná adresa obsluhovaná funkciou clanok.js. Predtým sa
+        // odkazovalo na /clanok.html?id=…, čo je verzia skladaná JavaScriptom
+        // s noindex — Google z hlavnej nemal kam ísť. Funkcia je dostupná vždy,
+        // takže tu nehrozí 404 ako pri statických súboroch generovaných buildom.
+        link: `/clanok/${slugify(title)}-${encodeURIComponent(id)}`,
         description: perex || "",
         pubDate: date || new Date().toISOString(),
         image: imageUrl || "",

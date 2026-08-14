@@ -28,7 +28,10 @@ mkdir -p "$OUT"
 cp -- *.html "$OUT"/
 
 # Súbory, ktoré web zatiaľ nemá, ale keď pribudnú, majú ísť von tiež.
-VOLITELNE=(robots.txt sitemap.xml favicon.ico _redirects _headers)
+# clanok.css zdieľa clanok.html aj funkcia clanok.js — bez neho by obe stránky
+# prišli o štýly. sitemap.xml sa NEGENERUJE do súboru, servíruje ju funkcia
+# (viď prepisy v netlify.toml).
+VOLITELNE=(robots.txt clanok.css favicon.ico _redirects _headers)
 for f in "${VOLITELNE[@]}"; do
   [ -f "$f" ] && cp -- "$f" "$OUT"/
 done

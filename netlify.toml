@@ -40,6 +40,25 @@
   status = 301
   force = true
 
+# ─── INDEXOVATEĽNÉ STRÁNKY ČLÁNKOV ───
+# status 200 = PREPIS, nie presmerovanie: adresa v prehliadači ostáva
+# /clanok/<slug>-<id> a obsah dodá funkcia. Vyhľadávač tak dostane hotové HTML
+# s obsahom, kým clanok.html (skladaný JavaScriptom) má noindex.
+#
+# Prečo funkcia a nie generovanie pri builde: Netlify účtuje 15 kreditov za
+# produkčný deploy a Personal plán ich má 1 000 mesačne. Build po každom
+# zverejnení by stál niekoľkonásobok plánu; funkcia vyjde na jednotky kreditov
+# a článok je navyše indexovateľný hneď, bez čakania na deploy.
+[[redirects]]
+  from = "/clanok/*"
+  to = "/.netlify/functions/clanok/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/sitemap"
+  status = 200
+
 # Content-Security-Policy tu ZÁMERNE nie je — generuje ju scripts/gen-csp.mjs
 # do _site/_headers pri každom builde, lebo obsahuje SHA-256 hashe inline
 # skriptov. Natvrdo zapísaná by sa pri prvej úprave HTML rozišla s obsahom
