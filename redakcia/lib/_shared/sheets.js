@@ -29,9 +29,15 @@ export async function getAccessToken() {
 }
 
 // Odseky do jednej bunky (¶¶), nech ich clanok.html vie rozdeliť späť.
+// Viď netlify/lib/article-row.js — obe verzie musia deliť rovnako.
+// Keď text obsahuje prázdne riadky, delíme podľa nich (tak píše writer).
+// Keď žiadny nie je, berieme jednoduché zalomenie ako koniec odseku — inak by
+// sa ručne napísaný text zlial do jedného bloku (scripts/manual-publish.mjs).
 function paragraphsToCell(body) {
-  return String(body || '')
-    .split(/\n{2,}/).map((p) => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean)
+  const text = String(body || '');
+  const oddelovac = /\n{2,}/.test(text) ? /\n{2,}/ : /\n+/;
+  return text
+    .split(oddelovac).map((p) => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean)
     .join(` ${PARAGRAPH_DELIM} `);
 }
 
