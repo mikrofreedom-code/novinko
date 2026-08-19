@@ -59,6 +59,13 @@
   to = "/.netlify/functions/sitemap"
   status = 200
 
+# Google News sitemap — len články za posledných 48 h. Google ju číta oveľa
+# častejšie než bežnú, takže nový článok je v indexe v desiatkach minút.
+[[redirects]]
+  from = "/news-sitemap.xml"
+  to = "/.netlify/functions/news-sitemap"
+  status = 200
+
 # Content-Security-Policy tu ZÁMERNE nie je — generuje ju scripts/gen-csp.mjs
 # do _site/_headers pri každom builde, lebo obsahuje SHA-256 hashe inline
 # skriptov. Natvrdo zapísaná by sa pri prvej úprave HTML rozišla s obsahom

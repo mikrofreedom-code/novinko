@@ -7,3 +7,4 @@ Allow: /
 Disallow: /publikovat.html
 
 Sitemap: https://novinko.sk/sitemap.xml
+Sitemap: https://novinko.sk/news-sitemap.xml

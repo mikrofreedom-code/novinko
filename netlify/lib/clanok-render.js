@@ -75,7 +75,7 @@ function hlavicka() {
 </header>`;
 }
 
-function obal({ title, description, canonical, image, date, telo }) {
+function obal({ title, description, canonical, image, date, telo, jsonLd }) {
   return `<!DOCTYPE html>
 <html lang="sk">
 <head>
@@ -83,6 +83,10 @@ function obal({ title, description, canonical, image, date, telo }) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}" />
+  <!-- Bez max-image-preview:large ukáže Google vo výsledkoch len malý štvorcový
+       náhľad a hlavne NEZARADÍ stránku do Discoveru — toho kanála, ktorý sype
+       články ľuďom do telefónu. Je to podmienka, nie odporúčanie. -->
+  <meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="${esc(canonical)}" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="${esc(title)}" />
@@ -92,7 +96,7 @@ function obal({ title, description, canonical, image, date, telo }) {
 ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date ? `  <meta property="article:published_time" content="${esc(date)}" />\n` : ""}  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/clanok.css" />
-</head>
+${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
 ${hlavicka()}
 ${telo}
@@ -146,7 +150,39 @@ ${dalsie.length ? `  <nav class="dalsie-clanky">
     image: imageUrl,
     date,
     telo,
+    jsonLd: newsArticleJsonLd(article, popis),
   });
+}
+
+// Štruktúrované dáta NewsArticle — podmienka pre zaradenie do Top stories.
+// Google potrebuje vedieť, že ide o spravodajský článok, kedy vyšiel a kto zaň
+// ručí. Novinko má na to dobré podklady: reálna firma, evidenčné číslo
+// EV 176/26/SWP a impressum s uvedeným šéfredaktorom.
+//
+// POZOR NA CSP: je to <script type="application/ld+json">, teda dátový blok,
+// nie spustiteľný kód — prehliadač ho nevykonáva a script-src sa naň nevzťahuje.
+// gen-csp.mjs ho ani nevidí (prehľadáva len koreň _site/, nie výstup funkcie).
+// Overené v prehliadači: žiadne CSP hlásenie.
+function newsArticleJsonLd(article, popis) {
+  const { title, date, imageUrl } = article;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    // Google pri Top stories odporúča titulok do 110 znakov. Skracuje sa LEN
+    // tu, <h1> a <title> zostávajú celé.
+    headline: String(title).slice(0, 110),
+    description: popis,
+    datePublished: date,
+    dateModified: date,
+    mainEntityOfPage: { "@type": "WebPage", "@id": clanokUrl(article) },
+    author: { "@type": "Organization", name: "Novinko", url: SITE },
+    publisher: { "@type": "Organization", name: "Novinko", url: SITE },
+    inLanguage: "sk-SK",
+  };
+  if (imageUrl) data.image = [imageUrl];
+  // </script> vnútri JSON by predčasne ukončilo blok — jediný reálny únikový
+  // vektor pri vkladaní JSON do HTML.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
 function renderNenajdene() {
