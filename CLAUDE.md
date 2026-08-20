@@ -69,9 +69,22 @@ nesmie z webu zmiznúť — po čase klesne pod čerstvé a ostáva v archíve.
   `novinko.netlify.app` presmerované na primárnu
 - **Publikovanie:** Telegram so schvaľovaním + formulár `publikovat.html`
   (heslo `MANUAL_PUBLISH_SECRET`, nahrávanie fotky, zdroj obrázka)
-- **Indexovanie:** Search Console overená, sitemap odoslaná (16. 8. 2026)
+- **Indexovanie:** Search Console overená (doména, cez DNS TXT).
+  `sitemap.xml` číta Google od 18. 8., 128 stránok, stav Úspech.
+  `news-sitemap.xml` odoslaná 19. 8. — Google ju hneď po odoslaní hlási ako
+  „Nie je možné načítať", čo je jeho bežné správanie, kým ju prvý raz nestiahne.
+- **Discover a Top stories:** `max-image-preview:large` + `NewsArticle` JSON-LD
+  na stránke článku + news sitemap. Sú to len PREDPOKLADY spôsobilosti,
+  nie záruka zaradenia.
+- **Google Publisher Center:** publikácia **Novinko** vytvorená (19. 8.), logo
+  nahraté. Názov musí presne sedieť s `news:name` v `news-sitemap.js`.
+  Od marca 2025 už Publisher Center nie je bránou do Google News — zaradenie je
+  automatické, toto slúži na správu značky.
 - **AI transparentnosť:** tagline v hlavičke, popisky pod obrázkami, impressum §6
-- **Pipeline:** hodinový cron na používateľovom desktope, NIE v cloude
+- **Pipeline:** hodinový cron na používateľovom desktope, NIE v cloude.
+  14.–18. 8. bežalo 24 behov denne bez výpadku.
+- **Náklady (merané 19. 8.):** AI $0.625/deň ≈ $19/mes + Replicate ~$1.35
+  + Netlify $9 → **~$29/mesiac**. Denný strop $0.80 sa nedosahuje.
 
 ## Čo bolí
 
@@ -86,6 +99,21 @@ len z `self` + TradingView + hashe. Čokoľvek iné prehliadač **ticho** zablok
 **Dve cesty k tomu istému.** `netlify/lib/` a `redakcia/lib/_shared/` majú vlastné
 kópie `articleToRow` aj `paragraphsToCell`. Keď meníš jednu, **musíš aj druhú** —
 inak sa ten istý článok uloží rôzne podľa toho, ktorou cestou prišiel.
+
+## Čo čaká (stav k 20. 8. 2026)
+
+- **Search Console → Indexovanie → Strany** — 19. 8. ešte hlásilo „údaje sa
+  spracovávajú". Toto je číslo, na ktorom záleží: koľko zo 128 stránok Google
+  naozaj zaradil. Ak by tam bola nula alebo veľa chýb, treba sa pozrieť na dôvody.
+- **`news-sitemap.xml`** — má sa prepnúť na Úspech do pár dní. Ak by po troch
+  dňoch stále svietila červeno, už to nie je normálne.
+- **Spiaci stroj** — nevyriešené od 9. 8., len sa neprejavuje. Buď vypnúť
+  uspávanie, alebo presunúť cron na VPS.
+- **Evidenčné číslo EV 176/26/SWP** je len v pätičke hlavnej stránky a v tiráži.
+  Na stránkach článkov nie — a práve tam pristávajú ľudia z Googlu.
+
+Od 19. 8. je úzkym hrdlom **obsah a čas**, nie technika. Nenavrhuj ďalšie SEO
+úpravy, kým nebudú dáta z Search Console — nie je podľa čoho sa rozhodovať.
 
 ## Kde je história
 
