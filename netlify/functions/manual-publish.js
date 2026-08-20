@@ -9,6 +9,11 @@ const { generateImage, uploadUserImage } = require("../lib/images");
 
 // Netlify má strop na telo požiadavky ~6 MB a base64 nafúkne dáta o ~37 %.
 // Kontroluje sa aj na strane formulára, ale tam sa to dá obísť — tu je to isté.
+// Kategórie, do ktorých sa smie ručne publikovať. Podmnožina CATS z
+// netlify/lib/config.js — 'all' a 'krypto-skola' sem nepatria ('all' je
+// zbernica, krypto-skola má vlastný evergreen mechanizmus).
+const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "sport"];
+
 const MAX_FOTO_MB = 4;
 const POVOLENE_TYPY = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 const { safeEqual } = require("../lib/guard");
@@ -59,7 +64,11 @@ exports.handler = async (event) => {
     headline: String(headline).trim(),
     perex: perex ? String(perex).trim() : "",
     body: String(text),
-    category: category === "ai" ? "ai" : "krypto",
+    // Whitelist namiesto pôvodného `category === "ai" ? "ai" : "krypto"`, ktoré
+    // ticho prepísalo VŠETKO ostatné na krypto — pridanie položky do formulára
+    // by samo nestačilo. Musí sedieť s CATS v netlify/lib/config.js, inak by
+    // článok skončil v sekcii, ktorú web nepozná, a nikde by sa nezobrazil.
+    category: POVOLENE_KATEGORIE.includes(category) ? category : "krypto",
     sources: [{ name: source ? String(source).trim() : "Novinko", url: sourceUrl ? String(sourceUrl).trim() : "" }],
   };
 
