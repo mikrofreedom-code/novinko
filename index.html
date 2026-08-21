@@ -9,11 +9,18 @@
        náhľad a stránka nie je spôsobilá pre Discover. -->
   <meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
+  <!-- Kánonická adresa: / a /index.html vracajú tú istú stránku, takže bez
+       tejto značky ich Google hlási ako „Duplikovať bez kánonickej adresy
+       vybranej používateľom" a sám háda, ktorá je originál. Ostatné statické
+       stránky ju nemajú zámerne — všetky majú noindex a kombinovať noindex
+       s canonical sú protichodné signály. -->
+  <link rel="canonical" href="https://novinko.sk/" />
+
   <!-- Open Graph -->
   <meta property="og:title" content="Novinko — spravodajstvo z primárnych zdrojov" />
   <meta property="og:description" content="Krypto, AI a slovenské správy — neutrálne, z primárnych zdrojov." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://novinko.sk" />
+  <meta property="og:url" content="https://novinko.sk/" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
