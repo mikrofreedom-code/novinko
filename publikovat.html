@@ -91,6 +91,42 @@
 <div id="status"></div>
 
 <script>
+// Zmenšenie fotky ešte v prehliadači. Bez neho išiel súbor do úložiska 1:1
+// taký, aký vyšiel z fotoaparátu — ručne nahrané fotky mali priemer 1,1 MB,
+// kým generované webp majú 50 kB. Crawleri (Ahrefs, Google, náhľady na
+// sieťach) ťahajú obrázok ku každému článku zo sitemapu, takže to bol hlavný
+// zdroj egressu zo Supabase.
+const MAX_SIRKA = 1600;
+const KVALITA = 0.82;
+
+// Vráti { blob, typ }. Keď sa zmenšiť nedá alebo by to nepomohlo, vráti
+// pôvodný súbor — nikdy nezhoršuj.
+async function zmensiFotku(subor) {
+  const povodne = { blob: subor, typ: subor.type };
+  // Animovaný GIF by prevodom prišiel o animáciu, ten nechávame tak.
+  if (subor.type === 'image/gif') return povodne;
+  try {
+    // imageOrientation: 'from-image' rešpektuje EXIF otočenie. Bez toho by
+    // fotky z mobilu mohli skončiť otočené naležato.
+    const bitmap = await createImageBitmap(subor, { imageOrientation: 'from-image' });
+    const mierka = Math.min(1, MAX_SIRKA / bitmap.width);   // nikdy nezväčšuj
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * mierka);
+    canvas.height = Math.round(bitmap.height * mierka);
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise((res) => canvas.toBlob(res, 'image/webp', KVALITA));
+    // Keď prehliadač webp nevie, toBlob ticho vráti PNG — to môže byť väčšie
+    // než originál. Preto sa rozhodujeme podľa veľkosti, nie podľa formátu,
+    // a typ berieme z blobu, nie natvrdo.
+    if (!blob || blob.size >= subor.size) return povodne;
+    return { blob, typ: blob.type || 'image/webp' };
+  } catch (err) {
+    console.warn('[foto] zmenšenie zlyhalo, posielam originál:', err);
+    return povodne;
+  }
+}
+
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btn');
@@ -102,25 +138,28 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   status.style.display = 'none';
 
   try {
-    // Fotku pošleme ako base64 v JSON tele. Netlify má strop ~6 MB a base64
-    // nafúkne dáta o ~37 %, preto 4 MB na pôvodný súbor. Funkcia si to overuje
-    // znova — táto kontrola je pre pohodlie, nie ako ochrana.
+    // Fotku najprv zmenšíme (viď zmensiFotku hore), až potom ju pošleme ako
+    // base64 v JSON tele. Netlify má strop ~6 MB na telo a base64 nafúkne dáta
+    // o ~37 %, preto 4 MB. Po zmenšení sa ten strop prakticky nedá dosiahnuť,
+    // takže formulár vezme aj fotku rovno z mobilu — predtým ju odmietol.
+    // Funkcia si veľkosť aj typ overuje znova, toto je pre pohodlie.
     const subor = document.getElementById('imageFile').files[0];
     delete data.imageFile;
     if (subor) {
+      btn.textContent = 'Spracúvam fotku...';
+      const { blob, typ } = await zmensiFotku(subor);
       const MAX = 4 * 1024 * 1024;
-      if (subor.size > MAX) {
-        throw new Error('Fotka má ' + (subor.size / 1024 / 1024).toFixed(1) + ' MB, maximum je 4 MB. Zmenši ju a skús znova.');
+      if (blob.size > MAX) {
+        throw new Error('Fotka má aj po zmenšení ' + (blob.size / 1024 / 1024).toFixed(1) + ' MB, maximum je 4 MB. Skús inú.');
       }
       btn.textContent = 'Nahrávam fotku...';
-      const buf = await subor.arrayBuffer();
       let bin = '';
-      const bytes = new Uint8Array(buf);
+      const bytes = new Uint8Array(await blob.arrayBuffer());
       for (let i = 0; i < bytes.length; i += 8192) {
         bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
       }
       data.imageBase64 = btoa(bin);
-      data.imageType = subor.type;
+      data.imageType = typ;
       btn.textContent = 'Publikujem...';
     }
 

@@ -8,3 +8,8 @@ logs/
 prehlad.html
 web/
 zaloha/
+
+# Originály fotiek pred zmenšením (zmensi-fotky.py) — 117 MB, do repa nepatria.
+# Po overení, že web beží, sa dajú zmazať.
+zaloha-fotiek/
+scripts/__pycache__/
