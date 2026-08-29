@@ -135,7 +135,11 @@ document.getElementById('f').addEventListener('submit', async (e) => {
 
   btn.disabled = true;
   btn.textContent = 'Publikujem...';
-  status.style.display = 'none';
+  // Viditeľnosť riadi VÝHRADNE trieda, nie inline štýl. CSS má
+  // #status{display:none} a #status.ok/.err{display:block} — a inline
+  // `style="display:none"` by tie pravidlá prebil, takže hláška o chybe sa
+  // nikdy nezobrazila a formulár po odoslaní vyzeral, že nerobí nič.
+  status.className = '';
 
   try {
     // Fotku najprv zmenšíme (viď zmensiFotku hore), až potom ju pošleme ako
@@ -175,11 +179,13 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       e.target.reset();
     } else {
       status.className = 'err';
-      status.textContent = '❌ ' + (j.error || 'neznáma chyba');
+      status.textContent = '❌ ' + (j.error || 'neznáma chyba') + ' (HTTP ' + res.status + ')';
+      console.error('[publikovat] server odmietol:', res.status, j);
     }
   } catch (err) {
     status.className = 'err';
     status.textContent = '❌ ' + err.message;
+    console.error('[publikovat] zlyhalo:', err);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Publikovať';
