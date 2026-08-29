@@ -1,6 +1,9 @@
 // Generovanie obrázkov ku článkom cez Flux Schnell (Replicate) + upload do Supabase Storage.
 const Replicate = require("replicate");
 const { createClient } = require("@supabase/supabase-js");
+// Úložisko a fronta sú od 28. 8. 2026 ten istý projekt — config rieši oba
+// historické názvy premenných naraz (viď komentár tam).
+const { SUPABASE_URL, SUPABASE_KEY } = require("./config");
 
 // ws fallback pre Node < 22 (Netlify býva novší, lokálne Node 20 nie)
 let wsTransport;
@@ -40,7 +43,7 @@ function buildPrompt(title, category) {
 }
 
 function makeSupabase() {
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, {
+  return createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
     realtime: wsTransport ? { transport: wsTransport } : undefined,
   });
@@ -52,7 +55,7 @@ function makeSupabase() {
 async function generateImage(title, category, id, customPrompt) {
   try {
     if (category !== "krypto" && category !== "ai") return "";   // obrázky len pre krypto a AI
-    if (!process.env.REPLICATE_API_TOKEN || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    if (!process.env.REPLICATE_API_TOKEN || !SUPABASE_URL || !SUPABASE_KEY) {
       return "";
     }
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
@@ -121,8 +124,9 @@ async function uploadUserImage(buffer, contentType) {
   if (!ext) throw new Error(`nepodporovaný typ obrázka: ${contentType}`);
   // Presne tie premenné, ktoré číta makeSupabase() — inak by klient spadol až
   // vnútri na neprehľadné "supabaseKey is required".
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    throw new Error("úložisko nie je nastavené (chýba SUPABASE_URL alebo SUPABASE_SERVICE_KEY)");
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("úložisko nie je nastavené (chýba SUPABASE_URL/SUPABASE_SERVICE_KEY "
+      + "ani REDAKCIA_SUPABASE_URL/REDAKCIA_SUPABASE_SERVICE_KEY)");
   }
   const supabase = makeSupabase();
   const stamp = new Date().toISOString().slice(0, 16).replace(/[:T-]/g, "");

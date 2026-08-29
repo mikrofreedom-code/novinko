@@ -1,6 +1,9 @@
-// Prístup k fronte projektu novinko-redakcia (SAMOSTATNÝ Supabase projekt,
-// iný než SUPABASE_URL/SUPABASE_SERVICE_KEY vyššie — tie patria tomuto,
-// staršiemu projektu a používajú sa len na úložisko obrázkov).
+// Prístup k fronte projektu novinko-redakcia.
+//
+// HISTÓRIA: do 28. 8. 2026 to bol SAMOSTATNÝ Supabase projekt, iný než
+// SUPABASE_URL/SUPABASE_SERVICE_KEY — tie patrili staršiemu projektu, ktorý
+// držal len úložisko obrázkov. Ten projekt bol zrušený a bucket presunutý sem,
+// takže obe dvojice premenných dnes ukazujú na to isté miesto.
 //
 // .env (Netlify, site-level — zdieľané s novinko-redakcia):
 //   REDAKCIA_SUPABASE_URL=<URL Supabase projektu redakcie>
@@ -14,13 +17,17 @@ const { createClient } = require("@supabase/supabase-js");
 const ws = require("ws");
 if (!globalThis.WebSocket) globalThis.WebSocket = ws;
 
+// Od 28. 8. 2026 je to ten istý projekt ako úložisko obrázkov — config preto
+// uprednostní REDAKCIA_*, a keď chýba, prepadne na SUPABASE_*.
+const { REDAKCIA_URL, REDAKCIA_KEY } = require("./config");
+
 let _client = null;
 function db() {
   if (_client) return _client;
-  const url = process.env.REDAKCIA_SUPABASE_URL;
-  const key = process.env.REDAKCIA_SUPABASE_SERVICE_KEY;
-  if (!url || !key) throw new Error("chýba REDAKCIA_SUPABASE_URL/REDAKCIA_SUPABASE_SERVICE_KEY");
-  _client = createClient(url, key);
+  if (!REDAKCIA_URL || !REDAKCIA_KEY) {
+    throw new Error("chýba REDAKCIA_SUPABASE_URL/REDAKCIA_SUPABASE_SERVICE_KEY ani SUPABASE_URL/SUPABASE_SERVICE_KEY");
+  }
+  _client = createClient(REDAKCIA_URL, REDAKCIA_KEY);
   return _client;
 }
 

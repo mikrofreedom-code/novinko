@@ -42,8 +42,23 @@ export function buildPrompt(arg) {
        + `no text, no words, no letters, no logos, no real people`;
 }
 
+// Úložisko obrázkov a fronta boli do 28. 8. 2026 dva rôzne Supabase projekty,
+// preto dve sady premenných. Starý projekt bol zrušený a bucket presunutý —
+// dnes ukazujú na to isté miesto. Prepad na SUPABASE_* rieši prípad, keď
+// IMAGE_* chýba; keby sa čítali len oddelene, stačilo by prepnúť jednu a druhá
+// by ticho mierila na neexistujúci projekt (presne to zhodilo nahrávanie
+// fotiek na webe 29. 8. 2026).
+const IMAGE_URL = process.env.IMAGE_SUPABASE_URL || process.env.SUPABASE_URL;
+const IMAGE_KEY = process.env.IMAGE_SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (process.env.IMAGE_SUPABASE_URL && process.env.SUPABASE_URL
+    && process.env.IMAGE_SUPABASE_URL !== process.env.SUPABASE_URL) {
+  console.warn('[images] IMAGE_SUPABASE_URL a SUPABASE_URL ukazujú na RÔZNE projekty '
+    + '— obrázky pôjdu inam než fronta. Ak to nie je zámer, zjednoť ich.');
+}
+
 function storage() {
-  return createClient(process.env.IMAGE_SUPABASE_URL, process.env.IMAGE_SUPABASE_KEY, {
+  return createClient(IMAGE_URL, IMAGE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
@@ -52,7 +67,7 @@ function storage() {
 // opts: { section, entity, prompt }. `prompt` (napr. z Haiku) prebije šablónu.
 export async function generateImage(title, id, opts = {}) {
   try {
-    if (!process.env.REPLICATE_API_TOKEN || !process.env.IMAGE_SUPABASE_URL || !process.env.IMAGE_SUPABASE_KEY) {
+    if (!process.env.REPLICATE_API_TOKEN || !IMAGE_URL || !IMAGE_KEY) {
       return '';
     }
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
