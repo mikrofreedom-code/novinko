@@ -61,6 +61,12 @@
   from = "/archiv"
   to = "/.netlify/functions/archiv"
   status = 200
+  # force JE NUTNÉ: Netlify rozbalí /archiv na statický archiv.html skôr, než
+  # sa dostane k pravidlám, takže bez neho pravidlo nikdy nechytí a servíruje
+  # sa noindex verzia skladaná JavaScriptom. Overené naostro 2026-08-29:
+  # /archiv vracalo 13 kB a nula odkazov, kým funkcia priamo 90 kB a 291.
+  # archiv.html ostáva dostupný na svojej plnej adrese /archiv.html.
+  force = true
 
 [[redirects]]
   from = "/sitemap.xml"
