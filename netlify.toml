@@ -54,6 +54,14 @@
   to = "/.netlify/functions/clanok/:splat"
   status = 200
 
+# Indexovateľný archív. Musí byť PRED prípadnými všeobecnými pravidlami —
+# statický archiv.html ostáva na svojej adrese a má noindex, takže si
+# nekonkurujú.
+[[redirects]]
+  from = "/archiv"
+  to = "/.netlify/functions/archiv"
+  status = 200
+
 [[redirects]]
   from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"

@@ -100,7 +100,7 @@ ${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</he
 <body>
 ${hlavicka()}
 ${telo}
-<footer>novinko &mdash; všetky aktuálne správy na jednom mieste<span style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:10px"><a href="https://www.tiktok.com/@novinko.sk" target="_blank" rel="noopener me" aria-label="Novinko na TikToku" title="Novinko na TikToku" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a><a href="https://x.com/novinkosk" target="_blank" rel="noopener me" aria-label="Novinko na X" title="Novinko na X" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></span></footer>
+<footer>novinko &mdash; všetky aktuálne správy na jednom mieste<span style="display:block;margin-top:8px"><a href="/archiv" style="color:var(--text2)">Archív článkov</a></span><span style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:10px"><a href="https://www.tiktok.com/@novinko.sk" target="_blank" rel="noopener me" aria-label="Novinko na TikToku" title="Novinko na TikToku" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a><a href="https://x.com/novinkosk" target="_blank" rel="noopener me" aria-label="Novinko na X" title="Novinko na X" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></span></footer>
 </body>
 </html>
 `;
@@ -185,6 +185,72 @@ function newsArticleJsonLd(article, popis) {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
+// ── ARCHÍV: kompletný zoznam článkov ako obyčajné odkazy ──
+//
+// PREČO (2026-08-29): Search Console ukazovala 130 stránok v stave
+// „Objavené – momentálne nie je v indexe" — Google ich pozná zo sitemapy, ale
+// neprehľadal ich. Na 18 dní starej doméne je to otázka crawl budgetu, a ten
+// sa neprideľuje podľa sitemapy, ale podľa odkazov: sitemapa hovorí „toto
+// existuje", odkaz hovorí „toto je dôležité, choď tam".
+//
+// Hlavná stránka odkaz na archív mala (index.html), lenže mieril na
+// archiv.html — stránku s `noindex`, ktorá sa skladá až v prehliadači a
+// v surovom HTML nemá ani jeden odkaz na článok. Crawler teda prišiel
+// a skončil v slepej uličke.
+//
+// Táto stránka je serverová a obsahuje VŠETKY články ako <a href>, zoskupené
+// po kategóriách. Z ktorejkoľvek stránky webu sa tak dá dôjsť ku každému
+// článku bez spusteného JavaScriptu.
+function renderArchiv(clanky, kategorie) {
+  const podlaKat = new Map();
+  for (const c of clanky) {
+    const k = c.category || "ostatné";
+    if (!podlaKat.has(k)) podlaKat.set(k, []);
+    podlaKat.get(k).push(c);
+  }
+
+  // Poradie ako v hlavičke webu; čokoľvek neznáme ide na koniec, nech sa
+  // článok nestratí len preto, že pribudla kategória.
+  const poradie = kategorie.filter((k) => k !== "all" && podlaKat.has(k));
+  for (const k of podlaKat.keys()) if (!poradie.includes(k)) poradie.push(k);
+
+  const sekcie = poradie.map((k) => {
+    const zoznam = podlaKat.get(k)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .map((c) => `      <li><a href="${esc(clanokUrl(c))}">${esc(c.title)}</a>`
+        + `<time datetime="${esc(c.date)}">${esc(datumSk(c.date))}</time></li>`)
+      .join("\n");
+    return `  <section class="archiv-sekcia">
+    <h2>${esc(k)} <span class="archiv-pocet">${podlaKat.get(k).length}</span></h2>
+    <ul class="archiv-zoznam">
+${zoznam}
+    </ul>
+  </section>`;
+  }).join("\n");
+
+  return obal({
+    title: "Archív článkov — Novinko",
+    description: `Kompletný archív ${clanky.length} článkov na Novinku — krypto, AI a slovenské spravodajstvo.`,
+    canonical: `${SITE}/archiv`,
+    telo: `<div class="article-wrap">
+  <h1 class="article-title">Archív článkov</h1>
+  <div class="article-perex">Všetkých ${clanky.length} článkov, zoradených podľa sekcií a dátumu.</div>
+${sekcie}
+  <div class="article-footer"><a href="/" class="back-link">← Všetky správy</a></div>
+</div>
+<style>
+  .archiv-sekcia { margin: 32px 0 0; }
+  .archiv-sekcia h2 { font-size: 1.15rem; text-transform: capitalize; border-bottom: 1px solid var(--line, #333); padding-bottom: 6px; }
+  .archiv-pocet { font-weight: 400; color: var(--text2); font-size: .85rem; }
+  .archiv-zoznam { list-style: none; padding: 0; margin: 12px 0 0; }
+  .archiv-zoznam li { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid rgba(128,128,128,.15); }
+  .archiv-zoznam a { text-decoration: none; }
+  .archiv-zoznam time { color: var(--text2); font-size: .8rem; white-space: nowrap; }
+  @media (max-width: 620px) { .archiv-zoznam li { flex-direction: column; gap: 2px; } }
+</style>`,
+  });
+}
+
 function renderNenajdene() {
   return obal({
     title: "Článok nenájdený — Novinko",
@@ -198,4 +264,4 @@ function renderNenajdene() {
   });
 }
 
-module.exports = { renderClanok, renderNenajdene, clanokUrl, slugify, esc, SITE };
+module.exports = { renderClanok, renderArchiv, renderNenajdene, clanokUrl, slugify, esc, SITE };
