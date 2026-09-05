@@ -72,6 +72,46 @@ const EKONOMIKA_EVENT_BASE = {
   market_reaction: 30,
 };
 
+// Svet. Kalibrácia proti latke IMPORTANCE_BAR = 42.
+//
+// PÔVODNE mala byť chrbticou skórovania konfluencia — základy tesne pod latkou,
+// cez ňu by správu dostal až súbeh dvoch-troch redakcií, čo by bolo „potvrdené
+// dvoma zdrojmi" zabudované do kódu. DÁTA TO ZAMIETLI: klastre s viac ako
+// jedným zdrojom sú 5-10 % (AI 15 z 291, krypto 18 z 186, ekonomika 2 z 41).
+// Dôvod je v clusterKey() v 06 — kľúč je `sekcia|entita|typ` a zhodovať sa musí
+// PRESNÝ normalizovaný reťazec entity. Osem redakcií o tej istej udalosti píše
+// „United States", „US" aj „US military", takže sa nezlúčia. Pri takom návrhu
+// by 90 % svetových správ neprešlo nikdy a rubrika by mlčala.
+//
+// Základy preto stoja samy, konfluencia je bonus, keď náhodou nastane.
+//
+//   election 75, diplomacy 72   jadro zahraničnej rubriky
+//   institutional 70            rozhodnutia OSN/NATO/EÚ — sem padnú primárne
+//                               zdroje (UN News, IAEA), ktoré majú prejsť samy
+//   disaster 68                 katastrofy, vysoký čitateľský záujem
+//   announcement 40             POD latkou — poučenie z ekonomiky, kde 55
+//                               pustilo „Trump na minci". Vecné kroky vlád
+//                               padnú do institutional/diplomacy/sanctions,
+//                               takže announcement je zvyškový kôš.
+//   conflict 25                 HLBOKO pod latkou, dohodnuté s používateľom:
+//                               frontovú líniu robí redakcia ručne. Cez latku
+//                               sa dostane až pri masívnom súbehu (25+20=45),
+//                               teda keď to hlásia štyri a viac redakcií.
+const SVET_EVENT_BASE = {
+  election: 75,
+  diplomacy: 72,
+  institutional: 70,
+  sanctions: 70,
+  disaster: 68,
+  court_ruling: 62,
+  regulatory: 60,
+  security: 55,
+  protest: 50,
+  announcement: 40,
+  other: 35,
+  conflict: 25,
+};
+
 // Keyword filter pre cross-topic feedy (regulátori pri krypte, NVIDIA/politika pri AI).
 const KRYPTO_RE = /\b(crypto|bitcoin|btc|ethereum|ether|blockchain|stablecoin|digital[ -]?asset|crypto[ -]?asset|tokeniz|web3|defi|mica|virtual currenc|distributed ledger|stable[ -]?coin)\b/i;
 const AI_RE = /\b(a\.?i\.?|artificial intelligence|machine learning|deep learning|neural network|LLM|large language model|generative|chatbot|GPT|OpenAI|Anthropic|Claude|Gemini|DeepMind|transformer|diffusion|AGI|foundation model|inference)\b/i;
@@ -131,6 +171,25 @@ export const SECTIONS = {
     // diskvalifikačná. Extraktor beží na Haiku (globálny MODEL_CHEAP) ako
     // všade, Writer na Sonnete. Prepnúť až keď to compare-models.mjs zmeria
     // na číselných textoch, nie od stola.
+  },
+  svet: {
+    id: 'svet',
+    category: 'svet',
+    eventBase: SVET_EVENT_BASE,
+    // ZÁMERNE BEZ keywordRe. Všetky zdroje sekcie sú vydavateľom zúžené na
+    // svetové spravodajstvo (BBC World, Guardian World, UN News…), takže sito
+    // nepotrebujú — rovnako ako CNBC Economy a Euronews Business, ktoré dnes
+    // dávajú najlepší výstup. „Svetová správa“ navyše nemá kľúčové slová:
+    // ekonomika mala slovník (inflácia, clá, HDP), svet sa definuje tým, čím
+    // NIE JE, a brána v 02 vie filtrovať len zaraďovaním, nie vylučovaním.
+    //
+    // POZOR: keby sem niekto pridal feed s `keywordFilter: true`, spadne to —
+    // keywordReFor() vráti undefined a brána naň zavolá .test(). Vtedy treba
+    // najprv dopísať SVET_RE.
+    live: false,
+    // Nežije z rovnakého dôvodu ako ekonomika: web tab „Svet“ síce existuje
+    // (z ručného publikovania), ale Writer s novou vetvou promptu ešte nikdy
+    // nebežal. Zapnúť až po obhliadke reálnych faktov.
   },
 };
 
