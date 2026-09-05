@@ -100,20 +100,73 @@ len z `self` + TradingView + hashe. Čokoľvek iné prehliadač **ticho** zablok
 kópie `articleToRow` aj `paragraphsToCell`. Keď meníš jednu, **musíš aj druhú** —
 inak sa ten istý článok uloží rôzne podľa toho, ktorou cestou prišiel.
 
-## Čo čaká (stav k 20. 8. 2026)
+**`KRYPTO_RE` má tichú dieru** (nájdené 5. 9., NEOPRAVENÉ). Celý výraz je obalený
+`\b(...)\b`, ale `tokeniz` a `virtual currenc` sú kmene — po nich sa vyžaduje
+hranica slova, takže „tokenization" ani „virtual currency" **nikdy nesadnú** a
+tie témy cez `cryptoFilter` neprejdú. Neopravoval som to, lebo je to živá sekcia
+a zmena filtra patrí do samostatného commitu s meraním, čo pribudne.
+`EKONOMIKA_RE` tú chybu už nemá (len celé slová a explicitné varianty).
 
-- **Search Console → Indexovanie → Strany** — 19. 8. ešte hlásilo „údaje sa
-  spracovávajú". Toto je číslo, na ktorom záleží: koľko zo 128 stránok Google
-  naozaj zaradil. Ak by tam bola nula alebo veľa chýb, treba sa pozrieť na dôvody.
-- **`news-sitemap.xml`** — má sa prepnúť na Úspech do pár dní. Ak by po troch
-  dňoch stále svietila červeno, už to nie je normálne.
-- **Spiaci stroj** — nevyriešené od 9. 8., len sa neprejavuje. Buď vypnúť
-  uspávanie, alebo presunúť cron na VPS.
-- **Evidenčné číslo EV 176/26/SWP** je len v pätičke hlavnej stránky a v tiráži.
-  Na stránkach článkov nie — a práve tam pristávajú ľudia z Googlu.
+## Čo čaká (stav k 5. 9. 2026)
 
-Od 19. 8. je úzkym hrdlom **obsah a čas**, nie technika. Nenavrhuj ďalšie SEO
-úpravy, kým nebudú dáta z Search Console — nie je podľa čoho sa rozhodovať.
+### 🔴 REDAKCIA NEPÍŠE — najprv toto, zvyšok je bezpredmetný
+
+**Anthropic účet nemá kredit.** Posledné úspešné AI volanie **24. 8. o 12:01**,
+posledný publikovaný článok **27. 8.** Cron beží ďalej, scout zbiera, gateway
+filtruje — ale všetko, čo dorazí k `05-verification`, spadne na
+`credit balance is too low`.
+
+- **457 položiek visí v `error`** s týmto dôvodom (merané 5. 9., rastie).
+- **`retry.js` ich už po dobití zachráni** — opravené 5. 9. Nedostatok kreditu
+  má vlastnú vetvu, rovnako ako budget guard: nepočíta sa do `MAX_RETRIES`
+  (odmietnutý pokus na nulový kredit nič nestojí), takže sa skúša znova pri
+  každom behu, kým sa účet nedobije. Predtým sa chyba netrafila do `TRANSIENT`
+  regexu a položka zostala v `error` navždy.
+- Väčšina tých položiek je staršia než `CLUSTERED_MAX_AGE_H = 24`, takže by ich
+  Writer aj tak zahodil. Reálne prežijú len tie najčerstvejšie.
+
+### Sekcia Ekonomika — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
+
+Celá reťaz je hotová a commitnutá, ale `live: false` v `lib/sections/index.js`.
+`liveFor()` gatuje Writera, takže sa položky zbierajú, extrahujú a skórujú, ale
+**nenapíše sa ani nezaplatí žiadny článok**. Je to zámerný pilot: po dobití
+kreditu si najprv pozri reálne `facts` JSON (polia `period`, `status`,
+`source_emphasis`) a až potom prepni na `true`. Web je pripravený — tab
+„Ekonomika", `CAT_LABELS` aj farba `--cat-eko` v `index.html` existujú
+z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
+
+- **Zdroje:** 6 overených (Európska komisia, Fed, CNBC Economy, Euronews
+  Business, MarketWatch, Yahoo Finance). Slovenský primárny zdroj NEEXISTUJE —
+  ŠÚSR, OECD, IMF aj US BLS sú za Akamai (403), MF SR a World Bank nemajú RSS,
+  Eurostat feed je mŕtvy od 2021, Reuters zrušil verejné RSS. **Slovenskú
+  ekonomiku robí redakcia ručne.** Zamietnutí kandidáti sú aj s dôvodmi
+  v komentári vo `feeds.js` — neskúšaj ich znova.
+- **Čo je neoverené:** správanie modelu na novom prompte. Nikdy nebežalo naživo.
+
+### Rozpracované, NECOMMITNUTÉ
+
+- **Rubrika Záhrada** — `BIBLIA-ZAHRADA.md` + plán 60 tém, generátor
+  `15-zahrada.js` ešte neexistuje.
+
+### Ďalej v poradí
+
+1. Os **potvrdené/rumor** vo faktoch — dnes leak vyzerá ako hotový fakt.
+   Zmena schémy, dotkne sa `05`, `07` aj `09`. **Je to predpoklad pre sekciu
+   Svet**, nie nezávislá úloha: vojnové spravodajstvo bez rozlíšenia
+   „potvrdené / tvrdenie jednej strany / neoverené" sa písať nedá. Ekonomika
+   na to už odpilotovala jednoduchú verziu (pole `status` — flash odhad vs.
+   revízia vs. prognóza), lenže tam stav označuje sám štatistický úrad; pri
+   vojne to za nás neurobí nikto.
+2. **Koncentrácia na PR wire** — Chainwire nesie 55 % krypto obsahu. Nie je to
+   promptový problém, ale rozhodnutie v `feeds.js` / `06`.
+3. **E-maily `@novinko.sk`** — jedna schránka `redakcia@` + aliasy `tipy`,
+   `oprava`, `dsa`, `sukromie`. Adresy na právnych stránkach prepnúť AŽ po
+   otestovaní schránok; Gmail nechať presmerovaný. Over, či je kontakt súčasťou
+   registrovaných údajov k EV 176/26/SWP.
+4. **Spiaci stroj** — nevyriešené od 9. 8.
+5. **Evidenčné číslo** chýba na stránkach článkov, kde ľudia z Googlu pristávajú.
+
+Úzkym hrdlom **nie je technika** — je to prevádzka (kredit) a obsah.
 
 ## Kde je história
 
