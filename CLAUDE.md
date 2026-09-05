@@ -100,6 +100,14 @@ len z `self` + TradingView + hashe. Čokoľvek iné prehliadač **ticho** zablok
 kópie `articleToRow` aj `paragraphsToCell`. Keď meníš jednu, **musíš aj druhú** —
 inak sa ten istý článok uloží rôzne podľa toho, ktorou cestou prišiel.
 
+**Zlúčenie clusteru strácalo polia položky** (nájdené a OPRAVENÉ 5. 9.).
+`mergeClusterFacts()` v `06` prenášal len `facts[]`, `entity` a `event_type` —
+`source_emphasis` sa zahadzoval, takže bonus +8 v `importance.js` v produkcii
+nikdy nezafungoval (všetkých 18 klastrov ekonomiky malo null, hoci položky vo
+`facts_ready` hodnotu niesli). Poučenie platí ďalej: **keď pridávaš pole do
+`buildFacts()` v `05`, MUSÍŠ ho pridať aj do `mergeClusterFacts()` v `06`** —
+inak zmizne pri klastrovaní a nikto si to nevšimne, lebo skóre stále nejaké vyjde.
+
 **`KRYPTO_RE` má tichú dieru** (nájdené 5. 9., NEOPRAVENÉ). Celý výraz je obalený
 `\b(...)\b`, ale `tokeniz` a `virtual currenc` sú kmene — po nich sa vyžaduje
 hranica slova, takže „tokenization" ani „virtual currency" **nikdy nesadnú** a
@@ -176,6 +184,34 @@ z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
   (fakty, obdobia, stavy, atribúcia), ale Writer s hospodárskou vetvou promptu
   ešte nebežal ani raz — gatuje ho `live: false`. Prvý zapnutý beh treba
   sledovať zblízka.
+
+### Sekcia Svet — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
+
+Rovnaký stav ako Ekonomika: celá reťaz commitnutá, `live: false`, web tab „Svet"
+existuje z ručného publikovania, takže zapnutie nepotrebuje deploy.
+
+- **Zdroje: 10.** Primárne UN News a IAEA; redakcie BBC World, Guardian World,
+  DW, France 24, Al Jazeera, NPR World, The Hindu International, Africanews.
+  Bez keywordFilter — feedy si zúžil vydavateľ. Geografická rovnováha je
+  zámer, nie náhoda (Blízky východ, Ázia, Afrika, USA popri Európe).
+- **FRONTOVÁ LÍNIA SA TU NEROBÍ.** Vojnu (územia, straty, obete) píše redakcia
+  ručne — rozhodnutie z 5. 9. po tom, čo overovanie zdrojov ukázalo neriešiteľný
+  problém: ukrajinské oficiálne zdroje sú blokované (403/404), kým Kremeľ a TASS
+  odpovedajú 200. Postaviť desk na dostupnom by systematicky prevážilo ruskú
+  verziu. K tomu jazyk a otvorená sankčná otázka (EÚ zakázala šírenie viacerých
+  ruských štátnych médií, Novinko je subjekt EÚ). Preto má `conflict` základ 25,
+  teda pod latkou — prejde až pri súbehu piatich zdrojov. `diplomacy` (rokovania,
+  sankcie, prímeria) ide normálne.
+- **Nové pole `claimed_by`** — os fakt vs. tvrdenie. Zapína `attribution_required`,
+  takže existujúca brána v `09-legal` zamietne text bez „podľa X". Overené;
+  `09-legal` netreba meniť.
+- **Nové pole `location`** — dateline.
+- **Konfluencia NIE JE chrbtica skórovania**, hoci to tak bolo navrhnuté. Dáta:
+  klastre s viac než jedným zdrojom sú 5-10 % (`clusterKey` vyžaduje presnú
+  zhodu entity, a osem redakcií píše „US" aj „United States"). Základy preto
+  stoja samy.
+- **Čo zostáva neoverené:** úplne všetko za extrakciou. Writer so zahraničnou
+  vetvou nebežal ani raz.
 
 ### Rozpracované, NECOMMITNUTÉ
 
