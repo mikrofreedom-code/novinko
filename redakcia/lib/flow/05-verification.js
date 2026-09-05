@@ -35,6 +35,7 @@ import { parseModelJson } from '../_shared/json.js';
 import { groundFacts, quoteGrounded } from '../_shared/grounding.js';
 import { prescore } from '../_shared/prescore.js';
 import { fetchFullArticleText } from '../_shared/fetch-article.js';
+import { liveFor } from '../sections/index.js';
 
 // Pod touto dĺžkou RSS súhrnu skús dotiahnuť celý článok zo zdroja (viac
 // materiálu pre Fact Extractor). Nad týmto stropom má feed už dosť textu,
@@ -553,10 +554,26 @@ export async function runBatch(limit = CANDIDATE_POOL) {
 
   // Zadarmo (Layer A, čísla) vs. platené (text cez Haiku).
   const zadarmo = items.filter((it) => (it.raw_data ?? {}).metrics);
-  const platene = items.filter((it) => {
+  const textove = items.filter((it) => {
     const rd = it.raw_data ?? {};
     return !rd.metrics && (rd.text || rd.title);
   });
+
+  // NEŽIVÉ SEKCIE NESÚŤAŽIA O EXTRAKCIU VÔBEC — čakajú netknuté v 'collected',
+  // BEZ vekového škrtu nižšie (ten by ich nespravodlivo trestal za čas
+  // strávený v pauze; keď sekcia dostane live: true, backlog má čistý štart).
+  //
+  // PREČO TOTO TREBA (nájdené 5. 9. na živých dátach): Ekonomika (4 zdroje)
+  // a Svet (10 zdrojov) sú obe live: false, ale aj tak súťažili o tých istých
+  // 12 extrakciách za hodinu ako krypto a AI. Za 24 h nazbierali 270 položiek
+  // vo fronte a takmer úplne vytlačili krypto (4 collected) aj AI (10
+  // collected, 0 ďalej) — teda dve JEDINÉ sekcie, ktoré vôbec môžu publikovať.
+  // prescore.js je navyše naladený na krypto (SEC/ETF/hack…), takže krypto/AI
+  // prehrávali aj vecne, nielen počtom. Dôsledok bol viditeľný až na webe:
+  // MIN_SECTION_ITEMS poistka (netlify/lib/config.js) musela dopĺňať krypto/AI
+  // takmer výhradne starými článkami, lebo nová produkcia takmer stála.
+  const platene = textove.filter((it) => liveFor(it.raw_data?.section ?? 'krypto'));
+  const neziva = textove.length - platene.length;
 
   // ŠKRT VEKU — nezaplať za extrakciu toho, čo Writer o krok neskôr zahodí.
   //
@@ -601,6 +618,7 @@ export async function runBatch(limit = CANDIDATE_POOL) {
     parked: cerstve.length - vybrane.length,
     zastarane,
     zadarmo: zadarmo.length,
+    neziva, // čaká na sekciu s live: true, nepočíta sa do parked ani zastarane
   };
 
   for (const item of [...zadarmo, ...vybrane]) {
