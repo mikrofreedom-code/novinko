@@ -20,6 +20,7 @@ import { topMarkets } from '../_shared/coingecko.js';
 import { topProtocols } from '../_shared/defillama.js';
 import { fearGreed } from '../_shared/feargreed.js';
 import { FEEDS } from '../_shared/feeds.js';
+import { sectionDue } from '../sections/index.js';
 import { fetchFeed } from '../_shared/rss.js';
 
 export const STAGE = {
@@ -125,10 +126,21 @@ async function scoutFearGreed() {
 }
 
 // --- RSS/Atom feedy (Layer B/C, text) ---
+//
+// KADENCIA PER SEKCIA: feed sa stiahne, len keď je jeho sekcia „na rade"
+// (scoutEveryH v lib/sections/index.js). Škrtá sa TU, pri sťahovaní — nie
+// neskôr pri extrakcii: položka, ktorá do fronty vôbec nevojde, nezaberie
+// miesto v kandidátskom fonde ani nespotrebuje nič ďalej po reťazi.
+//
+// RSS okno to unesie: feed drží desiatky posledných položiek, takže ani
+// štvorhodinová medzera pri AI nič nestratí.
 async function scoutFeeds() {
   let total = 0;
   const errors = [];
+  const preskocene = [];
   for (const feed of FEEDS) {
+    const sec = feed.section ?? 'krypto';
+    if (!sectionDue(sec)) { preskocene.push(sec); continue; }
     try {
       const items = (await fetchFeed(feed.url)).slice(0, FEED_MAX_ITEMS);
       const rows = items
@@ -157,22 +169,33 @@ async function scoutFeeds() {
       errors.push(`${feed.name}: ${err.message}`);
     }
   }
-  return { inserted: total, feedErrors: errors };
+  return {
+    inserted: total,
+    feedErrors: errors,
+    preskocene: preskocene.length
+      ? [...new Set(preskocene)].map((x) => `${x}(${preskocene.filter((y) => y === x).length})`).join(' ')
+      : undefined,
+  };
 }
 
 // Stiahne všetky zdroje a vloží ako `raw`. Každý zdroj samostatne (chyba
 // jedného nezhodí ostatné).
 export async function run() {
   const safe = async (fn) => { try { return await fn(); } catch { return 0; } };
-  const cg = await safe(scoutCoingecko);
-  const dl = await safe(scoutDefiLlama);
-  const fng = await safe(scoutFearGreed);
+  // Layer A (CoinGecko, DefiLlama, Fear & Greed) je krypto, takže drží jeho
+  // kadenciu. 13-market-recap tým netrpí — ranný prehľad si čísla sťahuje sám
+  // cez topMarkets(), nezávisle od toho, čo je vo fronte.
+  const kryptoNaRade = sectionDue('krypto');
+  const cg = kryptoNaRade ? await safe(scoutCoingecko) : 0;
+  const dl = kryptoNaRade ? await safe(scoutDefiLlama) : 0;
+  const fng = kryptoNaRade ? await safe(scoutFearGreed) : 0;
   const feeds = await scoutFeeds();
   return {
     coingecko: cg,
     defillama: dl,
     feargreed: fng,
     feeds: feeds.inserted,
+    preskocene: feeds.preskocene,
     feedErrors: feeds.feedErrors.length ? feeds.feedErrors : undefined,
     total: cg + dl + fng + feeds.inserted,
   };

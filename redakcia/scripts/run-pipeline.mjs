@@ -25,9 +25,37 @@ import * as image from '../lib/flow/11-image.js';
 import * as publisher from '../lib/flow/12-publisher.js';
 
 const SKIP_SCOUT = process.argv.includes('--no-scout');
+const FORCE = process.argv.includes('--force');
 const log = (s) => console.log(`\n\x1b[36m${s}\x1b[0m`);
 
+// ---- NOČNÁ PAUZA ----
+//
+// Od 22:00 do 5:00 sa nerobí NIČ — ani sťahovanie, ani extrakcia, ani
+// publikovanie. Rozhodnutie používateľa: v noci netreba, aby chodili správy.
+//
+// Zastavuje sa celý beh, nielen scout. Keby bežal zvyšok reťaze, v noci by sa
+// dopisovali a zverejňovali články z toho, čo ostalo vo fronte — teda presne
+// to, čomu sa má predísť. Čo je rozpracované, počká do rána; nič sa nestráca,
+// lebo škrt veku v 05 aj 07 pracuje s 24-hodinovým oknom.
+//
+// Hodiny sú LOKÁLNE (rovnako ako cron, ktorý to spúšťa). --force pauzu obíde,
+// nech sa dá ručne odladiť aj večer.
+const NIGHT_FROM = Number(process.env.NIGHT_PAUSE_FROM_H ?? 22);
+const NIGHT_TO = Number(process.env.NIGHT_PAUSE_TO_H ?? 5);
+
+function jeNoc(hour = new Date().getHours()) {
+  return NIGHT_FROM > NIGHT_TO
+    ? (hour >= NIGHT_FROM || hour < NIGHT_TO)   // okno cez polnoc (bežný prípad)
+    : (hour >= NIGHT_FROM && hour < NIGHT_TO);
+}
+
 async function main() {
+  if (jeNoc() && !FORCE) {
+    console.log(`nočná pauza ${NIGHT_FROM}:00–${NIGHT_TO}:00 — preskakujem celý beh `
+      + `(teraz ${new Date().getHours()}:00, --force ju obíde)`);
+    return;
+  }
+
   log('0) retry — dočasné chyby späť do hry');
   console.log('  ', await retryTransientErrors());
 
@@ -101,7 +129,11 @@ async function main() {
   // Údržba raz denne. Scout vloží ~200 riadkov za beh a gateway ich väčšinu
   // hneď zamietne — za mesiac z toho bolo 166 000 mŕtvych riadkov.
   // Beží o PRUNE_HOUR, nie každú hodinu: je to lacné, ale zbytočné 23×.
-  if (new Date().getHours() === Number(process.env.PRUNE_HOUR ?? 4)) {
+  //
+  // POZOR: hodina MUSÍ ležať mimo nočnej pauzy, inak sa čistenie nespustí
+  // nikdy. Preto 5:00 — prvá hodina po pauze. Do 5. 9. 2026 tu boli 4:00, čo
+  // so zavedením pauzy 22:00–5:00 prestalo fungovať.
+  if (new Date().getHours() === Number(process.env.PRUNE_HOUR ?? 5)) {
     log('údržba — čistenie fronty (terminálne stavy staršie než retencia)');
     try {
       const p = await pruneQueue({ apply: true });

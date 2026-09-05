@@ -135,6 +135,8 @@ const EKONOMIKA_RE = /\b(inflation|deflation|disinflation|unemployment|jobless|p
 export const SECTIONS = {
   krypto: {
     id: 'krypto',
+    scoutEveryH: 2,      // krypto sa v poslednej dobe toľko nedeje
+    scoutOffsetH: 0,     // párne hodiny: 6, 8, 10 … 20
     category: 'krypto',        // kategória na webe (Google Sheet stĺpec G)
     keywordRe: KRYPTO_RE,      // filter pre feedy s keyword_filter=true
     eventBase: KRYPTO_EVENT_BASE,
@@ -146,6 +148,8 @@ export const SECTIONS = {
   // inak ho ai-gateway odmietne zavolať (viď PRICING).
   ai: {
     id: 'ai',
+    scoutEveryH: 4,
+    scoutOffsetH: 1,     // 5, 9, 13, 17, 21
     category: 'ai',
     keywordRe: AI_RE,
     eventBase: AI_EVENT_BASE,
@@ -155,6 +159,8 @@ export const SECTIONS = {
   },
   ekonomika: {
     id: 'ekonomika',
+    scoutEveryH: 3,
+    scoutOffsetH: 1,     // 7, 10, 13, 16, 19
     category: 'ekonomika',
     keywordRe: EKONOMIKA_RE,
     eventBase: EKONOMIKA_EVENT_BASE,
@@ -174,6 +180,8 @@ export const SECTIONS = {
   },
   svet: {
     id: 'svet',
+    scoutEveryH: 1,      // najrýchlejší tep — svet sa mení každú hodinu
+    scoutOffsetH: 0,
     category: 'svet',
     eventBase: SVET_EVENT_BASE,
     // ZÁMERNE BEZ keywordRe. Všetky zdroje sekcie sú vydavateľom zúžené na
@@ -216,3 +224,32 @@ export function liveFor(id) { return section(id).live !== false; }
 // bez nasadenia" tu neplatí. A preklep v názve env premennej zlyhá ticho
 // (spadne na Sonnet a platíš 4×), preklep tu je vidieť v diffe.
 export function modelsFor(id) { return section(id).models ?? {}; }
+
+// ---- AKO ČASTO SA SEKCIA VÔBEC STIAHNE ----
+//
+// Redakčné rozhodnutie, preto TU a nie v .env — rovnako ako voľba modelu.
+// „Krypto stačí každé 2 hodiny, lebo sa tam toľko nedeje" je úsudok, ktorý má
+// mať v gite históriu a dôvod; preklep v názve env premennej by navyše zlyhal
+// ticho a sekcia by sa buď prestala sťahovať, alebo by bežala každú hodinu.
+//
+// Pravidlo je `hodina % interval === 0`, teda kotvené o polnoci. Je to zámerne
+// hlúpe a predvídateľné: bez stavu, bez ďalšieho dotazu do databázy.
+//
+// ZNÁMY KOMPROMIS: keď stroj práve spí (viď „Spiaci stroj" v CLAUDE.md), zmešká
+// sa celý slot a sekcia počká na ďalší — AI tak môže mať medzeru až 8 hodín.
+// Alternatíva „pozri, kedy sa sťahovalo naposledy" by výpadok dobehla, ale
+// potrebuje stav a časom driftuje. Keby sa medzery ukázali ako problém, je to
+// malá zmena — dovtedy platí jednoduchšia verzia.
+export function scoutIntervalFor(id) {
+  return Math.max(1, Number(section(id).scoutEveryH ?? 1));
+}
+
+// POSUN (scoutOffsetH) rozhadzuje sekcie po hodinách, aby sa nezhlukovali.
+// Bez neho by `hodina % interval === 0` posadilo krypto, AI aj ekonomiku na tie
+// isté hodiny (0, 12) a inde by ostal len svet. S posunmi má takmer každá
+// hodina v aktívnom okne 5:00-21:00 dve sekcie, najviac tri, a nikdy štyri.
+export function sectionDue(id, date = new Date()) {
+  const n = scoutIntervalFor(id);
+  const off = Number(section(id).scoutOffsetH ?? 0);
+  return (((date.getHours() - off) % n) + n) % n === 0;
+}
