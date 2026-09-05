@@ -116,4 +116,53 @@ export const FEEDS = [
   { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', layer: 'C', source_type: 'secondary', entity: null, section: 'ai', keywordFilter: true },
   { name: "Tom's Hardware", url: 'https://www.tomshardware.com/feeds.xml', layer: 'C', source_type: 'secondary', entity: null, section: 'ai', keywordFilter: true },
   { name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index', layer: 'C', source_type: 'secondary', entity: null, section: 'ai', keywordFilter: true },
+
+  // ==========================================================
+  // SEKCIA: EKONOMIKA — section: 'ekonomika'
+  // ----------------------------------------------------------
+  // Overené 5. 9. 2026: HTTP 200 + platný RSS/Atom + čerstvé položky.
+  //
+  // SLOVENSKÝ PRIMÁRNY ZDROJ TU NIE JE, a nie je to prehliadnutie: ŠÚSR aj
+  // OECD/IMF/BLS vracajú HTTP 403 spoza Akamai bot-ochrany aj s prehliadačovou
+  // hlavičkou (teda by zlyhali aj serveru, nielen curlu), Ministerstvo financií
+  // SR a World Bank nemajú nájditeľný RSS a Eurostat feed síce odpovedá 200, ale
+  // je MŔTVY — posledná položka je z 30. 9. 2021. Slovenskú ekonomiku preto robí
+  // redakcia ručne; táto sekcia pokrýva EÚ a svet.
+  //
+  // desk: true pri médiách je zovšeobecnenie pôvodného významu („research desk
+  // búrzy") na „zdroj, ktorý smie niesť výklad". V ekonomike je tým výkladom
+  // prognóza a očakávanie ekonómov — bez tohto príznaku by extraktor musel
+  // zahodiť aj „ekonómovia čakali 130 000", čo je pritom jadro hospodárskej
+  // správy. So source_type: 'secondary' k tomu automaticky patrí „podľa X".
+  //
+  // Zdroje BEZ filtra sú tematicky úzke už od vydavateľa (CNBC Economy, Euronews
+  // Business, Fed monetary). Široké newsroomy majú keywordFilter → EKONOMIKA_RE.
+
+  // Primárne inštitúcie
+  { name: 'Európska komisia', url: 'https://ec.europa.eu/commission/presscorner/api/rss?to=xml', layer: 'C', source_type: 'primary', entity: null, section: 'ekonomika', keywordFilter: true },
+  { name: 'Federal Reserve', url: 'https://www.federalreserve.gov/feeds/press_monetary.xml', layer: 'C', source_type: 'primary', entity: 'Federal Reserve', section: 'ekonomika' },
+
+  // Hospodárske médiá — VŽDY s atribúciou „podľa X" (source_type: 'secondary')
+  { name: 'CNBC Economy', url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true },
+  { name: 'Euronews Business', url: 'https://www.euronews.com/rss?level=theme&name=business', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true },
+  { name: 'MarketWatch', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true, keywordFilter: true },
+  { name: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssindex', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true, keywordFilter: true },
+
+  // NEPRIDANÉ, overené a zamietnuté 5. 9. 2026 — nech to nikto neskúša znova:
+  //   Štatistický úrad SR      HTTP 403 (Akamai, aj s prehliadačovou hlavičkou)
+  //   US Bureau of Labor Stat. HTTP 403 (Akamai)
+  //   OECD                     HTTP 403
+  //   IMF                      HTTP 403 (Akamai)
+  //   Ministerstvo financií SR HTTP 404, RSS sa nedá nájsť
+  //   World Bank               HTTP 404
+  //   Eurostat                 HTTP 200, ale mŕtvy feed (posledná položka 2021)
+  //   Reuters                  verejné RSS zrušené ~2020: feeds.reuters.com je
+  //                            mŕtve, reuters.com/*/rss vracia 401/404
+  //   Investing.com            funguje, ale „All News" mieša ekonomiku s
+  //                            rokovaniami o autonómnych zbraniach — šum, ktorý
+  //                            by sme platili Haiku za extrakciu
+  //   CNBC Top News            funguje, ale prekrýva sa s CNBC Economy a pridáva
+  //                            netematický šum (akcie jednotlivých firiem)
+  //   Financial Times          funguje a je čerstvý, ale je to celková
+  //                            medzinárodná sekcia a plný text je za paywallom
 ];
