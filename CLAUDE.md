@@ -129,15 +129,35 @@ filtruje — ale všetko, čo dorazí k `05-verification`, spadne na
 
 Celá reťaz je hotová a commitnutá, ale `live: false` v `lib/sections/index.js`.
 `liveFor()` gatuje Writera, takže sa položky zbierajú, extrahujú a skórujú, ale
-**nenapíše sa ani nezaplatí žiadny článok**. Je to zámerný pilot: po dobití
-kreditu si najprv pozri reálne `facts` JSON (polia `period`, `status`,
-`source_emphasis`) a až potom prepni na `true`. Web je pripravený — tab
+**nenapíše sa ani nezaplatí žiadny článok**. Je to zámerný pilot: extrakcia
+(lacná, Haiku) beží a plní `clustered`, písanie (Sonnet, najdrahšia vrstva) nie
+— takže sa dá pozerať na reálne `facts` JSON skôr, než sa zaplatí prvý článok.
+Web je pripravený — tab
 „Ekonomika", `CAT_LABELS` aj farba `--cat-eko` v `index.html` existujú
 z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
 
-- **Zdroje:** 6 overených (Európska komisia, Fed, CNBC Economy, Euronews
-  Business, MarketWatch, Yahoo Finance). Zamietnutí kandidáti sú aj s dôvodmi
-  v komentári vo `feeds.js` — neskúšaj ich znova.
+- **Zdroje: 4** — Európska komisia, Fed, CNBC Economy, Euronews Business.
+  Yahoo Finance a MarketWatch leteli von hneď v deň zavedenia (viď nižšie).
+  Zamietnutí kandidáti sú aj s dôvodmi v komentári vo `feeds.js` — neskúšaj
+  ich znova.
+- **PRVÝ OSTRÝ BEH PREBEHOL 5. 9., sekcia je odskúšaná.** 18 položiek došlo do
+  `clustered`, kde ich zastavil `live: false`. Kvalita sa delí PODĽA ZDROJA,
+  nie podľa promptu:
+  - CNBC 7 položiek / ~5 dobrých, Euronews 5 / 3 dobré
+  - Yahoo 5 / **0**, MarketWatch 1 / **0** → oba vyhodené. Yahoo posielalo
+    dennú tabuľku amerických hypotekárnych sadzieb (skóre 65, prešla by) a
+    mikrokapitalizačné výsledky (Ligand, eGain, Asana).
+  - Najlepší výstup (Euronews, ECB, skóre 90) je materiál na profesionálny
+    článok: „inflácia 3,3 % v auguste" + „bola 2,9 % v júli" ako samostatný
+    fakt ZO ZDROJA, očakávanie trhu ako `analysis`, prognóza ECB so `status:
+    forecast`, doslovný citát. Presne o toto celý návrh šiel.
+- **Čo NEFUNGUJE podľa plánu:** `market_reaction` (základ 30) sa nikdy
+  nespustí — model klasifikuje trhové wrapy ako `data_release` (65). Kalibrácia
+  toho typu je zatiaľ mŕtva litera. `announcement` (55) zase nevie oddeliť
+  „Fed Warsh o inflácii" od „Trump na minci" — to je vec kvality zdroja, prah
+  to nevyrieši.
+- **ĎALŠÍ KROK (dohodnuté 5. 9.):** nechať bežať deň bez Yahoo šumu, 6. 9.
+  pozrieť väčšiu vzorku faktov a podľa nej rozhodnúť o `live: true`.
 - **Cez RSS ani cez stránku sa k slovenským dátam nedostaneš.** ŠÚSR, OECD, IMF
   aj US BLS vracajú 403/503 aj na HTML aj s naším čestným UA — blokujú automat
   na okraji siete. Obísť sa to dá len predstieraním inej identity a to je proti
@@ -152,7 +172,10 @@ z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
   `update`, mapovanie JSON-stat na fakty (Layer A, bez AI) a rozhodnutie, kedy
   je nové číslo správa. POZOR: dotaz na HICP vrátil december 2025 s `updated`
   6. 2. 2026 — čerstvosť preveriť skôr, než sa na tom začne stavať.
-- **Čo je neoverené:** správanie modelu na novom prompte. Nikdy nebežalo naživo.
+- **Čo zostáva neoverené:** ako vyzerá HOTOVÝ ČLÁNOK. Overená je extrakcia
+  (fakty, obdobia, stavy, atribúcia), ale Writer s hospodárskou vetvou promptu
+  ešte nebežal ani raz — gatuje ho `live: false`. Prvý zapnutý beh treba
+  sledovať zblízka.
 
 ### Rozpracované, NECOMMITNUTÉ
 
