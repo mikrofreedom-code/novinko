@@ -38,9 +38,54 @@ const AI_EVENT_BASE = {
   other: 42,
 };
 
+// Ekonomika. Skóre je kalibrované proti latke IMPORTANCE_BAR = 42:
+//
+//   rate_decision 90     — rozhodnutie centrálnej banky je najväčšia plánovaná
+//                          hospodárska správa, aká existuje.
+//   trade_policy 78      — clá a obchodné vojny dopadajú na exportnú ekonomiku
+//                          priamo, čitateľa zaujímajú viac než väčšina štatistík.
+//   data_release 65      — jadro hospodárskej redakcie (CPI, HDP, nezamestnanosť).
+//   corporate_earnings 45— tesne nad latkou: prejde, ale v round-robine prehrá
+//                          takmer so všetkým ostatným. Nemáme signál veľkosti
+//                          firmy (mcapPoints funguje len na krypto metrikách),
+//                          takže výsledky malej firmy nevieme odlíšiť od veľkej.
+//   market_reaction 30   — POD latkou zámerne. „DAX klesol o 1 %" nie je článok.
+//                          Cez latku sa dostane až súbehom zdrojov (+5 za každý
+//                          ďalší), teda keď to hlási viacero redakcií naraz.
+//   other 40             — pod latkou, rovnako ako pri krypte.
+const EKONOMIKA_EVENT_BASE = {
+  rate_decision: 90,
+  trade_policy: 78,
+  regulatory: 75,
+  fiscal_policy: 72,
+  data_release: 65,
+  security: 60,
+  announcement: 55,
+  forecast: 50,
+  corporate_earnings: 45,
+  other: 40,
+  market_reaction: 30,
+};
+
 // Keyword filter pre cross-topic feedy (regulátori pri krypte, NVIDIA/politika pri AI).
 const KRYPTO_RE = /\b(crypto|bitcoin|btc|ethereum|ether|blockchain|stablecoin|digital[ -]?asset|crypto[ -]?asset|tokeniz|web3|defi|mica|virtual currenc|distributed ledger|stable[ -]?coin)\b/i;
 const AI_RE = /\b(a\.?i\.?|artificial intelligence|machine learning|deep learning|neural network|LLM|large language model|generative|chatbot|GPT|OpenAI|Anthropic|Claude|Gemini|DeepMind|transformer|diffusion|AGI|foundation model|inference)\b/i;
+
+// Ekonomika. Dve veci, ktoré tento regex robí inak než dva vyššie:
+//
+// 1. VÝHRADNE PO ANGLICKY. Filter beží v 02-gateway nad surovým textom feedu a
+//    všetky zdroje sekcie sú anglické. Slovenské tvary by tu boli mŕtva váha.
+// 2. Žiadne kmene pred koncovou `\b`. KRYPTO_RE má na tomto latentnú chybu:
+//    „tokeniz" nasledované `\b` nemôže sadnúť na „tokenization", lebo po „z"
+//    ide písmeno. Preto sú tu len celé slová a explicitné varianty (`wages?`,
+//    `tax(es|ation)?`, `customs (duty|duties)`).
+//
+// Zámerne SEM NEPATRÍ holé „economy"/„economic". Bolo by to najširšie sito zo
+// všetkých a tlačová správa Komisie tie slová obsahuje takmer vždy — pustili by
+// sme dnu pol agendy EÚ a platili Haiku za extrakciu z nej. Radšej užšie sito:
+// keď sa ukáže, že nám uniká typ správ, doplní sa termín. Chýbajúci článok je
+// vidieť, tiché míňanie rozpočtu nie.
+const EKONOMIKA_RE = /\b(inflation|deflation|disinflation|unemployment|jobless|payrolls|jobs report|job (gains|losses|growth)|labou?r market|wages?|economists?|recession|economic growth|GDP(?!R)|CPI|PPI|PMI|consumer price|producer price|retail sales|industrial production|consumer confidence|central bank|monetary policy|interest rates?|rate (cut|hike|rise|decision)|basis points?|Federal Reserve|Fed|ECB|Bundesbank|Bank of England|bond yields?|treasury yields?|budget deficit|fiscal|public debt|national debt|sovereign debt|tax(es|ation)?|tariffs?|trade (war|deal|dispute|talks|agreement|deficit)|customs (duty|duties)|exports?|imports?|eurozone|euro area|Wall Street|stock market|earnings|profit warning|IPO|privatisation|privatization|acquisition|merger|bankruptcy|layoffs?)\b/i;
 
 export const SECTIONS = {
   krypto: {
@@ -62,6 +107,25 @@ export const SECTIONS = {
     // Web s kategóriou 'ai' je nasadený (2026-07-01) → sekcia je živá:
     // Writer píše AI články a Publisher ich zverejňuje do tabu „AI".
     live: true,
+  },
+  ekonomika: {
+    id: 'ekonomika',
+    category: 'ekonomika',
+    keywordRe: EKONOMIKA_RE,
+    eventBase: EKONOMIKA_EVENT_BASE,
+    // ZATIAĽ NEŽIVÁ. `liveFor()` gatuje Writera (07-writer.js), takže položky
+    // sa zbierajú, extrahujú a skórujú, ale žiadny článok sa nenapíše — a teda
+    // ani nezaplatí. Prepnúť na true AŽ keď web bude mať tab „Ekonomika",
+    // inak by Publisher zverejňoval do kategórie, ktorú stránka nevykreslí.
+    // (Presne v tomto poradí išla aj sekcia AI.)
+    live: false,
+    // Model zámerne NEPREPÍNAME na lacnejší. Pôvodná úvaha („nové rubriky =
+    // priestor skúsiť Gemini") tu neplatí: presnosť v číslach, percentuálnych
+    // bodoch, obdobiach a stave údaja je presne to, na čom lacný model šmykne,
+    // a chyba typu „0,25 %" namiesto „0,25 p. b." je pre hospodársku redakciu
+    // diskvalifikačná. Extraktor beží na Haiku (globálny MODEL_CHEAP) ako
+    // všade, Writer na Sonnete. Prepnúť až keď to compare-models.mjs zmeria
+    // na číselných textoch, nie od stola.
   },
 };
 

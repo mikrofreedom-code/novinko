@@ -76,9 +76,26 @@ export function scoreImportance(facts, sectionId = 'krypto') {
     return { score: clamp(magPts + sizePts + liqPts + confluence, 0, 100), reasons };
   }
 
-  // Text/oznámenia: základ podľa typu + súbeh zdrojov.
+  // Text/oznámenia: základ podľa typu + súbeh zdrojov + dôraz samotného zdroja.
   const base = eventBase[et] ?? eventBase.other;
   reasons.push(`typ '${et}' (+${base})`);
   if (confluence) reasons.push(`súbeh ${sourceCount} zdrojov (+${confluence})`);
-  return { score: clamp(base + confluence, 0, 100), reasons };
+
+  // DÔRAZ ZDROJA — pole source_emphasis z 05-verification: „record high",
+  // „first since 2020", „unexpectedly". Nesie ho VÝHRADNE zdroj, model si ho
+  // pridať nesmie (viď pravidlo v extract prompte).
+  //
+  // PREČO: bez neho má mesačný CPI print, ktorý láme rekordy, presne rovnaké
+  // skóre ako ten úplne nudný — sekcia by potom pôsobila ako automat na
+  // štatistiky, nie ako redakcia. Konsenzus ekonómov (ktorý na toto v praxi
+  // slúži) nemáme z akého zdroja brať, takže sa opierame o to, čo za nás
+  // vyhodnotila samotná agentúra.
+  //
+  // +8 je zámerne opatrných: borderline položku to nadvihne, ale
+  // market_reaction (základ 30) cez latku 42 samo osebe nepustí — na to treba
+  // ešte súbeh zdrojov, teda aby to hlásila viac než jedna redakcia.
+  const emphasis = typeof facts.source_emphasis === 'string' && facts.source_emphasis.trim() ? 8 : 0;
+  if (emphasis) reasons.push(`dôraz zdroja „${facts.source_emphasis}" (+${emphasis})`);
+
+  return { score: clamp(base + confluence + emphasis, 0, 100), reasons };
 }
