@@ -226,10 +226,42 @@ existuje z ručného publikovania, takže zapnutie nepotrebuje deploy.
 - **Čo zostáva neoverené:** úplne všetko za extrakciou. Writer so zahraničnou
   vetvou nebežal ani raz.
 
-### Rozpracované, NECOMMITNUTÉ
+### Rubrika Záhrada — generátor hotový a commitnutý (7. 9.), NEOTESTOVANÝ NAŽIVO
 
-- **Rubrika Záhrada** — `BIBLIA-ZAHRADA.md` + plán 60 tém, generátor
-  `15-zahrada.js` ešte neexistuje.
+Kroky 1-2 z `BIBLIA-ZAHRADA.md` kapitoly 10 hotové: plán 84 tém
+(`content/zahrada/plan.md`, vlastný parser `lib/_shared/zahrada-plan.js`) +
+generátor `lib/flow/15-zahrada.js`, zapojený do `run-pipeline.mjs`.
+
+- **Vlastný spúšťač, nie facts pipeline.** Vkladá rovno do statusu `proofed`
+  — obchádza 01-07 AJ 08 (ten kontroluje článok proti FACTS, ktoré Záhrada
+  nemá). 09-legal, 11-image, 12-publisher bežia ďalej, len 09 a 11 majú pre
+  `section: 'zahrada'` vlastnú vetvu.
+- **09-legal dostal celý nový profil kontrol** (`ZAHRADA_CHECKS`) — riziko
+  rubriky nie je zlá atribúcia, je škodlivá rada: prípravky/dávkovanie, huby
+  (úplný zákaz), zdravotné tvrdenia o bylinkách, presný dátum namiesto fázy
+  rastliny, invázne druhy, usmrtenie stavovca, kúpna výzva. Pôvodné CHECKS
+  (krypto/AI/ekonomika/svet) nedotknuté — overené.
+- **11-image preskočí generovanie**, keď `article.no_ai_image === true`
+  (identifikačné riziko — vygenerovaná voška vyzerá presvedčivo a je
+  vymyslená). Zoznam 3 tém + regex ako doplnková poistka, nie regex sám —
+  regex nad osnovou mal aj falošné negatíva aj pozitíva, over v komentári
+  v `15-zahrada.js` prečo.
+- **Používaný slug = navždy, nie len tento rok.** Aktualizačný režim pre
+  2. rok (plán ho v hlavičke žiada, aby sa nekanibalizovalo vyhľadávanie)
+  ešte nie je postavený — zapísané ako TODO pred 2027-01 priamo v kóde.
+- **Čo NEEXISTUJE ešte:** kategória `zahrada` v `netlify/lib/config.js`
+  (`CATS`) a `netlify/functions/manual-publish.js` (`POVOLENE_KATEGORIE`) —
+  krok 3 z biblie. Web tab a homepage blok „Sezóna v záhrade" — krok 4, na
+  toto existuje schválený vizuálny návrh (artefakt zo 7. 9., biely masthead
+  namiesto čierneho, viď rozhovor). Ani jedno NIE JE nutné na to, aby
+  generátor fungoval — sheet append ide mimo POVOLENE_KATEGORIE (tá platí
+  len pre `publikovat.html` formulár), takže sa dá testovať cez Telegram bez
+  toho, aby o rubrike vedel ktokoľvek okrem schvaľovateľa. Presne to biblia
+  v kapitole 10 odporúča.
+- **Živý test never prebehol.** Prompt, právne kontroly aj `no_ai_image`
+  vetva sú overené len staticky (regexom/logikou, bez AI volania). Prvý
+  skutočný článok bude stáť ~$0,02-0,03 (Sonnet) a pri `MANUAL_APPROVAL=true`
+  pošle skutočnú správu do Telegramu.
 
 ### Ďalej v poradí
 
