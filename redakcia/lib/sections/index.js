@@ -199,6 +199,20 @@ export const SECTIONS = {
     // (z ručného publikovania), ale Writer s novou vetvou promptu ešte nikdy
     // nebežal. Zapnúť až po obhliadke reálnych faktov.
   },
+  zahrada: {
+    id: 'zahrada',
+    category: 'zahrada',
+    // Bez eventBase a keywordRe zámerne — obe patria mechanike 02-gateway
+    // a 06-chief-editor (prah dôležitosti, filter cross-topic feedov), ktorú
+    // Záhrada celú obchádza. Má vlastný spúšťač (15-zahrada.js), nie feed.
+    // Sem sa píše LEN kvôli categoryFor() (12-publisher) a modelsFor()
+    // (ai-gateway) — bez záznamu by section('zahrada') ticho spadla na
+    // DEFAULT_SECTION (krypto) a 11-image by obrázku dal krypto kategóriu.
+    live: true,
+    // `live` tu nemá funkčný účinok — liveFor() sa pýta LEN 07-writer.js,
+    // ktorý Záhrada nikdy neprejde (vlastný generátor píše rovno). true je
+    // tu len pre čitateľnosť, nech register netvrdí niečo, čo nie je pravda.
+  },
 };
 
 export const DEFAULT_SECTION = 'krypto';
