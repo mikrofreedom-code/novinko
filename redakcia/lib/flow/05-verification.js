@@ -434,6 +434,10 @@ const MAX_EXTRACTIONS_PER_RUN = Number(process.env.MAX_EXTRACTIONS_PER_RUN ?? 12
 // Koľko kandidátov si vôbec vytiahnuť, aby bolo z čoho vyberať.
 const CANDIDATE_POOL = Number(process.env.EXTRACTION_POOL ?? 200);
 
+// Vek, nad ktorým sa už extrakcia neoplatí — ZÁMERNE tá istá premenná, akú
+// používa 07-writer na zahadzovanie zastaraných clusterov.
+const MAX_AGE_H = Number(process.env.CLUSTERED_MAX_AGE_H ?? 24);
+
 export async function runBatch(limit = CANDIDATE_POOL) {
   const aiEnabled = process.env.AI_ENABLED !== 'false';
   const items = await claim(STAGE.input, limit);
@@ -445,9 +449,36 @@ export async function runBatch(limit = CANDIDATE_POOL) {
     return !rd.metrics && (rd.text || rd.title);
   });
 
+  // ŠKRT VEKU — nezaplať za extrakciu toho, čo Writer o krok neskôr zahodí.
+  //
+  // 07-writer zahadzuje clustery staršie než CLUSTERED_MAX_AGE_H. Tu žiadna
+  // taká kontrola do 5. 9. 2026 nebola, takže sa Haiku platilo aj za položky
+  // bez šance stať sa článkom. Naplno sa to ukázalo po dobití kreditu:
+  // retry.js správne vrátil do hry 428 položiek z výpadku, z toho 360 starších
+  // než 24 h — pri ~$0,007 za extrakciu vyše $2,4, teda tri celé denné
+  // rozpočty za obsah, z ktorého by nevzniklo nič.
+  //
+  // Rovnaká premenná ako v 07 je zámer: dva prahy pre tú istú vec by sa časom
+  // rozišli a nikto by nevedel, ktorý platí.
+  //
+  // Layer A (čísla) sa neškrtá — nestojí nič a scout ho vkladá čerstvý pri
+  // každom behu.
+  const now = Date.now();
+  const cerstve = [];
+  let zastarane = 0;
+  for (const it of platene) {
+    const vekH = (now - new Date(it.created_at).getTime()) / 3600000;
+    if (vekH <= MAX_AGE_H) { cerstve.push(it); continue; }
+    await advance(it.id, 'rejected', {
+      error: `${AGENT}: zastarané — čakalo ${Math.round(vekH)} h vo fronte `
+           + `(limit ${MAX_AGE_H} h), extrakcia by bola zbytočná`,
+    });
+    zastarane++;
+  }
+
   // Zberový režim: platené necháme čakať, číselné spracujeme.
   const vybrane = aiEnabled
-    ? platene
+    ? cerstve
       .map((it) => ({ it, s: prescore(it.raw_data ?? {}).score }))
       .sort((a, b) => b.s - a.s)
       .slice(0, MAX_EXTRACTIONS_PER_RUN)
@@ -458,7 +489,8 @@ export async function runBatch(limit = CANDIDATE_POOL) {
     ok: 0,
     failed: 0,
     // čakajú na ďalší beh (neminuli sme na ne nič)
-    parked: platene.length - vybrane.length,
+    parked: cerstve.length - vybrane.length,
+    zastarane,
     zadarmo: zadarmo.length,
   };
 
