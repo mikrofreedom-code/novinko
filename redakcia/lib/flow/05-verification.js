@@ -53,7 +53,7 @@ const AGENT = '05-verification';
 
 const EVENT_TYPES = [
   'price_move', 'tvl_shift', 'listing', 'protocol_release',
-  'regulatory', 'governance', 'announcement', 'other',
+  'regulatory', 'governance', 'announcement', 'security', 'other',
 ];
 
 // Jednotky pre bežné Layer A metriky (mapovanie kódom, žiadne AI).
@@ -139,6 +139,9 @@ Rules:${desk ? ANALYSIS_RULE : NO_CAUSALITY_RULE}
   or does (e.g. "X is a Layer-2 scaling network launched in 2021"), you may
   extract ONE such rephrased (not copied) background statement.
 - If a fact carries a number, put it in "value" + "unit" and keep "statement" qualitative.
+- event_type="security": hacks, exploits, stolen funds, halted withdrawals,
+  exploited vulnerabilities. Use it EVEN WHEN the affected company announces the
+  incident itself — that is still a security event, not an "announcement".
 - Do NOT invent sources, names, or URLs. Output no attribution fields.`;
 
 // Exportované kvôli behu nasucho (scripts/dry-run-desk.mjs) — overenie
