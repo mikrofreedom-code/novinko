@@ -164,8 +164,44 @@ mala dve vrstvy, obe z toho istého dňa pridania Ekonomiky a Sveta:
    zobrazilo len 6 — hoci v hárku bolo cez 50 vlastných článkov. OPRAVENÉ:
    zdvihnuté na 30. Web zmena, potrebuje Netlify deploy (nie je automatický).
 
-Oboje overené offline (simulované dávky, žiadne AI volanie/sieť). ŽIVÝ EFEKT
-NEOVERENÝ — uvidí sa až na ďalších bežoch cronu.
+Oboje overené offline (simulované dávky, žiadne AI volanie/sieť).
+
+**3. Dodatočné sprísnenie na výslovnú žiadosť používateľa** — bod 1 vyššie
+(fairness medzi sekciami) nestačil. Zámer rozvrhu (viď "Rozvrh" nižšie) bol
+VÝHRADNOSŤ, nie len spravodlivé delenie: „keď je krypto, len krypto články,
+keď je AI, len AI — nech sa nepredbiehajú". `05-verification` teraz filtruje
+platené položky aj cez `sectionDue(section, now)` — TÚ ISTÚ funkciu, akú už
+`01-scout` používa na „čia je teraz hodina" — AND s `liveFor()`. Bežný
+výsledok: presne jedna živá sekcia sa hýbe za hodinu. `roundRobinCap` (reuse
+z `07-writer.js`) ostal len ako poistka pre výnimočný súbeh, keby sa neskôr
+dve živé sekcie predsa stretli v tej istej hodine.
+
+**Dôsledok, ktorý z toho vyplýva a je ZÁMERNÝ:** 4 z 17 aktívnych hodín
+(7, 11, 15, 19) nemajú živú sekciu na rade vôbec — v tú hodinu je na rade
+len Svet alebo Ekonomika (obe neživé), takže extrakcia v tú hodinu nerobí
+nič platené. Prepočítané cez `sectionDue`+`liveFor` pre každú hodinu 5-21,
+nie odhadom. Používateľ o tomto kompromise vie a prijal ho — nedopĺňať tie
+hodiny krypto/AI ako „bonus", to by porušilo presne tú výhradnosť, o ktorú
+išlo.
+
+**Svet znížený z každej hodiny na každé 2 hodiny** (`scoutEveryH: 2,
+scoutOffsetH: 1` — nepárne hodiny, dopĺňa krypto na párnych, nekryje sa).
+Bolo to na požiadanie ("aj svet daj každé dve hodiny"), nemení počet tichých
+hodín vyššie (tie určuje krypto/AI/Ekonomika, nie Svet) — len znižuje
+zbytočné scoutovanie 10 zdrojov v hodinách, keď aj tak nikto neplatený
+nepíše.
+
+**STAV K 23:20 (5. 9.): ŽIVÝ EFEKT STÁLE NEOVERENÝ.** Posledný skutočný beh
+cronu bol o 21:00 — PRED všetkými opravami vyššie (tie pristáli 23:15-23:20).
+Od 22:00 beží nočná pauza do 5:00. Prvý beh, ktorý uvidí opravy naozaj v
+akcii, bude o 5:00 — podľa rozvrhu je to hodina Sveta+AI, teda by sa mala
+hýbať extrakcia pre AI (nie krypto, nie Ekonomika). **Skontroluj to ráno ako
+prvé** — `ai_cost_log` podľa `agent='05-verification'` a sekcie za posledný
+beh, plus `logs/pipeline.log` chvost.
+
+Všetko je commitnuté a POUSHNUTÉ (používateľ pushol sám z terminálu, 36
+commitov na `origin/main`). Web zmena (`netlify/lib/config.js`) čaká na
+Netlify deploy — to je iný krok než git push, používateľ o tom vie.
 
 ### Sekcia Ekonomika — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
 
