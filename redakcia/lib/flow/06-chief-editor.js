@@ -95,12 +95,26 @@ function mergeClusterFacts(items, rep) {
     extracted_at: rep.facts?.extracted_at ?? new Date().toISOString(),
     clustered_at: new Date().toISOString(),
     source_count: new Set(merged.map((f) => f.source_url)).size,
+    // POLIA POLOŽKY (nie faktu) — bez prenosu sa pri zlúčení TICHO stratia.
+    //
+    // source_emphasis: dôraz zdroja, z ktorého importance.js dáva +8. Do
+    //   5. 9. 2026 sa tu zahadzoval, takže ten bonus v produkcii NIKDY
+    //   nezafungoval — overené dátami: všetky klastre ekonomiky mali null,
+    //   hoci položky vo facts_ready hodnotu niesli. Presne tá „dvojitá cesta
+    //   k tomu istému", pred ktorou varuje CLAUDE.md.
+    // location: dateline sekcie svet.
+    //
+    // Z klastra berieme prvú neprázdnu hodnotu — keď udalosť za rekord označí
+    // čo i len jeden zdroj, pre skóre to stačí.
+    source_emphasis: items.map((i) => i.facts?.source_emphasis).find(Boolean) ?? null,
+    location: items.map((i) => i.facts?.location).find(Boolean) ?? null,
     // POZOR: musí sedieť s buildFacts() v 05-verification — zlučovanie clusteru
     // túto hodnotu prepočítava odznova, takže keby tu podmienka na 'analysis'
     // chýbala, výklad desku by po zlúčení stratil povinnú atribúciu a legálna
-    // poistka vo Writerovi by sa nespustila.
+    // poistka vo Writerovi by sa nespustila. To isté platí pre claimed_by:
+    // politické tvrdenie by po zlúčení prestalo vyžadovať „podľa X".
     attribution_required: merged.some(
-      (f) => f.source_type === 'secondary' || f.kind === 'analysis',
+      (f) => f.source_type === 'secondary' || f.kind === 'analysis' || f.claimed_by,
     ),
     facts: merged,
   };
