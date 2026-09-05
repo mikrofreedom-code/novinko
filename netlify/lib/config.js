@@ -47,10 +47,27 @@ const MAX_ITEMS = 100;
 const MAX_AGE_HOURS = 48;
 // Pod toľko položiek nesmie sekcia klesnúť. Keď ich čerstvé (vlastné + RSS)
 // nenaplnia, doplnia sa staršími vlastnými článkami — až na koniec, nikdy nad
-// čerstvé správy. Bez tejto poistky vysychá krypto a ai: sú to jediné kategórie
-// bez zobraziteľných RSS feedov (krypto má 8, všetky anglické → gatherRss ich
-// filtruje; ai nemá vo feeds.js ani jeden).
-const MIN_SECTION_ITEMS = 6;
+// čerstvé správy.
+//
+// PRE VÄČŠINU SEKCIÍ je toto len záchranná poistka, ktorá sa prakticky nikdy
+// nespustí — Slovensko/Svet/Ekonomika/Šport majú slovenské RSS zdroje, takže
+// čerstvé + RSS bežne prekročí aj toto číslo samo, a vetva so starými
+// článkami sa vôbec nedotkne (base.length >= MIN_SECTION_ITEMS vráti hneď).
+//
+// PRE KRYPTO A AI je to naopak REÁLNA VEĽKOSŤ ZOBRAZENIA, nie výnimka: sú to
+// jediné kategórie bez zobraziteľných RSS feedov (krypto má 8, všetky
+// anglické → gatherRss ich filtruje; ai nemá vo feeds.js ani jeden), takže
+// stoja a padajú výhradne na tom, čo napíše Novinko sám. Keď je čerstvá
+// produkcia tenká, práve toto číslo je to, čo čitateľ v sekcii reálne uvidí.
+//
+// Zdvihnuté zo 6 na 30 (2026-09-05): pri 6 pôsobila stránka krypto/AI takmer
+// prázdna, hoci v hárku bolo cez 50 vlastných článkov — mali byť na stránke,
+// nie len v archíve. Vlastné články sa ťahajú CELÉ (fetchSheetItems({all:true})
+// v build.js), zoradené od najnovšieho, takže doplnenie vždy vezme 30
+// NAJNOVŠÍCH, nie náhodných. Keď pribudne nový článok, stane sa „čerstvým“,
+// 30. najstarší v poradí prirodzene vypadne zo zobrazenia — nič sa nemaže ani
+// nepresúva, v archíve ostáva navždy (viď CLAUDE.md: „Zverejnené ostáva“).
+const MIN_SECTION_ITEMS = 30;
 module.exports = {
   SUPABASE_URL,
   SUPABASE_KEY,
