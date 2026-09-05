@@ -53,6 +53,106 @@ const ADVICE_RE = /\b(odpor[uú]čame|radíme vám|mali by ste (kúpiť|predať|
 // zamietať nesmie — kontrola nižšie by inak strieľala do vlastných radov.
 const CONSUMER_ADVICE_RE = /\b((oplatí sa|je (teraz )?čas|je vhodné)\s+(si\s+)?(fixova|refinancova|sporiť|investova|nakúpi|presunú)|mali by ste\s+(si\s+)?(fixova|refinancova|sporiť|presunú|zvážiť)|zvážte\s+(si\s+)?(fixáciu|refinancovanie|presun|nákup|predaj|investíc)|(fixujte|refinancujte|sporte|presuňte)\b)/i;
 
+// ============================================================
+// ZÁHRADA — vlastný profil kontrol (od 2026-09-07)
+// ------------------------------------------------------------
+// PREČO VLASTNÝ PROFIL: CHECKS nižšie sú postavené pre AGREGOVANÉ
+// spravodajstvo — priznaj, čo si prevzal (atribúcia), nedávaj investičné rady
+// (ADVICE_RE/CONSUMER_ADVICE_RE). Záhrada je presný opak: pôvodné know-how,
+// ktoré JE rada od začiatku do konca. Overené naživo pred zavedením profilu:
+// bežná záhradná veta „Odporúčame rez naplánovať pred pučaním" padala na
+// investičné-poradenstvo, hoci „odporúčame" tam znamená len „navrhujeme",
+// nie kúpne odporúčanie — generický regex je pre túto rubriku nesprávna
+// doména, nie chyba v regexe.
+//
+// Riziko Záhrady nie je zlá atribúcia, je ŠKODLIVÁ RADA (BIBLIA-ZAHRADA.md
+// kapitola 5). Preto úplne iná sada kontrol nižšie.
+//
+// SPOLOČNÝ PRINCÍP VŠETKÝCH: falošný pozitív (článok ide na 'rejected', hoci
+// bol v poriadku) je zotaviteľná chyba — MANUAL_APPROVAL aj tak stojí medzi
+// každým článkom a webom, človek si to prečíta v Telegrame. Falošný negatív
+// (škodlivá rada prejde) nie je. Kontroly preto zámerne CHYTAJÚ ŠIRŠIE, než
+// je nutné — presný opak filozofie ADVICE_RE vyššie, kde falošný pozitív
+// stojí čitateľnosť článku o niečo viac.
+//
+// (?<![\p{L}]) s `u` flagom namiesto \b VŠADE, aj tam, kde by \b dnes
+// fungoval (stem začína ASCII písmenom) — jednotný štýl, nech sa nabudúce
+// nezopakuje chyba z 15-zahrada.js (a KRYPTO_RE pred ňou): \b je v JS
+// definované cez ASCII \w, takže pred diakritickým písmenom hranica slova
+// nikdy nenastane.
+const ZAHRADA_PRIPRAVOK_RE = /(?<![\p{L}])(\d+([.,]\d+)?\s?(ml|g)\s*(na|\/)\s*(1\s?)?(liter|l)(?![\p{L}])|\d+([.,]\d+)?\s?%\s*roztok\w*|postrekov\w*|aplikuj\w*|dávkovan\w*|ochrann[áa]\s+dob\w*)/iu;
+const ZAHRADA_HUBY_RE = /(?<![\p{L}])(huba|huby|húb\w*|hríb\w*|muchotrávk\w*|bedľ\w*|pečiark\w*)/iu;
+const ZAHRADA_ZDRAVIE_RE = /(?<![\p{L}])(lieči\w*|pomáha(jú)?\s+na|znižuje\s+riziko|zníži\s+riziko|hojí\w*|zmierňuje\s+príznaky|posilňuje\s+imunitu)/iu;
+const ZAHRADA_DATUM_RE = /\b\d{1,2}\.\s*(január\w*|febru[áa]r\w*|marec|marca|apríl\w*|máj|mája|jún\w*|júl\w*|august\w*|september\w*|okt[óo]ber\w*|november\w*|december\w*)/iu;
+const ZAHRADA_INVAZNE_RE = /(?<![\p{L}])(pajase[ňn]\w*|boľševník\w*|krídlatk\w*|zlatobyľ\w*|netýkavk\w*\s+žliazkat\w*)/iu;
+const ZAHRADA_USMRTENIE_RE = /(?<![\p{L}])(otráv\w*|usmrti\w*|zabi(ť|te)\w*|vyhubi\w*|jedovat[áé]\s+n[áa]sad\w*)/iu;
+// Úzko na kúpny imperatív — NIE na "odporúčame"/"zvážte" (bežné editorské
+// slová v návode), presne to, čo generickému ADVICE_RE chýbalo.
+const ZAHRADA_KUP_RE = /(?<![\p{L}])(kúpte|nakúpte|zaobstarajte\s+si|obstarajte\s+si)\s/iu;
+
+const ZAHRADA_CHECKS = [
+  {
+    id: 'zdroje',
+    run: ({ article }) => (article.sources ?? []).length === 0 ? 'článok nemá ani jeden zdroj' : null,
+  },
+  {
+    id: 'pripravky',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_PRIPRAVOK_RE);
+      return hit ? `konkrétny prípravok/dávkovanie: „${hit[0]}" — smie byť len všeobecný odkaz na register ÚKSÚP` : null;
+    },
+  },
+  {
+    id: 'huby',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_HUBY_RE);
+      return hit ? `zmienka o hubách: „${hit[0]}" — huby sa v tejto rubrike nespracúvajú vôbec` : null;
+    },
+  },
+  {
+    id: 'zdravotné-tvrdenia',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_ZDRAVIE_RE);
+      return hit ? `zdravotné tvrdenie o rastline: „${hit[0]}" — bylinka je rastlina, nie liek` : null;
+    },
+  },
+  {
+    id: 'presný-dátum',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_DATUM_RE);
+      return hit ? `presný kalendárny dátum: „${hit[0]}" — termín patrí viazať na fázu rastliny alebo teplotu` : null;
+    },
+  },
+  {
+    id: 'invázny-druh',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_INVAZNE_RE);
+      return hit ? `zmienka o invázom druhu: „${hit[0]}" — over, že text ho neodporúča vysadiť (nariadenie EÚ 1143/2014)` : null;
+    },
+  },
+  {
+    id: 'usmrtenie-stavovca',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_USMRTENIE_RE);
+      return hit ? `možné usmrtenie stavovca: „${hit[0]}" — pri kroch/vtákoch/hlodavcoch len odpudzovanie` : null;
+    },
+  },
+  {
+    id: 'kúpna-výzva',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_KUP_RE);
+      return hit ? `výzva na kúpu: „${hit[0].trim()}"` : null;
+    },
+  },
+];
+
 // Zoznam kontrol. Každá vráti null (ok) alebo text dôvodu (zamietnuté).
 const CHECKS = [
   {
@@ -105,6 +205,14 @@ const CHECKS = [
   },
 ];
 
+// Ktorý profil kontrol platí pre danú položku. Sekcia sa hľadá na oboch
+// miestach, kde v pipeline zvykne bývať (article.section prednostne —
+// rovnaké poradie, aké používa 12-publisher pri categoryFor()).
+function checksFor(article, facts) {
+  const section = article?.section ?? facts?.section;
+  return section === 'zahrada' ? ZAHRADA_CHECKS : CHECKS;
+}
+
 // ---------- Spracuj JEDEN článok ----------
 // dryRun: prebehne checklist a vráti výsledok, ale NEZAPÍŠE do fronty.
 export async function run(item, { dryRun = false } = {}) {
@@ -113,9 +221,10 @@ export async function run(item, { dryRun = false } = {}) {
     throw new Error('item.article chýba headline/body');
   }
   const ctx = { article, facts: item.facts ?? {} };
+  const checks = checksFor(article, item.facts);
 
   const problemy = [];
-  for (const check of CHECKS) {
+  for (const check of checks) {
     const dovod = check.run(ctx);
     if (dovod) problemy.push(`${check.id}: ${dovod}`);
   }
@@ -127,7 +236,7 @@ export async function run(item, { dryRun = false } = {}) {
 
   const checked = {
     ...article,
-    legal: { passed: CHECKS.map((c) => c.id), at: new Date().toISOString() },
+    legal: { passed: checks.map((c) => c.id), at: new Date().toISOString() },
   };
   if (!dryRun) await advance(item.id, STAGE.output, { article: checked });
   return { ok: true, problemy: [] };
