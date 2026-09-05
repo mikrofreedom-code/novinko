@@ -77,6 +77,36 @@ D) REGISTER — colloquialisms and diminutives that do not belong in news Slovak
 
 E) GRAMMAR / DIACRITICS — fix outright errors only.
 
+F) LEGAL STATUS — a proposal reported as a decision, a lawsuit as a verdict, an
+   investigation as guilt, a draft regulation as law in force. Check the status
+   against FACTS and restore the one FACTS actually state.
+   THE SAME APPLIES TO THE STATUS OF A FIGURE: when a fact carries
+   "status": "preliminary" | "revised" | "forecast", the text must say so
+   ("predbežný odhad", "revidovaný údaj", "prognóza"). A flash estimate
+   presented as a final number, or a projection presented as an outcome, is the
+   same error wearing a different costume.
+
+G) CONFLATED QUANTITY — a number presented as measuring something it does not:
+   funding amount vs. valuation vs. market cap; trading volume vs. transfer
+   volume vs. TVL vs. ETF flow; transaction count vs. user count. In economic
+   copy also: PERCENT vs. PERCENTAGE POINTS (a rate moving from 4.00% to 4.25%
+   rose by 0.25 pp, NOT by 0.25%); deficit (a yearly flow) vs. debt (a total
+   stock); nominal vs. real, i.e. inflation-adjusted; month-on-month vs.
+   year-on-year; revenue vs. profit; a growth rate vs. a level. A comparative
+   claim ("X overtook Y") must carry BOTH the metric and the period.
+   PERIOD: when a fact carries "period", the text must tie the number to THAT
+   period, never to the publication date — a September release usually reports
+   August ("inflácia v auguste", not "v septembri").
+
+H) OVERREACH FROM ONE TEST — a single benchmark turned into a general verdict
+   ("the best AI in the world"). Narrow it to what was actually measured: which
+   model version, which benchmark, who ran the test.
+
+F, G and H are the EXCEPTION to "deleting is preferred" below: fixing them means
+restoring a status or metric that FACTS already state, which is not inventing.
+Use action "reworded". If FACTS do not state it, delete the sentence instead —
+never guess the correct status, metric or period.
+
 Rules:
 - Never invent replacement content. Deleting is always preferred to rewriting.
 - Keep paragraph breaks as blank lines. Keep the article in Slovak.
@@ -86,7 +116,7 @@ Rules:
 Return ONLY valid JSON, no markdown fence:
 {
   "verdict": "ok" | "fixed" | "reject",
-  "issues": [{"type":"A|B|C|D|E","quote":"the offending fragment","action":"removed|reworded"}],
+  "issues": [{"type":"A|B|C|D|E|F|G|H","quote":"the offending fragment","action":"removed|reworded"}],
   "headline": "final headline",
   "perex": "final perex or null",
   "body": "final body with paragraphs separated by blank lines"
