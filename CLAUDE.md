@@ -82,9 +82,19 @@ nesmie z webu zmiznúť — po čase klesne pod čerstvé a ostáva v archíve.
   automatické, toto slúži na správu značky.
 - **AI transparentnosť:** tagline v hlavičke, popisky pod obrázkami, impressum §6
 - **Pipeline:** hodinový cron na používateľovom desktope, NIE v cloude.
+  Od 5. 9. 2026 s ROZVRHOM: nočná pauza 22:00–5:00 (celý beh, nielen scout) a
+  kadencia per sekcia — svet každú hodinu, krypto každé 2, ekonomika každé 3,
+  AI každé 4, s posunmi tak, aby žiadna aktívna hodina nebola prázdna a žiadna
+  nemala všetky štyri naraz. 35 sťahovaní denne namiesto 68. Nastavuje sa
+  v `lib/sections/index.js` (`scoutEveryH`, `scoutOffsetH`), pauza v
+  `run-pipeline.mjs` (`NIGHT_PAUSE_FROM_H`/`TO_H`, `--force` ju obíde).
+  POZOR: `PRUNE_HOUR` musí ležať mimo pauzy, inak sa údržba nespustí nikdy.
   14.–18. 8. bežalo 24 behov denne bez výpadku.
 - **Náklady (merané 19. 8.):** AI $0.625/deň ≈ $19/mes + Replicate ~$1.35
-  + Netlify $9 → **~$29/mesiac**. Denný strop $0.80 sa nedosahuje.
+  + Netlify $9 → **~$29/mesiac**. Denný strop bol 5. 9. zdvihnutý z $0.80 na
+  **$1.20** (`DAILY_BUDGET_USD` v `.env`) kvôli štyrom sekciám.
+  Namerané 5. 9.: extrakcia $0.0097/volanie, Writer $0.0225, korektúra $0.0084,
+  obrázok $0.0004 → hotový článok ≈ **$0.032** plus extrakcie, ktoré k nemu viedli.
 
 ## Čo bolí
 
@@ -117,21 +127,24 @@ a zmena filtra patrí do samostatného commitu s meraním, čo pribudne.
 
 ## Čo čaká (stav k 5. 9. 2026)
 
-### 🔴 REDAKCIA NEPÍŠE — najprv toto, zvyšok je bezpredmetný
+### ✅ VÝPADOK KREDITU VYRIEŠENÝ (5. 9.)
 
-**Anthropic účet nemá kredit.** Posledné úspešné AI volanie **24. 8. o 12:01**,
-posledný publikovaný článok **27. 8.** Cron beží ďalej, scout zbiera, gateway
-filtruje — ale všetko, čo dorazí k `05-verification`, spadne na
-`credit balance is too low`.
+Od 24. 8. do 5. 9. redakcia nepísala — Anthropic účet nemal kredit a všetko, čo
+dorazilo k `05-verification`, padalo na `credit balance is too low`. Kredit je
+dobitý a overený živým volaním; extrakcia aj Writer zase bežia.
 
-- **457 položiek visí v `error`** s týmto dôvodom (merané 5. 9., rastie).
-- **`retry.js` ich už po dobití zachráni** — opravené 5. 9. Nedostatok kreditu
-  má vlastnú vetvu, rovnako ako budget guard: nepočíta sa do `MAX_RETRIES`
-  (odmietnutý pokus na nulový kredit nič nestojí), takže sa skúša znova pri
-  každom behu, kým sa účet nedobije. Predtým sa chyba netrafila do `TRANSIENT`
-  regexu a položka zostala v `error` navždy.
-- Väčšina tých položiek je staršia než `CLUSTERED_MAX_AGE_H = 24`, takže by ich
-  Writer aj tak zahodil. Reálne prežijú len tie najčerstvejšie.
+Čo z toho ostalo v kóde a platí ďalej:
+
+- **`retry.js` má pre nedostatok kreditu vlastnú vetvu**, rovnako ako budget
+  guard: nepočíta sa do `MAX_RETRIES` (odmietnutý pokus na nulový kredit nič
+  nestojí), takže sa skúša znova pri každom behu, kým sa účet nedobije. Predtým
+  sa chyba netrafila do `TRANSIENT` regexu a položka zostala v `error` navždy.
+  Overené v prevádzke: jeden beh vrátil do hry 194 položiek.
+- **`05-verification` má škrt veku.** Po dobití retry vrátil 428 položiek, z
+  toho 360 starších než 24 h — Writer by ich aj tak zahodil, ale Haiku by sa za
+  ne zaplatilo (~$2,4) a hlavne by vytlačili čerstvé správy z kandidátskeho
+  fondu (`claim()` radí najstaršie prvé; v jednej dávke bolo 200 z 200
+  zastaraných). Odteraz sa zamietnu bez AI volania.
 
 ### Sekcia Ekonomika — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
 
