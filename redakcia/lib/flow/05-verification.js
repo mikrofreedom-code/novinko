@@ -35,7 +35,8 @@ import { parseModelJson } from '../_shared/json.js';
 import { groundFacts, quoteGrounded } from '../_shared/grounding.js';
 import { prescore } from '../_shared/prescore.js';
 import { fetchFullArticleText } from '../_shared/fetch-article.js';
-import { liveFor } from '../sections/index.js';
+import { liveFor, sectionDue } from '../sections/index.js';
+import { roundRobinCap } from './07-writer.js';
 
 // Pod touto dĺžkou RSS súhrnu skús dotiahnuť celý článok zo zdroja (viac
 // materiálu pre Fact Extractor). Nad týmto stropom má feed už dosť textu,
@@ -572,7 +573,28 @@ export async function runBatch(limit = CANDIDATE_POOL) {
   // prehrávali aj vecne, nielen počtom. Dôsledok bol viditeľný až na webe:
   // MIN_SECTION_ITEMS poistka (netlify/lib/config.js) musela dopĺňať krypto/AI
   // takmer výhradne starými článkami, lebo nová produkcia takmer stála.
-  const platene = textove.filter((it) => liveFor(it.raw_data?.section ?? 'krypto'));
+  //
+  // ČIA JE TERAZ HODINA — rovnaká funkcia, akú už 01-scout používa na
+  // rozhodnutie, ktorá sekcia sa má tento beh sťahovať (scoutEveryH/
+  // scoutOffsetH v sections/index.js). Zámer rozvrhu z 5. 9. bol VÝHRADNOSŤ,
+  // nie len rovnomerné sťahovanie: keď je hodina krypta, extrakcia sa má
+  // venovať LEN krypto backlogu, nie sa naň nabaľovať s AI, ktoré práve
+  // dorazilo z ich hodiny. Bez tohto by extrakcia bežala každú hodinu nad
+  // VŠETKÝM naraz bez ohľadu na rozvrh — presne to, čo mal rozvrh predísť,
+  // len o krok ďalej v reťazi.
+  //
+  // AND s liveFor(): sekcia musí byť aj živá aj práve na rade. Krypto a AI sa
+  // dnes v rozvrhu nikdy neprekrývajú (krypto párne hodiny, AI 5/9/13/17/21),
+  // takže bežný prípad je vždy PRESNE jedna živá sekcia za hodinu — nie
+  // súťaž, žiadne predbiehanie. roundRobinCap nižšie je poistka pre výnimočný
+  // prípad, keby sa neskôr (napr. po zapnutí Ekonomiky/Sveta) dve živé sekcie
+  // predsa len stretli v tej istej hodine — vtedy sa aspoň spravodlivo delia,
+  // namiesto aby krypto vyhrávalo vďaka širšiemu slovníku v prescore.js.
+  const now = new Date();
+  const platene = textove.filter((it) => {
+    const sec = it.raw_data?.section ?? 'krypto';
+    return liveFor(sec) && sectionDue(sec, now);
+  });
   const neziva = textove.length - platene.length;
 
   // ŠKRT VEKU — nezaplať za extrakciu toho, čo Writer o krok neskôr zahodí.
@@ -589,11 +611,10 @@ export async function runBatch(limit = CANDIDATE_POOL) {
   //
   // Layer A (čísla) sa neškrtá — nestojí nič a scout ho vkladá čerstvý pri
   // každom behu.
-  const now = Date.now();
   const cerstve = [];
   let zastarane = 0;
   for (const it of platene) {
-    const vekH = (now - new Date(it.created_at).getTime()) / 3600000;
+    const vekH = (now.getTime() - new Date(it.created_at).getTime()) / 3600000;
     if (vekH <= MAX_AGE_H) { cerstve.push(it); continue; }
     await advance(it.id, 'rejected', {
       error: `${AGENT}: zastarané — čakalo ${Math.round(vekH)} h vo fronte `
@@ -603,12 +624,27 @@ export async function runBatch(limit = CANDIDATE_POOL) {
   }
 
   // Zberový režim: platené necháme čakať, číselné spracujeme.
+  //
+  // `cerstve` v bežnom prípade obsahuje LEN JEDNU živú sekciu — tú, čo je
+  // práve na rade (filter vyššie). roundRobinCap tu preto zvyčajne triedi
+  // položky jednej jedinej sekcie podľa prescore, nič nestrieda.
+  //
+  // Je to napriek tomu roundRobinCap, nie plné triedenie+slice, ako POISTKA
+  // pre výnimočný súbeh: keby sa neskôr (napr. po zapnutí Ekonomiky/Sveta)
+  // dve živé sekcie stretli v tej istej hodine rozvrhu, mali by sa aspoň
+  // spravodlivo striedať — bez toho by krypto vyhrávalo vďaka širšiemu
+  // slovníku v prescore.js (SEC/ETF/hack/listing — štyri rôzne cesty
+  // k bonusu, kým AI má jedinú, vzor „research"), nie vyššej skutočnej
+  // hodnote. Overené poctivo premiešanou simuláciou (20× 30 krypto + 30 ai
+  // kandidátov cez Fisher-Yates — netriedené dalo skreslených 9:3, po
+  // premiešaní poctivých 55:45).
   const vybrane = aiEnabled
-    ? cerstve
-      .map((it) => ({ it, s: prescore(it.raw_data ?? {}).score }))
-      .sort((a, b) => b.s - a.s)
-      .slice(0, MAX_EXTRACTIONS_PER_RUN)
-      .map((x) => x.it)
+    ? roundRobinCap(
+      cerstve,
+      MAX_EXTRACTIONS_PER_RUN,
+      (it) => it.raw_data?.section ?? 'krypto',
+      (it) => prescore(it.raw_data ?? {}).score,
+    )
     : [];
 
   const results = {
