@@ -234,6 +234,12 @@ export async function run({ force = false, dryRun = false } = {}) {
 
   if (dryRun) return { dryRun: true, slug: topic.slug, oblast: topic.oblast, typ: topic.typ };
 
+  // Zberový režim: rovnaká brána, akú majú 05-verification a 11-image — AŽ TU,
+  // PO výbere témy, nech dryRun vie povedať, čo by sa napísalo, aj keď je
+  // AI_ENABLED=false. Sonnet za jeden článok je najdrahšie AI volanie v celej
+  // reťazi, nemá čo bežať v zberovom režime.
+  if (process.env.AI_ENABLED === 'false') return { skipped: 'AI_ENABLED=false (zberový režim)', wouldPick: topic.slug };
+
   const article = await napisClanok(topic);
 
   const { error } = await db.from('queue').insert({

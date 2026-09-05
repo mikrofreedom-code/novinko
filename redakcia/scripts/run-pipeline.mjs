@@ -21,6 +21,7 @@ import * as writer from '../lib/flow/07-writer.js';
 import * as proofreader from '../lib/flow/08-proofreader.js';
 import * as legal from '../lib/flow/09-legal.js';
 import * as marketRecap from '../lib/flow/13-market-recap.js';
+import * as zahrada from '../lib/flow/15-zahrada.js';
 import * as image from '../lib/flow/11-image.js';
 import * as publisher from '../lib/flow/12-publisher.js';
 
@@ -81,6 +82,13 @@ async function main() {
   log('13-market-recap — denný prehľad trhu (raz ráno) → written');
   try { console.log('  ', await marketRecap.run()); }
   catch (e) { console.log('   ⚠️ recap preskočený:', e.message); }
+
+  // Vlastný spúšťač, nie facts pipeline — vloží rovno do 'proofed' (viď
+  // hlavička 15-zahrada.js), 08 ho preto NEVIDÍ. Volané tu, aby v tom istom
+  // behu stihlo prejsť 09-legal aj 11-image nižšie, nie až v ďalšej hodine.
+  log('15-zahrada — sezónny generátor (raz denne) → proofed');
+  try { console.log('  ', await zahrada.run()); }
+  catch (e) { console.log('   ⚠️ záhrada preskočená:', e.message); }
 
   // Korektúra a právna kontrola bežia AŽ TU, teda aj na denný recap vyššie —
   // práve v ňom sa 30.7. objavila vymyslená príčinná súvislosť.
