@@ -136,11 +136,22 @@ kreditu si najprv pozri reálne `facts` JSON (polia `period`, `status`,
 z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
 
 - **Zdroje:** 6 overených (Európska komisia, Fed, CNBC Economy, Euronews
-  Business, MarketWatch, Yahoo Finance). Slovenský primárny zdroj NEEXISTUJE —
-  ŠÚSR, OECD, IMF aj US BLS sú za Akamai (403), MF SR a World Bank nemajú RSS,
-  Eurostat feed je mŕtvy od 2021, Reuters zrušil verejné RSS. **Slovenskú
-  ekonomiku robí redakcia ručne.** Zamietnutí kandidáti sú aj s dôvodmi
+  Business, MarketWatch, Yahoo Finance). Zamietnutí kandidáti sú aj s dôvodmi
   v komentári vo `feeds.js` — neskúšaj ich znova.
+- **Cez RSS ani cez stránku sa k slovenským dátam nedostaneš.** ŠÚSR, OECD, IMF
+  aj US BLS vracajú 403/503 aj na HTML aj s naším čestným UA — blokujú automat
+  na okraji siete. Obísť sa to dá len predstieraním inej identity a to je proti
+  pravidlu v hlavičke `fetch-article.js` („žiadne obchádzanie blokov").
+- **ALE OTVORENÉ API ŽIJÚ** (overené 5. 9.) — a to je cesta, nie scrapovanie:
+  - `data.statistics.sk/api/v2/collection` (ŠÚSR, JSON-stat) → 200, zoznam
+    datasetov aj s poľom `update`, takže sa dá zistiť, čo pribudlo.
+  - Eurostat dissemination API → 200, hoci ich RSS je mŕtve. Vie vrátiť viac
+    období naraz, čiže **predchádzajúca hodnota prichádza zo zdroja** a Writer
+    ju nemusí dopočítavať (viď zákaz porovnaní v `05`).
+  Nie je to riadok do `feeds.js` — je to nový typ zdroja: poller na zmenu
+  `update`, mapovanie JSON-stat na fakty (Layer A, bez AI) a rozhodnutie, kedy
+  je nové číslo správa. POZOR: dotaz na HICP vrátil december 2025 s `updated`
+  6. 2. 2026 — čerstvosť preveriť skôr, než sa na tom začne stavať.
 - **Čo je neoverené:** správanie modelu na novom prompte. Nikdy nebežalo naživo.
 
 ### Rozpracované, NECOMMITNUTÉ

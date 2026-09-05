@@ -129,6 +129,13 @@ export const FEEDS = [
   // je MŔTVY — posledná položka je z 30. 9. 2021. Slovenskú ekonomiku preto robí
   // redakcia ručne; táto sekcia pokrýva EÚ a svet.
   //
+  // POZOR, TOTO NIE JE CELÝ PRÍBEH (doplnené 5. 9.): cez RSS a HTML sa k tým
+  // dátam naozaj nedostaneme, ale OTVORENÉ API ŽIJÚ — data.statistics.sk/api/v2
+  // (ŠÚSR, JSON-stat) aj Eurostat dissemination API vracajú 200. Tie sem nepatria,
+  // lebo FEEDS je zoznam RSS/Atom zdrojov pre 01-scout; API by potreboval vlastný
+  // typ zdroja (poller na zmenu poľa `update` + mapovanie JSON-stat na fakty
+  // Layer A štýlom). Podrobnosti a caveaty v koreňovom CLAUDE.md.
+  //
   // desk: true pri médiách je zovšeobecnenie pôvodného významu („research desk
   // búrzy") na „zdroj, ktorý smie niesť výklad". V ekonomike je tým výkladom
   // prognóza a očakávanie ekonómov — bez tohto príznaku by extraktor musel
