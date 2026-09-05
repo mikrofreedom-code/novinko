@@ -75,9 +75,24 @@ const EVENT_TYPES_EKONOMIKA = [
   'regulatory', 'announcement', 'security', 'other',
 ];
 
-const eventTypesFor = (section) => (section === 'ekonomika'
-  ? EVENT_TYPES_EKONOMIKA
-  : EVENT_TYPES_MARKET);
+const EVENT_TYPES_SVET = [
+  'diplomacy',      // summity, rokovania, dohody, návštevy, prímeria
+  'election',       // voľby, kampaň, výsledky, referendá
+  'institutional',  // rozhodnutia OSN, NATO, EÚ, medzinárodných organizácií
+  'sanctions',      // sankcie a ich rušenie
+  'court_ruling',   // rozsudky, obžaloby, medzinárodné tribunály
+  'protest',        // demonštrácie, štrajky, nepokoje
+  'disaster',       // prírodné katastrofy, veľké nehody
+  'conflict',       // boje, útoky, frontová línia — ZÁMERNE hlboko pod latkou,
+                    // viď eventBase. Frontové spravodajstvo robí redakcia ručne.
+  'regulatory', 'announcement', 'security', 'other',
+];
+
+const eventTypesFor = (section) => {
+  if (section === 'ekonomika') return EVENT_TYPES_EKONOMIKA;
+  if (section === 'svet') return EVENT_TYPES_SVET;
+  return EVENT_TYPES_MARKET;
+};
 
 // Stav čísla tak, ako ho označuje sám zdroj. Čokoľvek iné (vrátane hádania)
 // spadne na null — radšej bez označenia než s vymysleným.
@@ -192,20 +207,96 @@ const EKONOMIKA_RULES = `
   that short phrase there. null if the source makes no such claim. Never add
   emphasis of your own — this field exists to carry the source's, not yours.`;
 
+// Ekvivalent ANALYSIS_RULE pre svet. Výkladom tu nie je „prečo sa pohla cena"
+// ani prognóza, ale „prečo to tá vláda urobila a čo to znamená".
+const ANALYSIS_RULE_SVET = `
+- kind="analysis" (ONLY for this source type): the outlet's or a NAMED expert's
+  own reading — why an actor did something, what it signals, what may follow.
+  Rephrase into a neutral claim (do NOT copy their sentences), max ~25 words.
+  Extract these ONLY when the source actually argues it; never infer it yourself.
+  Anything the outlet presents as its own interpretation belongs here, never in
+  kind="fact".`;
+
+// NO_CAUSALITY_RULE hovorí o cene, objeme a trhu — na správu o voľbách v Keni
+// nesadne ani slovom. Toto je tá istá logika preložená do sveta: motív a zámer
+// aktéra nie sú fakt. Výnimka ostáva rovnaká a je dôležitá — keď vláda sama
+// povie, prečo niečo urobila, je to fakt, nie dohad.
+const NO_CAUSALITY_RULE_SVET = `
+- MOTIVE AND MEANING ARE NOT FACTS: never extract a statement that explains WHY
+  a government, party, court or any actor did something ("the move was aimed at
+  pressuring X", "in response to mounting criticism", "amid fears of unrest"),
+  nor what an event signals or portends. That is interpretation, and this source
+  is not authorised to carry it — drop such statements entirely, even when the
+  source states them confidently. Extract only WHAT happened, WHO did it, WHEN
+  and WHERE.
+  EXCEPTION: an actor explaining its OWN action is a fact and stays ("the
+  ministry said it closed the border because of the flooding").`;
+
+// Pravidlá výhradne pre svet. Obe polia vznikli z konkrétnej požiadavky:
+//
+//   claimed_by — os fakt vs. tvrdenie. „Parlament schválil zákon" je fakt,
+//                „minister tvrdí, že zákon zníži ceny" je tvrdenie. Model má
+//                silný sklon podať druhé ako prvé, lebo zdroj to formuluje
+//                oznamovacou vetou. Bez tohto poľa by Writer publikoval
+//                politické tvrdenie ako overený fakt.
+//   location   — dateline. „BRUSEL —" je to, čím sa zahraničná rubrika pozná
+//                na prvý pohľad, a krajina je v každej svetovej správe.
+const SVET_RULES = `
+- "claimed_by": WHO ASSERTS IT. When the source attributes a statement to an
+  interested party — a government, ministry, party, army, company or anyone with
+  a stake in how it is understood — name that actor here ("Russian defence
+  ministry", "the prime minister", "Kenya's electoral commission"). Set it to
+  null ONLY when the source reports the thing as established rather than as
+  somebody's claim.
+  A POLITICAL CLAIM IS NEVER A BARE FACT: "parliament passed the law" is a fact
+  (claimed_by null); "the minister says the law will cut prices" is a claim
+  (claimed_by "the minister"). ALWAYS fill claimed_by for casualty and damage
+  figures, territorial control, election results before official certification,
+  and any number supplied by a party to a dispute.
+- "location": the country, city or region where the event happened, exactly as
+  the source gives it ("Kenya", "Brussels", "Gaza"). null if the item has no
+  single place.
+- HUMAN COST IS REPORTED, NOT DRAMATISED: extract casualty and damage figures
+  plainly, with claimed_by set to whoever supplied them. Do not extract a
+  source's emotive framing ("horrific scenes", "apocalyptic") — that is colour,
+  not fact.`;
+
 const extractSystem = (desk, section) => {
   const ekonomika = section === 'ekonomika';
-  const analysisRule = ekonomika ? ANALYSIS_RULE_EKONOMIKA : ANALYSIS_RULE;
-  const factFields = ekonomika
-    ? '"statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "period": string|null, "status": "final"|"preliminary"|"revised"|"forecast"|null, "confidence": number'
-    : '"statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "confidence": number';
-  const topFields = ekonomika
-    ? '"entity": string|null, "event_type": one of [' + eventTypesFor(section).join(', ') + '], "source_emphasis": string|null'
-    : '"entity": string|null, "event_type": one of [' + eventTypesFor(section).join(', ') + ']';
+  const svet = section === 'svet';
+  // Každá sekcia si berie SVOJE pravidlá aj SVOJE polia — krypto/AI tak nenesú
+  // ani jeden token navyše a ich prompt zostáva presne taký, aký bol.
+  let analysisRule = ANALYSIS_RULE;
+  let noCausalityRule = NO_CAUSALITY_RULE;
+  let sectionRules = '';
+  let desk_label = 'a crypto news desk';
+  let extraFactFields = '';
+  let extraTopFields = '';
 
-  return `You are a legally-critical fact extractor for ${ekonomika ? 'an economics news desk' : 'a crypto news desk'}.
+  if (ekonomika) {
+    analysisRule = ANALYSIS_RULE_EKONOMIKA;
+    sectionRules = EKONOMIKA_RULES;
+    desk_label = 'an economics news desk';
+    extraFactFields = ', "period": string|null, "status": "final"|"preliminary"|"revised"|"forecast"|null';
+    extraTopFields = ', "source_emphasis": string|null';
+  } else if (svet) {
+    analysisRule = ANALYSIS_RULE_SVET;
+    noCausalityRule = NO_CAUSALITY_RULE_SVET;
+    sectionRules = SVET_RULES;
+    desk_label = 'a world news desk';
+    extraFactFields = ', "claimed_by": string|null';
+    extraTopFields = ', "location": string|null';
+  }
+
+  const factFields = '"statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null'
+    + extraFactFields + ', "confidence": number';
+  const topFields = '"entity": string|null, "event_type": one of ['
+    + eventTypesFor(section).join(', ') + ']' + extraTopFields;
+
+  return `You are a legally-critical fact extractor for ${desk_label}.
 Output ONLY valid JSON, no prose, no code fences.
 Schema: {${topFields}, "facts": [{"kind": ${kindsFor(desk)}, ${factFields}}]}
-Rules:${desk ? analysisRule : NO_CAUSALITY_RULE}${ekonomika ? EKONOMIKA_RULES : ''}
+Rules:${desk ? analysisRule : noCausalityRule}${sectionRules}
 - THOROUGHNESS: extract EVERY distinct verifiable fact present in the text, not just
   the single most obvious one. Be concrete about volume: a full source article
   (roughly 800+ words) should yield 12-20 facts, a short announcement 4-8.
@@ -238,7 +329,7 @@ Rules:${desk ? analysisRule : NO_CAUSALITY_RULE}${ekonomika ? EKONOMIKA_RULES : 
 // dryRun v 08-proofreader.
 export async function factsFromText(item, meta) {
   let text = [item.raw_data?.title, item.raw_data?.text].filter(Boolean).join('\n\n');
-  if (!text) return { entity: meta.entity ?? null, event_type: 'other', source_emphasis: null, facts: [] };
+  if (!text) return { entity: meta.entity ?? null, event_type: 'other', source_emphasis: null, location: null, facts: [] };
 
   // RSS súhrn je príliš krátky na to, aby z neho bolo čo extrahovať →
   // skús dotiahnuť celý článok zo zdroja (dočasne, v pamäti, viď fetch-article.js).
@@ -305,6 +396,12 @@ export async function factsFromText(item, meta) {
     // číslo konečné. Ostatné sekcie tieto polia v prompte nemajú → ostanú null.
     period: typeof f.period === 'string' ? f.period.slice(0, 60) : null,
     status: FACT_STATUSES.includes(f.status) ? f.status : null,
+    // Svet: KTO to tvrdí, keď zdroj tvrdenie pripisuje zainteresovanej strane.
+    // Vyplnené pole zapína attribution_required (viď buildFacts) — Writer teda
+    // MUSÍ napísať „podľa X" a 09-legal ho bez toho zamietne.
+    claimed_by: typeof f.claimed_by === 'string' && f.claimed_by.trim()
+      ? f.claimed_by.slice(0, 120)
+      : null,
     // Atribúcia VŽDY z metadát položky, nikdy nie z AI:
     source_name: meta.source_name,
     source_url: meta.source_url,
@@ -339,17 +436,26 @@ export async function factsFromText(item, meta) {
     source_emphasis: typeof parsed.source_emphasis === 'string'
       ? parsed.source_emphasis.slice(0, 120)
       : null,
+    // Svet: dateline. „BRUSEL —" je to, čím sa zahraničná rubrika pozná na
+    // prvý pohľad; krajina je pritom v každej svetovej správe.
+    location: typeof parsed.location === 'string' && parsed.location.trim()
+      ? parsed.location.slice(0, 80)
+      : null,
     facts: kept,
   };
 }
 
 // ---------- Spoluj fakty do finálneho facts JSON ----------
-function buildFacts({ entity, event_type, facts, section, source_emphasis }) {
+function buildFacts({ entity, event_type, facts, section, source_emphasis, location }) {
   // Výklad desku sa BEZ atribúcie publikovať nesmie — je to ich názor, nie
   // overený fakt. Preto 'analysis' vynucuje „podľa X" rovnako ako sekundárny
   // zdroj; Writer bez nej neprejde (kontrola v 07-writer).
+  //
+  // claimed_by (svet) sa sem pripája ZÁMERNE, namiesto novej kontroly v 09:
+  // politické tvrdenie má presne tú istú požiadavku ako výklad desku — musí
+  // byť v texte vidieť, KTO to tvrdí. Reuse existujúcej brány, nie druhá vedľa.
   const attribution_required = facts.some(
-    (f) => f.source_type === 'secondary' || f.kind === 'analysis',
+    (f) => f.source_type === 'secondary' || f.kind === 'analysis' || f.claimed_by,
   );
   return {
     entity: entity ?? null,
@@ -359,6 +465,7 @@ function buildFacts({ entity, event_type, facts, section, source_emphasis }) {
     extracted_at: new Date().toISOString(),
     attribution_required,
     source_emphasis: source_emphasis ?? null,
+    location: location ?? null,
     facts,
   };
 }
@@ -387,6 +494,7 @@ export async function run(item) {
   let entity = meta.entity;
   let event_type = 'other';
   let source_emphasis = null;
+  let location = null;
 
   // Layer A: čísla bez AI.
   if (rd.metrics && typeof rd.metrics === 'object') {
@@ -399,6 +507,7 @@ export async function run(item) {
     entity = fromText.entity ?? entity;
     event_type = fromText.event_type;
     source_emphasis = fromText.source_emphasis ?? null;
+    location = fromText.location ?? null;
     collected.push(...fromText.facts);
   }
 
@@ -413,7 +522,7 @@ export async function run(item) {
   }
 
   const facts = buildFacts({
-    entity, event_type, facts: collected, section: meta.section, source_emphasis,
+    entity, event_type, facts: collected, section: meta.section, source_emphasis, location,
   });
   // Prenes klasifikáciu nálady pre šablónu (F&G).
   if (rd.fng_classification) facts.fng_classification = rd.fng_classification;
