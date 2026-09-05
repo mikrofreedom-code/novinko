@@ -45,10 +45,15 @@ const AI_EVENT_BASE = {
 //   trade_policy 78      — clá a obchodné vojny dopadajú na exportnú ekonomiku
 //                          priamo, čitateľa zaujímajú viac než väčšina štatistík.
 //   data_release 65      — jadro hospodárskej redakcie (CPI, HDP, nezamestnanosť).
-//   corporate_earnings 45— tesne nad latkou: prejde, ale v round-robine prehrá
-//                          takmer so všetkým ostatným. Nemáme signál veľkosti
-//                          firmy (mcapPoints funguje len na krypto metrikách),
-//                          takže výsledky malej firmy nevieme odlíšiť od veľkej.
+//   corporate_earnings 35— POD latkou. Znížené z 45 po prvom ostrom behu 5. 9.:
+//                          MarketWatch priniesol „Why Oracle's stock looks like
+//                          a compelling buy ahead of earnings" — akciový tip
+//                          s DVOMA faktami, ktorý by pri 45 prešiel a stal sa
+//                          dvojvetovým útržkom. Veľkosť firmy rozlíšiť nevieme
+//                          (mcapPoints funguje len na krypto metrikách), takže
+//                          latku musí zdvihnúť niečo iné: dôraz zdroja (+8 → 43)
+//                          alebo súbeh dvoch ďalších redakcií (+10 → 45).
+//                          Jediné médium so svojím tipom teda neprejde.
 //   market_reaction 30   — POD latkou zámerne. „DAX klesol o 1 %" nie je článok.
 //                          Cez latku sa dostane až súbehom zdrojov (+5 za každý
 //                          ďalší), teda keď to hlási viacero redakcií naraz.
@@ -62,7 +67,7 @@ const EKONOMIKA_EVENT_BASE = {
   security: 60,
   announcement: 55,
   forecast: 50,
-  corporate_earnings: 45,
+  corporate_earnings: 35,
   other: 40,
   market_reaction: 30,
 };
