@@ -146,6 +146,27 @@ dobitý a overený živým volaním; extrakcia aj Writer zase bežia.
   fondu (`claim()` radí najstaršie prvé; v jednej dávke bolo 200 z 200
   zastaraných). Odteraz sa zamietnu bez AI volania.
 
+### KRYPTO A AI HLADOVALI — nájdené a opravené (5. 9., ten istý deň ako vyššie)
+
+Používateľ nahlásil: stránky krypto a AI takmer prázdne (6 článkov). Príčina
+mala dve vrstvy, obe z toho istého dňa pridania Ekonomiky a Sveta:
+
+1. **`05-verification` nemala fairness medzi sekciami.** Ekonomika (live:
+   false) a Svet (live: false) súťažili o tých istých 12 extrakciách za
+   hodinu ako krypto a AI — a `prescore.js` je naladený na krypto (SEC/ETF/
+   hack…), takže krypto/AI prehrávali aj vecne. Za 24 h: krypto 4 collected/
+   0 ďalej, ai 10 collected/0 ďalej, ekonomika+svet 270 položiek. OPRAVENÉ:
+   neživé sekcie teraz nesúťažia o platenú extrakciu vôbec (`liveFor()` PRED
+   vekovým škrtom, nie po ňom — inak by ich pauza trestala vekom).
+2. **`MIN_SECTION_ITEMS` (web) bol 6.** Krypto a AI sú jediné kategórie bez
+   zobraziteľných RSS feedov (krypto 8, všetky anglické, filtrujú sa preč; ai
+   0), takže stoja len na vlastnej produkcii. Pri tenkej produkcii sa
+   zobrazilo len 6 — hoci v hárku bolo cez 50 vlastných článkov. OPRAVENÉ:
+   zdvihnuté na 30. Web zmena, potrebuje Netlify deploy (nie je automatický).
+
+Oboje overené offline (simulované dávky, žiadne AI volanie/sieť). ŽIVÝ EFEKT
+NEOVERENÝ — uvidí sa až na ďalších bežoch cronu.
+
 ### Sekcia Ekonomika — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
 
 Celá reťaz je hotová a commitnutá, ale `live: false` v `lib/sections/index.js`.
