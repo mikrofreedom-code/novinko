@@ -21,39 +21,23 @@
 //
 // Nepotrebuje .env ani sieť, je to čisté čítanie súboru.
 
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { loadPlan, ZDROJE } from '../lib/_shared/zahrada-plan.js';
 
-const PLAN = path.join(path.dirname(fileURLToPath(import.meta.url)),
-  '../content/zahrada/plan.md');
 const MIN_TEM = 5;
 const OBLASTI = ['uzitkova', 'okrasna', 'izbovky', 'travnik', 'prehlad'];
 const TYPY = ['kedy', 'ako', 'preco', 'prehlad'];
 const MESIACE = ['jan', 'feb', 'mar', 'apr', 'máj', 'jún',
                  'júl', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
-// JEDINÉ miesto, kde smie byť skutočná URL inštitúcie. Pole `zdroje` v pláne
-// odkazuje sem KĽÚČOM (napr. `zdroje: uksup`), nikdy vlastným textom — inak by
-// generátor mohol URL vymyslieť. Pridaj sem, keď treba nový zdroj; nepridávaj
-// inštitúciu, ktorú si sám neoveril.
-export const ZDROJE = {
-  uksup: { nazov: 'Ústredný kontrolný a skúšobný ústav poľnohospodársky', url: 'https://www.uksup.sk/' },
-  shmu: { nazov: 'Slovenský hydrometeorologický ústav', url: 'https://www.shmu.sk/' },
-};
-
-// ── načítanie ──
-const text = readFileSync(PLAN, 'utf8');
-const temy = [];
-// Frontmatter bloky: --- \n kľúč: hodnota … \n --- \n osnova
-for (const m of text.matchAll(/^---\n((?:[a-z]+:.*\n)+)---\n/gm)) {
-  const f = {};
-  for (const riadok of m[1].trim().split('\n')) {
-    const i = riadok.indexOf(':');
-    f[riadok.slice(0, i).trim()] = riadok.slice(i + 1).trim();
-  }
-  if (f.slug && f.obdobie && f.oblast) temy.push(f);
-}
+// ── načítanie (parser je zdieľaný s generátorom, viď lib/_shared/zahrada-plan.js) ──
+// loadPlan() vracia priorita: Number a suvisi/zdroje: pole — kontrolór nižšie
+// pracuje s reťazcami (kvôli formátovým kontrolám), preto sa tu prevedú späť.
+const temy = loadPlan().map((t) => ({
+  ...t,
+  priorita: String(t.priorita),
+  suvisi: t.suvisi.join(', '),
+  zdroje: t.zdroje.join(', '),
+}));
 
 const chyby = [];
 if (!temy.length) { console.error('❌ v pláne nie je ani jedna téma'); process.exit(1); }
