@@ -39,6 +39,20 @@ const MAX_QUOTE_CHARS = Number(process.env.LEGAL_MAX_QUOTE_CHARS ?? 300);
 // Cieľ je VÝZVA čitateľovi ku konaniu, nie opis diania na trhu.
 const ADVICE_RE = /\b(odpor[uú]čame|radíme vám|mali by ste (kúpiť|predať|investovať)|(kúpte|predajte|investujte|nakúpte)\s|(určite|rozhodne)\s+(kúpte|investujte)|garantovan[ýé]\s+(zisk|výnos)|istý\s+zisk|nenechajte si ujsť príležitosť|teraz je čas (kúpiť|nakúpiť))/i;
 
+// SPOTREBITEĽSKÁ RADA — hospodárska obdoba investičného poradenstva.
+//
+// PREČO ZVLÁŠŤ: pri krypte je prirodzené zlyhanie „kúpte tento token". Pri
+// hospodárskej rubrike vyzerá inak a nevinnejšie: „oplatí sa fixovať sadzbu",
+// „je čas refinancovať hypotéku". Vzniká priamo z kontextového bloku, ktorý má
+// Writer pre ekonomiku povolený (vyššie sadzby → drahšie hypotéky) — odtiaľ je
+// ku rade čitateľovi jeden krok. ADVICE_RE vyššie to nechytí, lebo tam nie je
+// ani jedno z tých slovies.
+//
+// CIELENÉ NA IMPERATÍV A DRUHÚ OSOBU, nie na atribuovaný výrok. „Podľa {banka}
+// ľudia zvažujú refinancovanie" je legitímne spravodajstvo a článok sa preň
+// zamietať nesmie — kontrola nižšie by inak strieľala do vlastných radov.
+const CONSUMER_ADVICE_RE = /\b((oplatí sa|je (teraz )?čas|je vhodné)\s+(si\s+)?(fixova|refinancova|sporiť|investova|nakúpi|presunú)|mali by ste\s+(si\s+)?(fixova|refinancova|sporiť|presunú|zvážiť)|zvážte\s+(si\s+)?(fixáciu|refinancovanie|presun|nákup|predaj|investíc)|(fixujte|refinancujte|sporte|presuňte)\b)/i;
+
 // Zoznam kontrol. Každá vráti null (ok) alebo text dôvodu (zamietnuté).
 const CHECKS = [
   {
@@ -84,6 +98,8 @@ const CHECKS = [
       const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
       const hit = body.match(ADVICE_RE);
       if (hit) return `text obsahuje investičné odporúčanie: „${hit[0]}"`;
+      const rada = body.match(CONSUMER_ADVICE_RE);
+      if (rada) return `text radí čitateľovi, čo má robiť s peniazmi: „${rada[0]}"`;
       return null;
     },
   },
