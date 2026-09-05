@@ -51,10 +51,37 @@ export const STAGE = {
 
 const AGENT = '05-verification';
 
-const EVENT_TYPES = [
+// Vokabulár udalostí je PER SEKCIU. Krypto/AI si nechávajú pôvodný zoznam
+// nezmenený; ekonomika má vlastný, lebo krypto typy (listing, protocol_release,
+// tvl_shift) na hospodárske spravodajstvo nesadnú a naopak. Zoznam sa používa
+// naraz pre prompt aj pre validáciu odpovede — typ mimo sekcie tak spadne na
+// 'other' a nemôže prepadnúť do skórovania ako neznáma hodnota.
+//
+// POZOR: k tomuto zoznamu patrí dvojička — `eventBase` v lib/sections/index.js.
+// Keď sem pridáš typ, MUSÍŠ mu tam dať skóre, inak sa bude tváriť ako 'other'.
+const EVENT_TYPES_MARKET = [
   'price_move', 'tvl_shift', 'listing', 'protocol_release',
   'regulatory', 'governance', 'announcement', 'security', 'other',
 ];
+
+const EVENT_TYPES_EKONOMIKA = [
+  'data_release',        // CPI, HDP, nezamestnanosť, PMI — zverejnené číslo
+  'rate_decision',       // Fed, ECB, iná centrálna banka
+  'fiscal_policy',       // rozpočet, dane, dlh, výdavky štátu
+  'trade_policy',        // clá, kvóty, obchodné dohody, sankcie s ekonomickým dopadom
+  'corporate_earnings',  // výsledky firmy, výhľad, profit warning
+  'market_reaction',     // pohyb indexu/meny/výnosov — sám osebe slabý, viď eventBase
+  'forecast',            // prognóza inštitúcie (MMF, Komisia, banka)
+  'regulatory', 'announcement', 'security', 'other',
+];
+
+const eventTypesFor = (section) => (section === 'ekonomika'
+  ? EVENT_TYPES_EKONOMIKA
+  : EVENT_TYPES_MARKET);
+
+// Stav čísla tak, ako ho označuje sám zdroj. Čokoľvek iné (vrátane hádania)
+// spadne na null — radšej bez označenia než s vymysleným.
+const FACT_STATUSES = ['final', 'preliminary', 'revised', 'forecast'];
 
 // Jednotky pre bežné Layer A metriky (mapovanie kódom, žiadne AI).
 const METRIC_UNITS = {
@@ -99,6 +126,21 @@ const ANALYSIS_RULE = `
   This is the ONLY kind allowed to express causality. Everything the desk
   presents as its own reading of the market belongs here, NOT in kind="fact".`;
 
+// Ekonomická obdoba ANALYSIS_RULE. Rozdiel oproti kryptu: tu nejde o „prečo sa
+// pohla cena", ale o PROGNÓZU a očakávanie — a tie sú v hospodárskom
+// spravodajstve všadeprítomné („trh čaká zníženie sadzieb v decembri").
+// Model má silný sklon podať prognózu ako holý fakt, lebo zdroj ju často
+// formuluje oznamovacím spôsobom. Preto je to tu povedané explicitne.
+const ANALYSIS_RULE_EKONOMIKA = `
+- kind="analysis" (ONLY for this source type): a forecast, expectation or
+  interpretation — an economist's or the outlet's own reading of what a number
+  means, what a central bank will do next, or why an indicator or market moved.
+  Rephrase into a neutral claim (do NOT copy their sentences), max ~25 words.
+  Extract these ONLY when the source actually makes the claim; never infer one.
+  A FORECAST OR EXPECTATION IS ALWAYS "analysis", NEVER "fact" — even when the
+  source states it flatly ("the ECB will cut rates in December", "growth will
+  slow next year"). Only an already-published number is a fact.`;
+
 // Bez tohto pravidla model príčinu jednoducho prepašuje ako obyčajný fakt —
 // overené 2026-08-01: z vety „our desk believes the decline was driven by
 // liquidations" vyrobil fact „Leveraged long liquidations contributed to the
@@ -114,10 +156,56 @@ const NO_CAUSALITY_RULE = `
   EXCEPTION: an entity explaining its OWN action is a fact and stays
   ("the exchange paused withdrawals after a security incident").`;
 
-const extractSystem = (desk) => `You are a legally-critical fact extractor for a crypto news desk.
+// Pravidlá, ktoré platia LEN pre ekonomiku. Každé z nich vzniklo z konkrétnej
+// chyby, ktorou sa hospodárske spravodajstvo prezradí ako amatérske:
+//
+//   period  — septembrová správa hovorí o auguste. Bez tohto poľa Writer dá
+//             článku dátum zverejnenia a napíše „inflácia v septembri", čo je
+//             vecne nesprávne.
+//   status  — flash odhad HDP nie je konečné číslo a revízia nie je nový údaj.
+//             Štatistické úrady to označujú samy, takže sa to nemusí hádať.
+//             (Je to zároveň jednoduchá verzia osi potvrdené/predbežné, ktorú
+//             bude potrebovať sekcia Svet — tam ju ale nikto neoznačí za nás.)
+//   porovnanie — NAJVÄČŠIE riziko. Model vie, že „4,1 %" je nezamestnanosť, a
+//             ochotne dopíše „viac než minulý mesiac", hoci to zdroj netvrdí.
+//             Presne ten istý typ zlyhania ako pri krypto kauzalite nižšie.
+//   p. b.   — sadzba zo 4,00 % na 4,25 % stúpla o 0,25 p. b., nie o 0,25 %.
+//             Zámena je pre hospodársku redakciu diskvalifikačná chyba.
+const EKONOMIKA_RULES = `
+- PERIOD, NOT PUBLICATION DATE: an economic figure describes a reference period
+  that is usually NOT the day it was published ("August", "Q2 2026", "12 months
+  to July"). Put it in "period" exactly as the source words it. null if unstated.
+- STATUS: "final" | "preliminary" | "revised" | "forecast" — set it ONLY when the
+  source labels the figure that way (flash estimate → preliminary, revision →
+  revised, projection → forecast). Otherwise null. Never guess.
+- COMPARISON IS NOT YOURS TO COMPUTE: never state that a figure rose or fell
+  against a previous period, beat or missed expectations, or set a record,
+  UNLESS THE SOURCE SAYS SO ITSELF. Do not calculate it, do not fill it in from
+  your own knowledge, do not infer a direction from a single number. When the
+  source DOES give the previous value or the economists' consensus, extract that
+  as its own separate fact.
+- PERCENT vs PERCENTAGE POINTS: keep the source's own unit exactly ("%" vs "pp").
+  A rate moving from 4.00% to 4.25% rose by 0.25 pp, NOT by 0.25%. Never convert
+  between the two and never invent one when the source is vague.
+- "source_emphasis": if the SOURCE ITSELF frames the number as notable ("record
+  high", "first since 2020", "unexpectedly", "biggest drop in two years"), copy
+  that short phrase there. null if the source makes no such claim. Never add
+  emphasis of your own — this field exists to carry the source's, not yours.`;
+
+const extractSystem = (desk, section) => {
+  const ekonomika = section === 'ekonomika';
+  const analysisRule = ekonomika ? ANALYSIS_RULE_EKONOMIKA : ANALYSIS_RULE;
+  const factFields = ekonomika
+    ? '"statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "period": string|null, "status": "final"|"preliminary"|"revised"|"forecast"|null, "confidence": number'
+    : '"statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "confidence": number';
+  const topFields = ekonomika
+    ? '"entity": string|null, "event_type": one of [' + eventTypesFor(section).join(', ') + '], "source_emphasis": string|null'
+    : '"entity": string|null, "event_type": one of [' + eventTypesFor(section).join(', ') + ']';
+
+  return `You are a legally-critical fact extractor for ${ekonomika ? 'an economics news desk' : 'a crypto news desk'}.
 Output ONLY valid JSON, no prose, no code fences.
-Schema: {"entity": string|null, "event_type": one of [${EVENT_TYPES.join(', ')}], "facts": [{"kind": ${kindsFor(desk)}, "statement": string, "quote_speaker": string|null, "value": number|null, "unit": string|null, "confidence": number}]}
-Rules:${desk ? ANALYSIS_RULE : NO_CAUSALITY_RULE}
+Schema: {${topFields}, "facts": [{"kind": ${kindsFor(desk)}, ${factFields}}]}
+Rules:${desk ? analysisRule : NO_CAUSALITY_RULE}${ekonomika ? EKONOMIKA_RULES : ''}
 - THOROUGHNESS: extract EVERY distinct verifiable fact present in the text, not just
   the single most obvious one. Be concrete about volume: a full source article
   (roughly 800+ words) should yield 12-20 facts, a short announcement 4-8.
@@ -143,13 +231,14 @@ Rules:${desk ? ANALYSIS_RULE : NO_CAUSALITY_RULE}
   exploited vulnerabilities. Use it EVEN WHEN the affected company announces the
   incident itself — that is still a security event, not an "announcement".
 - Do NOT invent sources, names, or URLs. Output no attribution fields.`;
+};
 
 // Exportované kvôli behu nasucho (scripts/dry-run-desk.mjs) — overenie
 // extrakcie na reálnom článku bez zápisu do fronty. Rovnaký zámer ako
 // dryRun v 08-proofreader.
 export async function factsFromText(item, meta) {
   let text = [item.raw_data?.title, item.raw_data?.text].filter(Boolean).join('\n\n');
-  if (!text) return { entity: meta.entity ?? null, event_type: 'other', facts: [] };
+  if (!text) return { entity: meta.entity ?? null, event_type: 'other', source_emphasis: null, facts: [] };
 
   // RSS súhrn je príliš krátky na to, aby z neho bolo čo extrahovať →
   // skús dotiahnuť celý článok zo zdroja (dočasne, v pamäti, viď fetch-article.js).
@@ -172,7 +261,7 @@ export async function factsFromText(item, meta) {
       agent: AGENT,
       queueId: item.id,
       section: meta.section,
-      system: extractSystem(meta.desk === true),
+      system: extractSystem(meta.desk === true, meta.section),
       prompt: text,
       maxTokens,
       temperature: 0,
@@ -196,7 +285,9 @@ export async function factsFromText(item, meta) {
   }
   const parsed = pokus.value;
 
-  const event_type = EVENT_TYPES.includes(parsed.event_type) ? parsed.event_type : 'other';
+  const event_type = eventTypesFor(meta.section).includes(parsed.event_type)
+    ? parsed.event_type
+    : 'other';
   // POISTKA KÓDOM, nielen promptom: 'analysis' pripúšťame výhradne od deskov.
   // Keby model vrátil 'analysis' aj inde (alebo sa raz zmenil prompt), tu to
   // spadne späť na obyčajný fakt — príčina sa tak nemá ako prepašovať dnu.
@@ -210,6 +301,10 @@ export async function factsFromText(item, meta) {
     quote_speaker: typeof f.quote_speaker === 'string' ? f.quote_speaker.slice(0, 100) : null,
     value: typeof f.value === 'number' && Number.isFinite(f.value) ? f.value : null,
     unit: typeof f.unit === 'string' ? f.unit : null,
+    // Ekonomika: obdobie, ktorého sa číslo TÝKA (nie dátum zverejnenia) a či je
+    // číslo konečné. Ostatné sekcie tieto polia v prompte nemajú → ostanú null.
+    period: typeof f.period === 'string' ? f.period.slice(0, 60) : null,
+    status: FACT_STATUSES.includes(f.status) ? f.status : null,
     // Atribúcia VŽDY z metadát položky, nikdy nie z AI:
     source_name: meta.source_name,
     source_url: meta.source_url,
@@ -235,11 +330,21 @@ export async function factsFromText(item, meta) {
     return ok;
   });
 
-  return { entity: parsed.entity ?? meta.entity ?? null, event_type, facts: kept };
+  return {
+    entity: parsed.entity ?? meta.entity ?? null,
+    event_type,
+    // Dôraz, ktorý urobil SÁM zdroj („rekord", „prvýkrát od 2020", „nečakane").
+    // 06-chief-editor ho berie ako bonus k dôležitosti: bez toho by sa mesačný
+    // CPI print, ktorý láme rekordy, skóroval rovnako ako ten úplne nudný.
+    source_emphasis: typeof parsed.source_emphasis === 'string'
+      ? parsed.source_emphasis.slice(0, 120)
+      : null,
+    facts: kept,
+  };
 }
 
 // ---------- Spoluj fakty do finálneho facts JSON ----------
-function buildFacts({ entity, event_type, facts, section }) {
+function buildFacts({ entity, event_type, facts, section, source_emphasis }) {
   // Výklad desku sa BEZ atribúcie publikovať nesmie — je to ich názor, nie
   // overený fakt. Preto 'analysis' vynucuje „podľa X" rovnako ako sekundárny
   // zdroj; Writer bez nej neprejde (kontrola v 07-writer).
@@ -253,6 +358,7 @@ function buildFacts({ entity, event_type, facts, section }) {
     lang_source: 'en',
     extracted_at: new Date().toISOString(),
     attribution_required,
+    source_emphasis: source_emphasis ?? null,
     facts,
   };
 }
@@ -280,6 +386,7 @@ export async function run(item) {
   const collected = [];
   let entity = meta.entity;
   let event_type = 'other';
+  let source_emphasis = null;
 
   // Layer A: čísla bez AI.
   if (rd.metrics && typeof rd.metrics === 'object') {
@@ -291,6 +398,7 @@ export async function run(item) {
     const fromText = await factsFromText(item, meta);
     entity = fromText.entity ?? entity;
     event_type = fromText.event_type;
+    source_emphasis = fromText.source_emphasis ?? null;
     collected.push(...fromText.facts);
   }
 
@@ -304,7 +412,9 @@ export async function run(item) {
     else event_type = 'price_move';
   }
 
-  const facts = buildFacts({ entity, event_type, facts: collected, section: meta.section });
+  const facts = buildFacts({
+    entity, event_type, facts: collected, section: meta.section, source_emphasis,
+  });
   // Prenes klasifikáciu nálady pre šablónu (F&G).
   if (rd.fng_classification) facts.fng_classification = rd.fng_classification;
   await advance(item.id, STAGE.output, { facts });
