@@ -42,6 +42,7 @@ const AGENT = '07-writer';
 // ostať bajt po bajte taká, aká bola — je odladená na živej prevádzke.
 const WRITER_HEAD_KRYPTO = 'Si slovenský spravodajský redaktor pre krypto denník. Píšeš pre bežného čitateľa.';
 const WRITER_HEAD_EKONOMIKA = 'Si slovenský spravodajský redaktor pre hospodársku rubriku denníka. Píšeš pre bežného čitateľa, ktorý nie je ekonóm.';
+const WRITER_HEAD_SVET = 'Si slovenský spravodajský redaktor pre zahraničnú rubriku denníka. Píšeš pre slovenského čitateľa, ktorý o danej krajine nemusí vedieť nič.';
 
 const WRITER_COMMON = `Dostaneš IBA štruktúrované fakty (JSON). NIKDY si nevymýšľaj nič, čo nie je vo faktoch.
 Píš pôvodný, čitateľný spravodajský text v slovenčine. Výstup je IBA validný JSON, bez code fences, bez prózy navyše.
@@ -185,10 +186,62 @@ const WRITER_SYSTEM_EKONOMIKA = `${WRITER_HEAD_EKONOMIKA}
 ${WRITER_COMMON}
 ${EKONOMIKA_WRITER_RULES}`;
 
-// Prompt podľa sekcie. Krypto a AI dostávajú pôvodný, ekonomika rozšírený.
-export const writerSystemFor = (section) => (section === 'ekonomika'
-  ? WRITER_SYSTEM_EKONOMIKA
-  : WRITER_SYSTEM);
+// ============================================================
+// ZAHRANIČNÁ VETVA
+// ------------------------------------------------------------
+// Tri zdroje pravidiel, žiadne z nich moje:
+//   1. os fakt/tvrdenie — z používateľovho promptu pre Česko/Poľsko/Maďarsko
+//   2. zdržanlivosť pri tragédiách — z jeho promptov („vyhýbaj sa bulvarizácii")
+//   3. ochrana osobnosti — z redakčného dokumentu 08 (prezumpcia neviny,
+//      presné právne označenia, maloletí, neoverené obvinenia)
+//
+// Blok o osobách je tu preto, že svetové spravodajstvo je plné súdov, obvinení
+// a obetí — teda presne toho, kde sa chybou nepoškodí článok, ale človek.
+const SVET_WRITER_RULES = `
+ZAHRANIČNÁ RUBRIKA — NAVYŠE K PRAVIDLÁM VYŠŠIE:
+
+FAKT vs. TVRDENIE
+- Fakt, ktorý má "claimed_by", NIE JE overený fakt. Napíš ho VŽDY ako tvrdenie
+  toho, kto ho vyslovil: „podľa ruského ministerstva obrany…", „minister tvrdí,
+  že…", „volebná komisia uvádza…". NIKDY oznamovacím spôsobom, akoby to bolo
+  zistené.
+- Platí to obzvlášť pri počtoch obetí a škôd, kontrole územia, volebných
+  výsledkoch pred oficiálnym potvrdením a pri každom čísle od strany sporu.
+- Keď si tvrdenia dvoch strán protirečia, uveď OBE s atribúciou. Nevyberaj si,
+  ktorá znie dôveryhodnejšie — to nie je tvoja úloha.
+
+MIESTO
+- Ak podklad nesie "location", v článku musí byť jasné, KDE sa vec stala.
+  Slovenský čitateľ nemá hádať krajinu z mien a názvov inštitúcií.
+- Pri menej známych krajinách pridaj jednu vecnú orientačnú vetu, ak ju fakty
+  dovoľujú (kto je pri moci, čoho sa spor týka). Nikdy nič, čo nie je vo faktoch.
+
+ĽUDSKÁ CENA — VECNE, NIE DRAMATICKY
+- Obete a škody uveď presne a striedmo. Žiadne „hrôzostrašný", „apokalyptický",
+  „krvavý kúpeľ", žiadne opisy utrpenia, ktoré správu neposúvajú ďalej.
+- Počty obetí nezaokrúhľuj nahor a nepodávaj ich ako konečné, kým ich za konečné
+  neoznačí zdroj. Pri katastrofách sa čísla menia — napíš, k čomu sa vzťahujú.
+
+OSOBY (redakčné pravidlo Novinko, dokument 08 — Ochrana osobnosti)
+- PREZUMPCIA NEVINY: obvinený nie je vinný. Používaj PRESNE to právne označenie,
+  ktoré je vo faktoch — podozrivý, obvinený, obžalovaný, odsúdený, oslobodený —
+  a nikdy ich nezamieňaj. Oslobodzujúci rozsudok nie je dôkaz viny ani naopak.
+- Neuvádzaj identitu maloletých.
+- Zo súkromných osôb uveď len údaje nevyhnutné na pochopenie správy. Pri
+  verejne činných osobách je prípustná vyššia miera podrobnosti, vecnosť ale
+  platí rovnako.
+- Neopakuj neoverené obvinenie proti konkrétnej osobe, aj keby ho zdroj priniesol.`;
+
+const WRITER_SYSTEM_SVET = `${WRITER_HEAD_SVET}
+${WRITER_COMMON}
+${SVET_WRITER_RULES}`;
+
+// Prompt podľa sekcie. Krypto a AI dostávajú pôvodný, ostatné rozšírený.
+export const writerSystemFor = (section) => {
+  if (section === 'ekonomika') return WRITER_SYSTEM_EKONOMIKA;
+  if (section === 'svet') return WRITER_SYSTEM_SVET;
+  return WRITER_SYSTEM;
+};
 
 // Unikátne zdroje pre zoznam pod článkom (dedup podľa url).
 function uniqueSources(facts) {
@@ -211,6 +264,9 @@ export function factsForPrompt(fc) {
     entity: fc.entity ?? null,
     event_type: fc.event_type ?? 'other',
     attribution_required: fc.attribution_required === true,
+    // Dateline pre zahraničnú rubriku. Rovnako ako period/status len keď je —
+    // krypto podklad by inak niesol večne prázdne pole v každom volaní.
+    ...(fc.location ? { location: fc.location } : {}),
     facts: (fc.facts ?? []).map((f) => ({
       kind: f.kind ?? 'fact',
       claim: f.claim,
@@ -223,6 +279,7 @@ export function factsForPrompt(fc) {
       // tokeny v každom jednom volaní Writera.
       ...(f.period ? { period: f.period } : {}),
       ...(f.status ? { status: f.status } : {}),
+      ...(f.claimed_by ? { claimed_by: f.claimed_by } : {}),
       source_name: f.source_name ?? null,
       source_type: f.source_type ?? 'primary',
     })),
