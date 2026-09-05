@@ -188,4 +188,61 @@ export const FEEDS = [
   //                            netematický šum (akcie jednotlivých firiem)
   //   Financial Times          funguje a je čerstvý, ale je to celková
   //                            medzinárodná sekcia a plný text je za paywallom
+
+  // ==========================================================
+  // SEKCIA: SVET — section: 'svet'
+  // ----------------------------------------------------------
+  // Overené 5. 9. 2026 naším čestným UA: HTTP 200, anglicky, čerstvé položky.
+  //
+  // BEZ keywordFilter, a je to zámer: všetky feedy si zúžil sám vydavateľ na
+  // svetové spravodajstvo. Rovnaký princíp ako CNBC Economy a Euronews Business,
+  // ktoré dnes dávajú najlepší výstup — a opak Yahoo Finance, ktoré sme museli
+  // vyhodiť. „Svetová správa" sa navyše nedá chytiť regexom: definuje sa tým,
+  // čím NIE JE, a brána v 02 vie filtrovať len zaraďovaním (viď sections/index.js).
+  //
+  // GEOGRAFICKÁ ROVNOVÁHA je vedomé rozhodnutie, nie zoznam toho, čo funguje:
+  // päť západoeurópskych redakcií by dalo jednu optiku. Preto je tu Al Jazeera
+  // (blízkovýchodná), The Hindu (ázijská), Africanews (africká) a NPR (americká).
+
+  // Primárne inštitúcie — jadro podľa sourcing modelu
+  { name: 'UN News', url: 'https://news.un.org/feed/subscribe/en/news/all/rss.xml', layer: 'C', source_type: 'primary', entity: null, section: 'svet' },
+  { name: 'IAEA', url: 'https://www.iaea.org/feeds/topnews', layer: 'C', source_type: 'primary', entity: 'IAEA', section: 'svet' },
+
+  // Spravodajské redakcie — VŽDY s atribúciou „podľa X" (source_type: 'secondary').
+  // desk: true odomyká kind="analysis", teda výklad médií a menovaných expertov.
+  { name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'Guardian World', url: 'https://www.theguardian.com/world/rss', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'DW', url: 'https://rss.dw.com/rdf/rss-en-world', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'France 24', url: 'https://www.france24.com/en/rss', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'NPR World', url: 'https://feeds.npr.org/1004/rss.xml', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'The Hindu International', url: 'https://www.thehindu.com/news/international/feeder/default.rss', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+  { name: 'Africanews', url: 'https://www.africanews.com/feed/rss', layer: 'C', source_type: 'secondary', entity: null, section: 'svet', desk: true },
+
+  // NEPRIDANÉ, overené a zamietnuté 5. 9. 2026:
+  //   Prezident Ukrajiny, SBU   HTTP 403 — a ruské zdroje pritom odpovedajú 200.
+  //   Ministerstvo obrany UA    HTTP 404      Stavať na tom, čo je dostupné, by
+  //   Kremeľ, TASS              200, ALE      systematicky prevážilo ruskú
+  //                             po rusky      oficiálnu verziu nad ukrajinskou.
+  //   Ukrajinska Pravda         200, ALE po ukrajinsky (reťazec je anglická,
+  //                             buildFacts má natvrdo lang_source: 'en')
+  //   TASS/Kremeľ navyše: EÚ zakázala šírenie viacerých ruských štátnych médií
+  //     a Novinko prevádzkuje subjekt EÚ. Sankčný stav treba overiť PRED
+  //     zaradením, nie po ňom. Ruskú pozíciu dostaneme presne a s atribúciou
+  //     cez BBC/Guardian/DW, ktoré ju už nesú v tvare „podľa ruského
+  //     ministerstva obrany" — teda presne ako pole claimed_by.
+  //   NATO, Rada EÚ, ICC, OSCE, UNHCR   403/404, bez RSS
+  //   Európsky parlament        HTTP 202 s prázdnym telom
+  //   WHO                       200, ale MŔTVY — posledná položka z februára
+  //   ISW                       HTTP 403
+  //   Kyiv Independent          RSS neexistuje (301 → 404)
+  //   AP                        401; jediná funkčná adresa bola cudzí mirror
+  //                             feedx.net, teda neautorizovaná kópia agentúry
+  //   Reuters                   verejné RSS zrušené ~2020
+  //
+  // FRONTOVÁ LÍNIA SA TU NEROBÍ. Vojnu (územia, straty, obete) píše redakcia
+  // ručne — rozhodnutie používateľa 5. 9. Preto má event_type 'conflict'
+  // v sections/index.js základ 25, teda hlboko pod latkou 42: prejde až pri
+  // súbehu piatich a viac zdrojov. Diplomacia o vojne (rokovania, sankcie,
+  // prímeria) ide normálne ako 'diplomacy'.
 ];
