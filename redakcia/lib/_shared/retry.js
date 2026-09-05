@@ -59,6 +59,20 @@ export async function retryTransientErrors(limit = 200) {
       continue;
     }
 
+    // NEDOSTATOK KREDITU na Anthropic účte — rovnaká kategória ako budget guard
+    // vyššie: ani dočasná (nezmizne sama v priebehu minút ako 429/503), ani
+    // trvalá chyba dát. Bez tejto vetvy zostávala položka v 'error' NAVŽDY aj
+    // po dobití účtu — "credit balance" sa netrafí do TRANSIENT nižšie, takže
+    // retry.js ju nikdy nevrátil do hry (potvrdené: 457 položiek uviaznutých
+    // k 5.9.2026). Odmietnutý pokus pre nulový kredit nič nestojí, tak to skús
+    // znova pri KAŽDOM behu, kým niekto účet nedobije — a nerátaj to do
+    // MAX_RETRIES, inak by položka "vyhorela" ešte pred dobitím.
+    if (/credit balance is too low/i.test(err)) {
+      await db.from('queue').update({ status: input, error: null }).eq('id', item.id);
+      res.reset++;
+      continue;
+    }
+
     if (!TRANSIENT.test(err)) { res.skipped++; continue; }
 
     const retries = (item.raw_data?._retry ?? 0) + 1;
