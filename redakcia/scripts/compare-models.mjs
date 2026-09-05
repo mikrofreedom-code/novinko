@@ -21,7 +21,7 @@
 
 import { db } from '../lib/_shared/queue.js';
 import { askFull } from '../lib/_shared/ai-gateway.js';
-import { WRITER_SYSTEM, factsForPrompt } from '../lib/flow/07-writer.js';
+import { writerSystemFor, factsForPrompt } from '../lib/flow/07-writer.js';
 import { parseModelJson } from '../lib/_shared/json.js';
 
 const POCET = Number(process.argv[2] ?? 3);
@@ -60,7 +60,9 @@ for (const [i, item] of vzorka.entries()) {
     try {
       const res = await askFull({
         tier: 'smart', model: spec, agent: 'compare', queueId: item.id,
-        system: WRITER_SYSTEM, prompt, maxTokens: 2200, temperature: 0.4,
+        // Prompt podľa sekcie položky — inak by sa ekonomický podklad porovnával
+        // krypto promptom a výsledok by nehovoril nič o tom, čo nás zaujíma.
+        system: writerSystemFor(fc.section), prompt, maxTokens: 2200, temperature: 0.4,
       });
       const pokus = parseModelJson(res.text);
       if (res.truncated) s.truncated++;

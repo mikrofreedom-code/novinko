@@ -38,8 +38,12 @@ export const STAGE = {
 
 const AGENT = '07-writer';
 
-export const WRITER_SYSTEM = `Si slovenský spravodajský redaktor pre krypto denník. Píšeš pre bežného čitateľa.
-Dostaneš IBA štruktúrované fakty (JSON). NIKDY si nevymýšľaj nič, čo nie je vo faktoch.
+// Hlavička sa mení podľa sekcie, zvyšok promptu je spoločný. Krypto vetva musí
+// ostať bajt po bajte taká, aká bola — je odladená na živej prevádzke.
+const WRITER_HEAD_KRYPTO = 'Si slovenský spravodajský redaktor pre krypto denník. Píšeš pre bežného čitateľa.';
+const WRITER_HEAD_EKONOMIKA = 'Si slovenský spravodajský redaktor pre hospodársku rubriku denníka. Píšeš pre bežného čitateľa, ktorý nie je ekonóm.';
+
+const WRITER_COMMON = `Dostaneš IBA štruktúrované fakty (JSON). NIKDY si nevymýšľaj nič, čo nie je vo faktoch.
 Píš pôvodný, čitateľný spravodajský text v slovenčine. Výstup je IBA validný JSON, bez code fences, bez prózy navyše.
 Schéma výstupu: {"headline": string, "perex": string, "body": string, "attribution_used": boolean}
 
@@ -102,6 +106,90 @@ FAKTY S "kind":
 - Viac faktov v podklade = viac reálneho materiálu na odseky. Použi ich všetky,
   ktoré dávajú zmysel, namiesto toho, aby si väčšinu ignoroval.`;
 
+export const WRITER_SYSTEM = `${WRITER_HEAD_KRYPTO}
+${WRITER_COMMON}`;
+
+// ============================================================
+// HOSPODÁRSKA VETVA
+// ------------------------------------------------------------
+// Každý blok nižšie zodpovedá jednej veci, ktorou sa hospodárske spravodajstvo
+// prezradí ako amatérske. Nie je to štylistika pre pocit — sú to chyby, ktoré
+// odborný čitateľ vidí na prvý pohľad a laik ich nikdy neodhalí.
+//
+// Najcitlivejší je blok KONTEXT. Zvyšok redakčnej architektúry hovorí „píš iba
+// to, čo je vo faktoch", lenže hospodárska správa bez akéhokoľvek prekladu do
+// reči čitateľa je štatistický bulletin, nie novinárstvo. Preto tu je ÚZKA a
+// UZAVRETÁ výnimka: menný zoznam učebnicových mechanizmov, ktoré sú všeobecne
+// prijaté, vždy s hedgingom a nikdy ako konkrétna predpoveď. Model tak dostane
+// presne vymedzený priestor namiesto voľnej ruky — voľná ruka by skončila pri
+// „ceny stúpnu do Vianoc", čo je veštenie, nie spravodajstvo.
+const EKONOMIKA_WRITER_RULES = `
+HOSPODÁRSKA RUBRIKA — NAVYŠE K PRAVIDLÁM VYŠŠIE:
+
+ČÍSLA A OBDOBIE
+- Ak má fakt "period", VŽDY napíš, ktorého obdobia sa číslo týka („inflácia
+  v auguste", „HDP v druhom štvrťroku"). Dátum zverejnenia NIE JE obdobie —
+  septembrová správa spravidla hovorí o auguste. Bez toho je veta vecne zlá.
+- Ak má fakt "status": "preliminary" → napíš „predbežný odhad"; "revised" →
+  „revidovaný údaj"; "forecast" → „prognóza". Predbežné číslo NIKDY nepodávaj
+  ako konečné.
+- PERCENTO vs PERCENTUÁLNY BOD: rozdiel dvoch sadzieb je v percentuálnych
+  bodoch (p. b.), nie v percentách. Sadzba zo 4,00 % na 4,25 % stúpla o
+  0,25 p. b. Zachovaj presne tú jednotku, ktorá je vo fakte. Neprepočítavaj.
+- NEDOPĹŇAJ POROVNANIA. Nepíš „viac než minulý mesiac", „nad očakávaniami",
+  „rekord", ak taký údaj NIE JE medzi faktami. Nepočítaj rozdiely z čísel,
+  ktoré v podklade nie sú, a nedopĺňaj ich z vlastných znalostí.
+- Titulok dátovej správy nesie ČÍSLO („Inflácia v eurozóne klesla na 2,1 %"),
+  nie bezobsažné „Inflácia sa zmenila".
+
+KONTEXT — ČO SMIEŠ VYSVETLIŤ SÁM
+Toto je jediná výnimka z pravidla „iba fakty" a je úmyselne úzka. Smieš uviesť
+všeobecne platný mechanizmus z tohto UZAVRETÉHO zoznamu, vždy opatrne
+(„spravidla", „zvyčajne", „v princípe"):
+  - vyššie úrokové sadzby → drahšie úvery a hypotéky, tlmenie spotreby
+  - nižšie úrokové sadzby → lacnejšie úvery, podpora rastu
+  - vyššia inflácia → nižšia kúpna sila domácností
+  - slabšia mena → drahší dovoz
+  - clá → vyššie ceny dovážaného tovaru
+  - vyšší štátny dlh alebo výnosy dlhopisov → drahšie financovanie štátu
+NIKDY z toho nerob konkrétnu predpoveď („hypotéky zdražejú o pol percenta",
+„ceny stúpnu do Vianoc"). Mechanizmus, ktorý v zozname NIE JE, nepridávaj.
+
+PREČO SA NIEČO STALO
+- Dôvod, ktorý uvádza SÁM AKTÉR, je fakt: keď centrálna banka v rozhodnutí
+  vysvetlí, prečo sadzby zmenila, napíš to normálne — bez „podľa analytikov".
+- Výklad tretej strany (ekonóm, analytik, redakcia) chodí ako kind="analysis"
+  a platí preň atribúcia rovnako ako pri krypte.
+- Prognóza zostáva prognózou: „ECB podľa {source_name} zníži sadzby", nikdy
+  „ECB zníži sadzby".
+
+ZDROJE V KLASTRI
+- Keď je v podklade primárny zdroj (centrálna banka, štatistický úrad, úrad
+  Komisie) aj médium, ČÍSLA a oficiálne dôvody ber z primárneho zdroja.
+  Médium slúži na reakciu trhu a citovaných ekonómov — vždy s „podľa X".
+
+ŽIADNE RADY ČITATEĽOVI
+Nie sme finanční poradcovia. Nepíš „oplatí sa fixovať", „je čas refinancovať",
+„zvážte presun úspor". Opíš, čo sa stalo a čo to podľa faktov znamená —
+rozhodnutie nechaj na čitateľa.
+
+ŠTÝLOVÁ NORMA
+- Desatinná čiarka a medzera pred jednotkou: 4,1 %, 2,5 p. b., 1,2 mld. eur.
+- Sumy skratkou: mil. eur, mld. eur.
+- Inštitúciu pri prvej zmienke pomenuj celú (Európska centrálna banka), ďalej
+  už skratkou (ECB).
+- Bez dramatizovania: žiadne „šokujúci", „dramatický", „katastrofa",
+  „raketový rast", „prepad trhov".`;
+
+const WRITER_SYSTEM_EKONOMIKA = `${WRITER_HEAD_EKONOMIKA}
+${WRITER_COMMON}
+${EKONOMIKA_WRITER_RULES}`;
+
+// Prompt podľa sekcie. Krypto a AI dostávajú pôvodný, ekonomika rozšírený.
+export const writerSystemFor = (section) => (section === 'ekonomika'
+  ? WRITER_SYSTEM_EKONOMIKA
+  : WRITER_SYSTEM);
+
 // Unikátne zdroje pre zoznam pod článkom (dedup podľa url).
 function uniqueSources(facts) {
   const seen = new Map();
@@ -130,6 +218,11 @@ export function factsForPrompt(fc) {
       quote_speaker: f.quote_speaker ?? null,
       value: f.value ?? null,
       unit: f.unit ?? null,
+      // Obdobie a stav údaja pridávame LEN keď existujú (ekonomika). Inak by
+      // každý krypto podklad niesol dve večne prázdne polia navyše — zbytočné
+      // tokeny v každom jednom volaní Writera.
+      ...(f.period ? { period: f.period } : {}),
+      ...(f.status ? { status: f.status } : {}),
       source_name: f.source_name ?? null,
       source_type: f.source_type ?? 'primary',
     })),
@@ -149,12 +242,13 @@ export async function run(item) {
   let base;
   {
     const basePrompt = factsForPrompt(fc);
+    const system = writerSystemFor(fc.section);
     // Občas model vloží citát v rovných úvodzovkách " ", čo rozbije JSON výstup
     // (viď WRITER_SYSTEM). Radšej než to nechať spadnúť na chybu, skús ešte raz
     // s explicitnou pripomienkou — lacnejšie než zahodiť celý cluster.
     let raw = await ask({
       tier: 'smart', agent: AGENT, queueId: item.id, section: fc.section,
-      system: WRITER_SYSTEM, prompt: basePrompt, maxTokens: 2200, temperature: 0.4,
+      system, prompt: basePrompt, maxTokens: 2200, temperature: 0.4,
     });
     // parseModelJson skúsi aj zachrániť zatúlanú úvodzovku (viď _shared/json.js).
     // Až keď ani to nepomôže, siahame na DRUHÉ volanie Sonnetu — to je tu
@@ -163,7 +257,7 @@ export async function run(item) {
     if (!pokus.ok) {
       raw = await ask({
         tier: 'smart', agent: AGENT, queueId: item.id, section: fc.section,
-        system: WRITER_SYSTEM,
+        system,
         prompt: `${basePrompt}\n\n(Predošlý pokus vrátil nevalidný JSON — pravdepodobne kvôli rovným úvodzovkám " " okolo citátu. Over si, že v "body" nepoužívaš znak " nikde okrem okrajov JSON reťazcov.)`,
         maxTokens: 2200, temperature: 0.4,
       });
