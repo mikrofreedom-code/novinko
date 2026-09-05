@@ -40,6 +40,7 @@ async function aiImagePrompt(item) {
       tier: 'cheap',
       agent: AGENT,
       queueId: item.id,
+      section: a.section,
       system: IMG_SYSTEM,
       prompt: `Section: ${a.section ?? 'krypto'}\nHeadline: ${a.headline}\n`
             + `Summary: ${a.perex ?? ''}\nEntity: ${a.entity ?? ''}\nEvent type: ${a.event_type ?? ''}`,

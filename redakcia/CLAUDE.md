@@ -36,7 +36,7 @@ lib/
     01-scout.js ... 14-learning-engine.js   # číslované, jeden agent = jeden súbor
   _shared/
     queue.js        # čítanie/zápis do fronty, zmeny statusu
-    ai-gateway.js   # JEDINÝ vstupný bod pre Anthropic API
+    ai-gateway.js   # JEDINÝ vstupný bod pre AI (Anthropic/Gemini/OpenAI, viď nižšie)
     cost.js         # tracking nákladov na AI
     sources.js      # definície zdrojov
 db/
@@ -90,6 +90,39 @@ regex / keywords  →  Haiku  →  Sonnet  →  drahší model (len keď nutné)
 ```
 
 Vždy skús lacnejšiu vrstvu prvú. Každé AI volanie ide cez `ai-gateway.js` a loguje sa do `cost.js`.
+
+### Multi-provider (od 2026-09-03)
+
+Podporovaní: `anthropic`, `gemini`, `openai`. Model sa píše ako `provider:model`
+(napr. `gemini:gemini-3.8-flash`); bez prefixu = `anthropic`, takže existujúce
+hodnoty fungujú bez zmeny. API kľúč treba len pre providera, ktorého niekto
+naozaj používa (`ANTHROPIC_API_KEY` / `GEMINI_API_KEY` / `OPENAI_API_KEY`) —
+klienty sa vytvárajú lazy.
+
+**Kto rozhodne, ktorý model odpovie** (`resolveModel()` v `ai-gateway.js`):
+
+```
+1. explicitný `model` vo volaní     ← len scripts/compare-models.mjs a testy
+2. SECTIONS[section].models[tier]   ← lib/sections/index.js, redakčné rozhodnutie
+3. MODEL_SMART / MODEL_CHEAP        ← .env, globálny default
+```
+
+Per-sekciu sa model nastavuje **v `lib/sections/index.js`, nie v `.env`** —
+je to redakčné rozhodnutie („Svet píše Gemini"), ktoré má byť v gite
+s históriou a dôvodom. `.env` drží len kľúče a globálny default. Každý agent
+posiela `section` do `ask()`/`askFull()`, takže routing platí na celú reťaz
+(05, 07, 08, 11, 13), nie len na Writera.
+
+**Dôvod zaviesť teraz:** pribúdajúce rubriky (Ekonomika, Svet, Horoskopy, Recepty,
+Záhrada) násobia objem AI volaní. Sonnet ostáva overená voľba pre Writer na
+Krypto/AI aj pre Záhradu (právne mantinely). Nové rubriky s nízkym rizikom sú
+priestor skúsiť lacnejšieho providera — `MANUAL_APPROVAL=true` funguje ako
+bezplatný A/B test (reject rate v Telegrame = signál kvality).
+
+**Pred nasadením nového modelu VŽDY pridaj jeho cenu do `PRICING` v `cost.js`.**
+Chýbajúci kľúč sa nerozbije, ale loguje náklad ako $0 — budget guard tak
+prestane fungovať potichu, presne v momente, keď najviac chrániš pred
+neplánovaným účtom.
 
 ## Scope: DVOJSEKČNÝ WEB — KRYPTO + AI
 
@@ -150,7 +183,8 @@ Whisper pre tlačovky až v neskoršej fáze. Zatiaľ NEpridávať ASR.
 
 - ❌ Nemiešaj s pôvodným Novinko Supabase `sndnglmrpgdzwdilgapj`.
 - ❌ Neposielaj zdrojový text do Writera — len facts JSON.
-- ❌ Nevolaj Anthropic API priamo, vždy cez `ai-gateway.js`.
+- ❌ Nevolaj Anthropic/Gemini/OpenAI SDK priamo, vždy cez `ai-gateway.js`.
+- ❌ Nepridávaj nový model do `.env` bez zápisu jeho ceny do `PRICING` v `cost.js`.
 - ❌ Nepoužívaj drahý model, keď stačí regex/Haiku.
 - ❌ Nepridávaj Whisper/ASR do MVP.
 - ❌ Neobchádzaj queue — žiadna priama komunikácia medzi agentmi.

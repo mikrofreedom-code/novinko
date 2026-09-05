@@ -256,7 +256,7 @@ async function buildAndInsert({ dryRun = false } = {}) {
   // AI len keď je zmysel ju mať: máme udalosti, ktoré vieme vpliesť. Inak šablóna zadarmo.
   if (aiOn && events.length > 0) {
     const raw = await ask({
-      tier: RECAP_TIER, agent: AGENT,
+      tier: RECAP_TIER, agent: AGENT, section: 'krypto',
       system: RECAP_SYSTEM, prompt: aiPayload(m, events, dir),
       maxTokens: 1100, temperature: 0.5,
     });

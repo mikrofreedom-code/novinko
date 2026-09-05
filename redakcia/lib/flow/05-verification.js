@@ -168,6 +168,7 @@ export async function factsFromText(item, meta) {
       tier: 'cheap',
       agent: AGENT,
       queueId: item.id,
+      section: meta.section,
       system: extractSystem(meta.desk === true),
       prompt: text,
       maxTokens,

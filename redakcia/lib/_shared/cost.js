@@ -1,11 +1,25 @@
 // COST ENGINE — loguj každé AI volanie.
 import { db } from './queue.js';
 // model: [input_usd_per_1M, output_usd_per_1M]. Kľúče = presne to, čo posiela ai-gateway
-// (hodnoty z .env), plus bare aliasy pre istotu. Aktualizuj pri zmene cien.
+// (bare model meno bez "provider:" prefixu), plus bare aliasy pre istotu.
+// Aktualizuj pri zmene cien.
+//
+// MODEL BEZ CENY SA NESMIE ZAVOLAŤ. Kým bol provider jeden, chýbajúci kľúč
+// znamenal len skreslený log. Pri troch providerov a piatich rubrikách je to
+// diera do rozpočtu: náklad by sa logoval ako $0, budget guard by videl nulu
+// a nikdy by nezasiahol. Preto ho ai-gateway cez hasPrice() zastaví PRED
+// volaním — radšej hlasná chyba pri prvom behu než tichý účet na konci mesiaca.
 const PRICING = {
   'claude-haiku-4-5-20251001': [1.00, 5.00],
   'claude-haiku-4-5': [1.00, 5.00],
   'claude-sonnet-4-6': [3.00, 15.00],
+  // Zavedená cena do 31.12.2026 (ai.google.dev, overené 3.9.2026); od 1.1.2027
+  // $1.50 / $7.50 — vtedy preceniť. Over si presný reťazec model ID v Google
+  // AI Studio pred nasadením, "gemini-3.8-flash" je najpravdepodobnejší tvar,
+  // nie 100% istota z dokumentácie.
+  'gemini-3.8-flash': [0.75, 3.75],
+  // OpenAI/ChatGPT: pridaj sem cenu hneď ako padne konkrétny model — bez
+  // riadku tu beží "naostro", ale za $0 v logoch, čo skreslí budget guard.
 };
 // Cache dnešného nákladu (refresh každých 60 s; logCost ho priebežne navyšuje).
 let _spend = { ts: 0, val: 0 };
@@ -34,6 +48,11 @@ export function dailyBudgetUsd() {
 export function allowanceUsd(now = new Date()) {
   const hodin = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
   return Math.min(DAILY_BUDGET, (DAILY_BUDGET * (hodin + HEAD_START_H)) / 24);
+}
+
+// Má model zapísanú cenu? ai-gateway sa pýta pred každým volaním.
+export function hasPrice(model) {
+  return Array.isArray(PRICING[model]);
 }
 
 export async function logCost({ agent, model, usage, queueId }) {

@@ -123,6 +123,7 @@ export async function run(item, { dryRun = false } = {}) {
     tier: 'cheap',
     agent: AGENT,
     queueId: item.id,
+    section: item.facts?.section,
     system: PROOF_SYSTEM,
     prompt: prompt + dodatok,
     maxTokens: 3000,

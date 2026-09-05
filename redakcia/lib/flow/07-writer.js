@@ -153,7 +153,7 @@ export async function run(item) {
     // (viď WRITER_SYSTEM). Radšej než to nechať spadnúť na chybu, skús ešte raz
     // s explicitnou pripomienkou — lacnejšie než zahodiť celý cluster.
     let raw = await ask({
-      tier: 'smart', agent: AGENT, queueId: item.id,
+      tier: 'smart', agent: AGENT, queueId: item.id, section: fc.section,
       system: WRITER_SYSTEM, prompt: basePrompt, maxTokens: 2200, temperature: 0.4,
     });
     // parseModelJson skúsi aj zachrániť zatúlanú úvodzovku (viď _shared/json.js).
@@ -162,7 +162,7 @@ export async function run(item) {
     let pokus = parseModelJson(raw);
     if (!pokus.ok) {
       raw = await ask({
-        tier: 'smart', agent: AGENT, queueId: item.id,
+        tier: 'smart', agent: AGENT, queueId: item.id, section: fc.section,
         system: WRITER_SYSTEM,
         prompt: `${basePrompt}\n\n(Predošlý pokus vrátil nevalidný JSON — pravdepodobne kvôli rovným úvodzovkám " " okolo citátu. Over si, že v "body" nepoužívaš znak " nikde okrem okrajov JSON reťazcov.)`,
         maxTokens: 2200, temperature: 0.4,

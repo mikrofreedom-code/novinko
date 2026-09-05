@@ -38,7 +38,7 @@ Strict: NO text/letters, NO real or recognizable people, NO logos/brands. Clean,
 async function imagePrompt(a) {
   try {
     const raw = await ask({
-      tier: 'cheap', agent: 'manual-publish', system: IMG_SYSTEM,
+      tier: 'cheap', agent: 'manual-publish', section: a.category, system: IMG_SYSTEM,
       prompt: `Section: ${a.category}\nHeadline: ${a.headline}\nSummary: ${a.perex ?? ''}`,
       maxTokens: 90, temperature: 0.6,
     });

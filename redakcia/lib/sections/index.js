@@ -13,6 +13,7 @@
 // event_type → základná dôležitosť (0-100). Ladí sa TU, per sekcia.
 const KRYPTO_EVENT_BASE = {
   regulatory: 90,        // MiCA, SEC, centrálne banky
+  security: 88,          // hack, exploit, zastavené výbery — vykradnutá burza je vždy správa
   announcement: 72,      // oznámenia, partnerstvá, PR
   listing: 68,           // nové listingy
   protocol_release: 55,  // upgrade protokolu
@@ -28,6 +29,7 @@ const KRYPTO_EVENT_BASE = {
 const AI_EVENT_BASE = {
   regulatory: 82,        // AI Act, EU/US politika
   announcement: 74,      // nové modely, funkcie, partnerstvá, ceny — jadro AI správ
+  security: 70,          // úniky dát, jailbreaky, zneužitie modelu — reálne, ale nie jadro sekcie
   listing: 60,
   protocol_release: 25,  // GitHub releases nástrojov/knižníc — pod latkou, nech neprechádza automaticky (potrebuje súbeh zdrojov)
   sentiment: 45,
@@ -48,6 +50,10 @@ export const SECTIONS = {
     eventBase: KRYPTO_EVENT_BASE,
     live: true,                // píše sa a publikuje
   },
+  // Voliteľné pole `models` prepne providera len pre túto sekciu, napr.:
+  //   models: { smart: 'gemini:gemini-3.8-flash' }
+  // Bez neho platí globálny default z .env. Model MUSÍ mať cenu v cost.js,
+  // inak ho ai-gateway odmietne zavolať (viď PRICING).
   ai: {
     id: 'ai',
     category: 'ai',
@@ -68,3 +74,17 @@ export function categoryFor(id) { return section(id).category; }
 export function eventBaseFor(id) { return section(id).eventBase; }
 export function keywordReFor(id) { return section(id).keywordRe; }
 export function liveFor(id) { return section(id).live !== false; }
+
+// ---- VOĽBA MODELU PRE SEKCIU ----
+//
+// Sekcia môže mať `models: { smart, cheap }` s hodnotou "provider:model"
+// (napr. 'gemini:gemini-3.8-flash'). Čo tu nie je, spadne na globálny default
+// z .env (MODEL_SMART / MODEL_CHEAP) — teda dnešný Anthropic.
+//
+// PREČO TU A NIE V .env: toto je redakčné rozhodnutie („Svet píše Gemini"),
+// nie tajomstvo. V .env by nemalo históriu ani dôvod, hoci CLAUDE.md hovorí,
+// že git log je hlavný záznam. Pipeline navyše beží z lokálneho cronu, takže
+// zmena .js nestojí deploy ani Netlify kredity — obvyklý argument „env sa mení
+// bez nasadenia" tu neplatí. A preklep v názve env premennej zlyhá ticho
+// (spadne na Sonnet a platíš 4×), preklep tu je vidieť v diffe.
+export function modelsFor(id) { return section(id).models ?? {}; }
