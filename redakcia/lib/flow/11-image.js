@@ -61,6 +61,18 @@ export async function run(item) {
   const article = item.article;
   if (!article?.headline) throw new Error('item.article chýba headline');
 
+  // ZÁHRADA — identifikačné riziko (BIBLIA-ZAHRADA.md kapitola 8): vygenerovaná
+  // voška alebo pleseň vyzerá presvedčivo a je vymyslená, čitateľ podľa nej
+  // koná. 15-zahrada.js nastaví article.no_ai_image=true pre témy, kde ide
+  // o rozpoznávanie škodcu/choroby (zoznam + regex, viď ten súbor). Bez
+  // obrázka je podporovaný, bezpečný stav — image_url ostane '' rovnako ako
+  // pri zlyhanom generovaní, článok ide ďalej.
+  if (article.no_ai_image === true) {
+    const updated = { ...article, image_url: '' };
+    await advance(item.id, STAGE.output, { article: updated });
+    return { image_url: '', skipped: 'identifikačné riziko — bez AI obrázka (BIBLIA-ZAHRADA kap. 8)' };
+  }
+
   // Prompt k téme cez Haiku; ak zlyhá, generateImage použije sekciovú šablónu.
   const prompt = await aiImagePrompt(item);
   // Graceful: ak generovanie zlyhá, image_url ostane '' a článok ide ďalej.
