@@ -180,8 +180,11 @@ export const SECTIONS = {
   },
   svet: {
     id: 'svet',
-    scoutEveryH: 1,      // najrýchlejší tep — svet sa mení každú hodinu
-    scoutOffsetH: 0,
+    // Bolo scoutEveryH: 1 (každú hodinu) — znížené 5. 9. na požiadanie, rovnaká
+    // kadencia ako krypto. Posun 1 (nepárne hodiny) zámerne DOPĹŇA krypto
+    // (párne, offset 0), nie sa s ním kryje — spolu pokrývajú každú hodinu.
+    scoutEveryH: 2,
+    scoutOffsetH: 1,
     category: 'svet',
     eventBase: SVET_EVENT_BASE,
     // ZÁMERNE BEZ keywordRe. Všetky zdroje sekcie sú vydavateľom zúžené na
