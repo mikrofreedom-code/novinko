@@ -152,8 +152,24 @@ export const FEEDS = [
   // Hospodárske médiá — VŽDY s atribúciou „podľa X" (source_type: 'secondary')
   { name: 'CNBC Economy', url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true },
   { name: 'Euronews Business', url: 'https://www.euronews.com/rss?level=theme&name=business', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true },
-  { name: 'MarketWatch', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true, keywordFilter: true },
-  { name: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssindex', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true, keywordFilter: true },
+
+  // Yahoo Finance a MarketWatch — VYHODENÉ 5. 9. 2026, v deň zavedenia sekcie.
+  // Prvá ostrá dávka: 18 položiek prešlo do 'clustered', z toho týchto šesť.
+  // Použiteľných z nich NULA:
+  //   Yahoo   denná tabuľka amerických hypotekárnych sadzieb (20 faktov typu
+  //           „30-ročná fixácia 6,71 %") — SEO výplň, ktorú vydávajú každý deň
+  //   Yahoo   Nasdaq futures wrap, Ligand Pharmaceuticals, eGain, Asana —
+  //           mikrokapitalizačné americké výsledky bez väzby na SK čitateľa
+  //   MarketWatch  „Why Oracle's stock looks like a compelling buy" — akciový
+  //           tip, z ktorého extraktor vytiahol dva fakty
+  // Sú to portály pre retailových investorov, nie hospodárske redakcie. Tá
+  // hypotekárna tabuľka je navyše najrizikovejšia položka z celej dávky:
+  // článok o refinancovaní je jednu vetu od „oplatí sa fixovať", čo zamieta
+  // CONSUMER_ADVICE_RE v 09-legal.
+  // Rovnaký meter ako pri Lido governance a llama.cpp vyššie — platiť za
+  // extrakciu obsahu, ktorý sa nepoužije, nemá zmysel. Vrátiť = odkomentovať.
+  // { name: 'MarketWatch', url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true, keywordFilter: true },
+  // { name: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssindex', layer: 'C', source_type: 'secondary', entity: null, section: 'ekonomika', desk: true, keywordFilter: true },
 
   // NEPRIDANÉ, overené a zamietnuté 5. 9. 2026 — nech to nikto neskúša znova:
   //   Štatistický úrad SR      HTTP 403 (Akamai, aj s prehliadačovou hlavičkou)
