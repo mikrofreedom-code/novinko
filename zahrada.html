@@ -58,6 +58,8 @@
 
   .page { max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px); }
 
+  .rubric-hero { width: 100%; height: clamp(180px, 28vw, 340px); overflow: hidden; }
+  .rubric-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .rubric-intro { padding: 40px 0 32px; border-bottom: 1px solid var(--border); }
   .rubric-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
   .rubric-eyebrow-line { flex: 1; height: 1px; background: var(--border); }
@@ -72,7 +74,12 @@
   .sec-dot { color: var(--cat-zahrada); }
   .sec-note { font-size: .72rem; color: var(--muted); font-style: italic; }
 
-  .season-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  /* auto-fit namiesto pevných 4 stĺpcov (nájdené 6. 9., živý web s 2
+     článkami): pri menej než 4 položkách repeat(4,1fr) necháva prázdny
+     stĺpec vpravo. auto-fit prázdnu implicitnú stopu zbalí na 0 a zvyšné
+     karty sa roztiahnu — funguje to samo, bez media queries pre počet
+     stĺpcov (nechané nižšie len pre .lead span na úzkych šírkach). */
+  .season-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
   .season-card { text-decoration: none; color: inherit; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); transition: border-color .15s; }
   .season-card:hover { border-color: var(--cat-zahrada); }
   .season-card.lead { grid-column: span 2; }
@@ -98,12 +105,11 @@
   .foot-note a { color: var(--cat-zahrada); }
 
   @media (max-width: 980px) {
-    .season-grid { grid-template-columns: repeat(2, 1fr); }
-    .season-card.lead { grid-column: span 2; }
     .archive-grid { grid-template-columns: 1fr; }
   }
-  @media (max-width: 620px) {
-    .season-grid { grid-template-columns: 1fr; }
+  @media (max-width: 560px) {
+    /* Pod touto šírkou auto-fit aj tak spadne na 1 stĺpec (minmax 240px),
+       lead by tam ale span 2 nemal čo preklenúť — zostal by prázdny stĺpec. */
     .season-card.lead { grid-column: span 1; }
   }
 </style>
@@ -116,6 +122,10 @@
     <button class="theme-btn" id="themeBtn" type="button" aria-label="Prepnúť na tmavý režim">◐</button>
   </div>
 </header>
+
+<div class="rubric-hero">
+  <img src="https://kypwhjpedbtodehrviub.supabase.co/storage/v1/object/public/article-images/zahrada/header.webp" alt="" loading="eager">
+</div>
 
 <div class="page">
 

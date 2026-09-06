@@ -208,7 +208,10 @@
 
     /* ─── ZÁHRADA (evergreen blok, sezónne rady — vlastná stránka zahrada.html) ─── */
     .zahrada-section { margin: 34px 0 8px; }
-    .zahrada-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    /* auto-fit namiesto pevných 4 stĺpcov (rovnaký nález ako v zahrada.html,
+       6. 9.) — pri menej než 4 článkoch (dnes bežný stav) repeat(4,1fr)
+       necháva vpravo prázdny stĺpec. auto-fit ho zbalí, karty sa roztiahnu. */
+    .zahrada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
     .zahrada-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.15s; }
     .zahrada-card:hover { border-color: var(--cat-zahrada); }
     .zahrada-card.lead { grid-column: span 2; }
@@ -219,8 +222,7 @@
     .zahrada-card:not(.lead) .zahrada-card-title { font-size: 1rem; }
     .zahrada-card.lead .zahrada-card-title { font-size: 1.3rem; }
     .zahrada-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    @media (max-width: 900px) { .zahrada-grid { grid-template-columns: repeat(2, 1fr); } .zahrada-card.lead { grid-column: span 2; } }
-    @media (max-width: 560px) { .zahrada-grid { grid-template-columns: 1fr; } .zahrada-card.lead { grid-column: span 1; } }
+    @media (max-width: 480px) { .zahrada-card.lead { grid-column: span 1; } }
 
     /* ─── CHART SECTION (len v sekcii Krypto) ─── */
     .market-section { margin-bottom: 36px; }
