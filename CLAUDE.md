@@ -408,11 +408,53 @@ vlastný tab) — kroky 3-4 nižšie to dorovnávajú.
   práce ako Záhrada celá (nový ročný plán, nový `09-legal` profil — riziká
   domácnosti/bytu, napr. elektrina/plyn/stavebné zásahy, sú iné a nebezpečnejšie
   než záhradné), nie len premenovanie kategórie.
-- **Deploy nutný, ešte neurobený.** Zmeny v `netlify/lib/config.js`,
-  `netlify/functions/manual-publish.js`, `netlify/lib/build.js` aj nový
-  `zahrada.html`/`index.html` blok sa prejavia až po Netlify deploy (15
-  kreditov) — git push sám o sebe nestačí. Do deploy-u zostáva orphaned
-  článok technicky publikovaný, ale bez vlastného tabu/labelu.
+- **Deploy prebehol (6. 9., automaticky cez GitHub-Netlify prepojenie
+  na push).** Overené naživo: `zahrada.html` vracia 200, kategória `zahrada`
+  sa zobrazuje so správnym labelom, orphaned článok (Zalievanie) aj druhý
+  publikovaný článok (Výška kosenia trávnika) sa zobrazujú správne.
+
+### Záhrada — "web vo webe" dotiahnutý do konca (6. 9., popoludnie)
+
+Pokračovanie tej istej žiadosti ("nová webstránka, vlastný dizajn") do
+detailu, plus prvé ostré doladenia po pohľade na živú stránku s reálnymi
+dátami:
+
+- **Stránka článku (`netlify/functions/clanok.js` +
+  `netlify/lib/clanok-render.js`) dostala rovnaký svetlý dizajn** ako
+  `zahrada.html` — predtým klik na záhradný článok odviedol čitateľa späť
+  do zdieľanej tmavej šablóny, ilúzia "webu vo webe" sa rozpadla na prvý
+  klik. `theme: 'zahrada'` prepína font/farby cez CSS premenné, štruktúra
+  aj SEO (JSON-LD, meta tagy) ostávajú identické pre všetky kategórie.
+  Súvisiace odkazy pod záhradným článkom teraz filtrujú len na záhradu.
+- **Grid bug opravený**: `.season-grid`/`.zahrada-grid` mali pevné 4 stĺpce,
+  takže pri menej než 4 článkoch (bežný stav, kým sa rubrika nezaplní)
+  zostávala vpravo prázdna medzera. `repeat(auto-fit, minmax(...))` to rieši
+  samo, bez media queries na počet stĺpcov.
+- **Hero banner** — obrázok od používateľa (jesenná úroda) nahratý do
+  Supabase Storage (`article-images/zahrada/header.webp`), plnošírkový pod
+  mastheadom na `zahrada.html`.
+- **Obrázky prepnuté na fotorealistický, "vlastná fotka autora" štýl**
+  (predtým symbolická "digital art" ilustrácia, nesediaca k záhradkárstvu).
+  Dve kolá doladenia — druhé na spätnú väzbu "musia viac sedieť s témou,
+  akoby som to fotil ja": prompt teraz opisuje KONKRÉTNU akciu z článku
+  (napr. ruky presúvajúce kvetináč), štýl "candid smartphone photo" namiesto
+  DSLR/stock vzhľadu. `PHOTOREALISTIC_SECTIONS` množina v `11-image.js` aj
+  `images.js` je zámerne rozšíriteľná pre Dom/Byt.
+- **Writer prompt prepísaný** podľa podrobného štýlového manuálu od
+  používateľa (tón "sused cez plot", zoznam zakázaných AI fráz, SEO
+  povedomie). Výstupný JSON kontrakt a kódom-riadené ZDROJE (nie model)
+  ostali zámerne nedotknuté — bezpečnostný dôvod vysvetlený priamo v kóde.
+  Dĺžka zdvihnutá na 500-900 slov (`maxTokens` 1600→2400).
+- **Dva staré publikované články majú ešte starý ilustračný štýl obrázka**
+  (predchádzali dnešnej zmene) — používateľ chce ich prefotiť na
+  fotorealistické. ROZOBEHNUTÉ, NEDOKONČENÉ: narazilo na priebežný
+  rozpočtový strop (`$0.85` minuté, strop na danú hodinu `$0.84`) hneď pri
+  prvom Haiku volaní. Presné sheet-riadky nájdené vopred (safe, len čítanie):
+  Zalievanie = riadok 391, Výška kosenia trávnika = riadok 404, stĺpec H.
+  Žiadna funkcia na UPDATE existujúceho riadku v hárku predtým neexistovala
+  (`appendRow`/`appendArticleRow` len pridávajú nové) — treba ju napísať cez
+  `spreadsheets.values.update` na `articles!H<riadok>`, používateľ súhlasil
+  počkať na uvoľnenie rozpočtu namiesto obchádzania cez Haiku.
 
 - **Vlastný spúšťač, nie facts pipeline.** Vkladá rovno do statusu `proofed`
   — obchádza 01-07 AJ 08 (ten kontroluje článok proti FACTS, ktoré Záhrada
