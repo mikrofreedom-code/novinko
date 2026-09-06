@@ -408,6 +408,14 @@
 </div>
 
 <!-- TICKER: EKONOMIKA (len v sekcii Ekonomika) — komodity, akcie, indexy -->
+<!-- POZOR (nájdené 6. 9.): "cash" symboly pre indexy (SP:SPX, NASDAQ:NDX,
+     TVC:DEU40) na TradingView free ticker-tape widgete nevracajú hodnotu
+     vôbec (červený výkričník namiesto ceny) — burzové indexy potrebujú
+     platený data feed aj v embed widgete, kým komodity (TVC:GOLD/USOIL/
+     SILVER) aj jednotlivé akcie fungujú bez problému. FOREXCOM/CAPITALCOM
+     CFD verzie sú voľne dostupné a fungujú aj cez víkend — overené naživo
+     vložením do skutočnej stránky. Neprepisuj späť na "krajšie" cash symboly
+     bez opätovného overenia, že widget naozaj vráti hodnotu. -->
 <div class="tv-ticker-wrap" id="tickerEkonomika" style="display:none">
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
@@ -417,9 +425,9 @@
         { "proName": "TVC:GOLD", "title": "Zlato" },
         { "proName": "TVC:USOIL", "title": "Ropa WTI" },
         { "proName": "TVC:SILVER", "title": "Striebro" },
-        { "proName": "SP:SPX", "title": "S&P 500" },
-        { "proName": "NASDAQ:NDX", "title": "Nasdaq 100" },
-        { "proName": "TVC:DEU40", "title": "DAX" },
+        { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
+        { "proName": "FOREXCOM:NSXUSD", "title": "Nasdaq 100" },
+        { "proName": "CAPITALCOM:DE40", "title": "DAX" },
         { "proName": "NASDAQ:AAPL", "title": "Apple" },
         { "proName": "NASDAQ:NVDA", "title": "NVIDIA" },
         { "proName": "FX:EURUSD", "title": "EUR/USD" }
@@ -546,25 +554,26 @@
       </div>
     </div>
 
+    <!-- Vymenené 6. 9. na žiadosť používateľa — pôvodný "Trhy" widget
+         (Komodity/Indexy ceny) nahradený ekonomickým kalendárom. Tematicky
+         bližšie k tomu, o čom Ekonomika píše (rozhodnutia ECB/Fedu, CPI,
+         HDP), nie len ceny komodít. Overené naživo vložením do skutočnej
+         stránky — funguje, len "locale: sk" tento konkrétny typ widgetu
+         nepodporuje (dátumy/mená ukazovateľov ostávajú po anglicky). -->
     <div class="sidebar-block" id="sbEkonomika" style="display:none">
-      <div class="sidebar-head">Trhy</div>
+      <div class="sidebar-head">Ekonomický kalendár</div>
       <div class="tv-mini-symbol" style="height:360px">
         <div class="tradingview-widget-container" style="height:100%;width:100%">
           <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
           {
             "colorTheme": "light",
-            "dateRange": "1D",
-            "showChart": false,
-            "locale": "sk",
             "isTransparent": true,
-            "showSymbolLogo": true,
             "width": "100%",
             "height": "100%",
-            "tabs": [
-              { "title": "Komodity", "symbols": [ { "s": "TVC:GOLD", "d": "Zlato" }, { "s": "TVC:USOIL", "d": "Ropa" }, { "s": "TVC:SILVER", "d": "Striebro" }, { "s": "TVC:NATGAS", "d": "Zemný plyn" } ] },
-              { "title": "Indexy", "symbols": [ { "s": "SP:SPX", "d": "S&P 500" }, { "s": "NASDAQ:NDX", "d": "Nasdaq 100" }, { "s": "TVC:DEU40", "d": "DAX" } ] }
-            ]
+            "locale": "sk",
+            "importanceFilter": "0,1",
+            "currencyFilter": "USD,EUR"
           }
           </script>
         </div>
