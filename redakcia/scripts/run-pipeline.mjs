@@ -22,6 +22,7 @@ import * as proofreader from '../lib/flow/08-proofreader.js';
 import * as legal from '../lib/flow/09-legal.js';
 import * as marketRecap from '../lib/flow/13-market-recap.js';
 import * as zahrada from '../lib/flow/15-zahrada.js';
+import * as horoskop from '../lib/flow/16-horoskop.js';
 import * as image from '../lib/flow/11-image.js';
 import * as publisher from '../lib/flow/12-publisher.js';
 
@@ -89,6 +90,10 @@ async function main() {
   log('15-zahrada — sezónny generátor (raz denne) → proofed');
   try { console.log('  ', await zahrada.run()); }
   catch (e) { console.log('   ⚠️ záhrada preskočená:', e.message); }
+
+  log('16-horoskop — denný generátor (raz denne) → proofed');
+  try { console.log('  ', await horoskop.run()); }
+  catch (e) { console.log('   ⚠️ horoskop preskočený:', e.message); }
 
   // Korektúra a právna kontrola bežia AŽ TU, teda aj na denný recap vyššie —
   // práve v ňom sa 30.7. objavila vymyslená príčinná súvislosť.

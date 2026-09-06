@@ -153,6 +153,99 @@ const ZAHRADA_CHECKS = [
   },
 ];
 
+// ============================================================
+// HOROSKOP — vlastný profil kontrol (od 2026-09-06)
+// ------------------------------------------------------------
+// PREČO VLASTNÝ PROFIL: rovnaký princíp ako pri Záhrade — CHECKS nižšie sú
+// pre agregované spravodajstvo (atribúcia, investičné poradenstvo), horoskop
+// nemá ani zdroje v tom zmysle, ani sa netýka peňazí primárne. Riziko
+// horoskopu je iné: BIBLIA-HOROSKOP V1.0 kapitola 15 explicitne zakazuje
+// predpovede smrti/nehôd/diagnóz/tehotenstva/výhier, isté tvrdenia o nevere
+// a vymyslené astronomické udalosti (nemáme zdroj overených dát o postavení
+// planét). Kontroly nižšie chytajú ŠIRŠIE než nutné — rovnaká filozofia ako
+// ZAHRADA_CHECKS (falošný pozitív ide na 'rejected', človek v Telegrame ho
+// aj tak nikdy neuvidí; falošný negatív by bol horší).
+const HOROSKOP_ISTOTA_RE = /(?<![\p{L}])(určite sa stane\w*|stopercentne|garantovan[ýáé]\w*|hviezdy garantujú|na sto percent|bez pochýb\w*)/iu;
+const HOROSKOP_ZDRAVIE_RE = /(?<![\p{L}])(diagnóz\w*|ochoriet[ei]|ochorenie\w*|nehod\w*|úraz\w*|zomrie\w*|smrť\w*|infarkt\w*|rakovin\w*|mŕtvic\w*)/iu;
+const HOROSKOP_TEHOTENSTVO_RE = /(?<![\p{L}])(otehotni\w*|tehotenstv\w*|čaká\s+dieťa)/iu;
+const HOROSKOP_NEVERA_RE = /(?<![\p{L}])(podvádza\s+v[áa]s|je\s+v[áa]m\s+nevern[áý]|nevern[áý]\s+partner\w*|rozíde\s+sa\s+s\s+vami|čaká\s+v[áa]s\s+rozchod)/iu;
+const HOROSKOP_HAZARD_RE = /(?<![\p{L}])(vyhráte\s+v\s+lot[ée]ri\w*|výherné\s+čísl\w*|stavte\s+na\b|tipujte\s+čísl\w*)/iu;
+const HOROSKOP_FINANCIE_RE = /(?<![\p{L}])(kúpte|investujte\s+do|nakúpte)\s+(bitcoin\w*|akci[ea]\w*|zlato|kryptomen\w*)/iu;
+// Konkrétne astronomické/astrologické udalosti — nemáme zdroj overených dát,
+// takže sa nedajú overiť ani schváliť, len zakázať úplne. Zámerne bez
+// požiadavky na susediace slová (planéta + sloveso hneď vedľa seba) — "Merkúr
+// dnes vstupuje do Leva" by inak prešlo, lebo medzi nimi je "dnes". Meno
+// planéty alebo astro-žargón samostatne stačí, v horoskope inak nemá dôvod
+// zaznieť.
+// POZOR na "spln\w*": chytalo aj "splnený"/"splniť" (bežné slovesá, nič
+// astrologické) — nájdené 6. 9. na reálnom teste ("Jeden splnený úloha...").
+// Astrologický "spln" (mesiaca) je podstatné meno bez slovesných prípon,
+// preto vlastná koncová hranica len preň, nie zdieľaná so zvyškom skupiny.
+const HOROSKOP_ASTRO_RE = /(?<![\p{L}])(retrográdn\w*|spln(?![\p{L}])|splnu\b|splnom\b|nov\s+mesiac\w*|konjunkci\w*|Merkúr\w*|Venuš\w*|Mars(?![\p{L}])|Jupiter\w*|Saturn\w*|Urán\w*|Neptún\w*|vstupuje\s+do\b)/iu;
+
+const HOROSKOP_CHECKS = [
+  {
+    id: 'zdroje',
+    run: ({ article }) => (article.sources ?? []).length === 0 ? 'článok nemá ani jeden zdroj' : null,
+  },
+  {
+    id: 'istota',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_ISTOTA_RE);
+      return hit ? `isté tvrdenie o budúcnosti: „${hit[0]}" — horoskop smie len naznačovať ("môže", "oplatí sa")` : null;
+    },
+  },
+  {
+    id: 'zdravie',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_ZDRAVIE_RE);
+      return hit ? `zdravotná/nešťastná predpoveď: „${hit[0]}" — najviac všeobecná "energia"/"pohoda"` : null;
+    },
+  },
+  {
+    id: 'tehotenstvo',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_TEHOTENSTVO_RE);
+      return hit ? `tehotenská predpoveď: „${hit[0]}"` : null;
+    },
+  },
+  {
+    id: 'nevera',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_NEVERA_RE);
+      return hit ? `isté tvrdenie o nevere/rozchode: „${hit[0]}"` : null;
+    },
+  },
+  {
+    id: 'hazard',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_HAZARD_RE);
+      return hit ? `zmienka o hazarde/lotérii: „${hit[0]}"` : null;
+    },
+  },
+  {
+    id: 'financie',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_FINANCIE_RE);
+      return hit ? `konkrétna investičná rada: „${hit[0]}"` : null;
+    },
+  },
+  {
+    id: 'astro',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(HOROSKOP_ASTRO_RE);
+      return hit ? `nepreverená astronomická/astrologická udalosť: „${hit[0]}"` : null;
+    },
+  },
+];
+
 // Zoznam kontrol. Každá vráti null (ok) alebo text dôvodu (zamietnuté).
 const CHECKS = [
   {
@@ -210,7 +303,9 @@ const CHECKS = [
 // rovnaké poradie, aké používa 12-publisher pri categoryFor()).
 function checksFor(article, facts) {
   const section = article?.section ?? facts?.section;
-  return section === 'zahrada' ? ZAHRADA_CHECKS : CHECKS;
+  if (section === 'zahrada') return ZAHRADA_CHECKS;
+  if (section === 'horoskop') return HOROSKOP_CHECKS;
+  return CHECKS;
 }
 
 // ---------- Spracuj JEDEN článok ----------
