@@ -191,28 +191,64 @@ hodín vyššie (tie určuje krypto/AI/Ekonomika, nie Svet) — len znižuje
 zbytočné scoutovanie 10 zdrojov v hodinách, keď aj tak nikto neplatený
 nepíše.
 
-**STAV K 23:20 (5. 9.): ŽIVÝ EFEKT STÁLE NEOVERENÝ.** Posledný skutočný beh
-cronu bol o 21:00 — PRED všetkými opravami vyššie (tie pristáli 23:15-23:20).
-Od 22:00 beží nočná pauza do 5:00. Prvý beh, ktorý uvidí opravy naozaj v
-akcii, bude o 5:00 — podľa rozvrhu je to hodina Sveta+AI, teda by sa mala
-hýbať extrakcia pre AI (nie krypto, nie Ekonomika). **Skontroluj to ráno ako
-prvé** — `ai_cost_log` podľa `agent='05-verification'` a sekcie za posledný
-beh, plus `logs/pipeline.log` chvost.
+**STAV K 23:20 (5. 9.), OVERENÉ RÁNO 6. 9.:** beh o 5:00 aj 6:00 potvrdil
+rozvrh naživo (`logs/pipeline.log`) — o 5:00 (nepárna hodina) scoutol AI aj
+Svet, o 6:00 (párna) svet vypadol z `preskocene` presne podľa `scoutOffsetH`.
+Krypto aj AI písali a publikovali normálne v oboch behoch.
+
+**Ale pri tej istej kontrole sa našiel VEDĽAJŠÍ ÚČINOK opravy `357445b`**
+(neplánovaný, nezapísaný vyššie): commit z 23:15 zaviedol `liveFor(sec) &&
+sectionDue(sec, now)` ako podmienku pre `platene` v `05-verification`, čím
+ale zároveň úplne zastavil AJ EXTRAKCIU pre neživé sekcie (Ekonomika, Svet) —
+nielen písanie, ktoré blokoval `liveFor()` už predtým. Overené priamo v DB
+(`mcp__supabase-redakcia`): 48 položiek `svet` prišlo do `collected` PO 23:15
+a ani jedna nemá `facts` — a už by ani nikdy nemala, kým je `live: false`,
+lebo `05-verification` sa k nim vôbec nedostane. Ekonomika: od 23:15 pribudlo
+0 nových položiek do `collected` vôbec (RSS jednoducho nič nové nedoniesol).
+**Dôsledok:** plán „6. 9. pozrieť väčšiu vzorku faktov" (pozri nižšie) bol by
+bez zásahu nesplniteľný — fakty by sa už nehromadili, k dispozícii by bola
+navždy len vzorka z 5. 9. spred opravy.
+
+**OPRAVENÉ 6. 9. ráno** — `05-verification` dostal tretiu, malú vetvu popri
+`vybrane` (živé due sekcie) a `zadarmo` (Layer A): `vzorka`. Berie NAJVIAC
+`NONLIVE_SAMPLE_CAP` (default 2) položiek z neživých sekcií, ale LEN z toho,
+čo v danom behu ostane nevyužité z `MAX_EXTRACTIONS_PER_RUN` po `vybrane` —
+nikdy neuberá živej sekcii jej slot, len dopĺňa to, čo by inak prepadlo.
+Poradie spracovania `[...zadarmo, ...vybrane, ...vzorka]` navyše zaručuje, že
+keby budget guard zastavil AI náklady uprostred behu, príde na rad posledná.
+Bez vekového škrtu (nezmyselné pre sekciu, ktorú Writer aj tak nepustí ďalej
+bez ohľadu na vek). Overené OFFLINE (simulácia so skutočnými `liveFor`/
+`sectionDue`/`roundRobinCap`/`prescore`, žiadne AI volanie/sieť): živá sekcia
+s dostatočným backlogom dostane celý strop 12 a vzorka 0; live sekcia s len
+3 kandidátmi dostane 3 a vzorka doplní zvyšných 2; keď nie je due žiadna živá
+sekcia, vzorka je presne 2 (nie viac) a strieda Ekonomiku/Svet round-robin.
+Cena: max. ~2 extrakcie × $0,0097 (Haiku) navyše len v hodinách, keď má due
+živá sekcia menej než 12 čerstvých kandidátov — v praxi časté (5:00 beh mal
+`ok: 2`, 6:00 beh `ok: 7`, oboje pod stropom), takže reálny náklad pôjde
+smerom k stovkám dolárocentov mesačne, nie k novej položke rozpočtu.
+
+**POZOR: táto oprava (6. 9.) ešte NIE JE commitnutá** — je len v pracovnom
+strome, na rozdiel od vety nižšie, ktorá sa týka VÝHRADNE fixov z 5. 9.
+Prvý beh, ktorý ju uvidí naživo, over rovnako ako vyššie: `ai_cost_log` podľa
+`agent='05-verification'` a pole `vzorka` v `logs/pipeline.log`.
 
 Všetko je commitnuté a POUSHNUTÉ (používateľ pushol sám z terminálu, 36
 commitov na `origin/main`). Web zmena (`netlify/lib/config.js`) čaká na
 Netlify deploy — to je iný krok než git push, používateľ o tom vie.
 
-### Sekcia Ekonomika — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
+### Sekcia Ekonomika — ŽIVÁ od 6. 9.
 
-Celá reťaz je hotová a commitnutá, ale `live: false` v `lib/sections/index.js`.
-`liveFor()` gatuje Writera, takže sa položky zbierajú, extrahujú a skórujú, ale
-**nenapíše sa ani nezaplatí žiadny článok**. Je to zámerný pilot: extrakcia
-(lacná, Haiku) beží a plní `clustered`, písanie (Sonnet, najdrahšia vrstva) nie
-— takže sa dá pozerať na reálne `facts` JSON skôr, než sa zaplatí prvý článok.
-Web je pripravený — tab
-„Ekonomika", `CAT_LABELS` aj farba `--cat-eko` v `index.html` existujú
-z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
+`live: true` v `lib/sections/index.js` od rána 6. 9. Web bol pripravený vopred
+— tab „Ekonomika", `CAT_LABELS` aj farba `--cat-eko` v `index.html` existujú
+z ručného publikovania, takže zapnutie NEPOTREBOVALO deploy.
+
+**Prvé reálne behy (6. 9., ručne spustené pri zapínaní):** 3 články prešli
+cez Writera. 2 sa dostali až po `imaged` a odišla za ne žiadosť o schválenie
+do Telegramu (skontroluj tam) — 1 dostal `09-legal` zamietnutie: „atribúcia:
+fakty vyžadujú atribúciu, ale v texte nie je „podľa …"". To NIE JE porucha —
+presne na toto brána existuje, zachytila to skôr, než sa dostalo k človeku.
+Sleduj, či sa to opakuje často (bol by to signál na doladenie promptu), alebo
+išlo o ojedinelý prípad.
 
 - **Zdroje: 4** — Európska komisia, Fed, CNBC Economy, Euronews Business.
   Yahoo Finance a MarketWatch leteli von hneď v deň zavedenia (viď nižšie).
@@ -235,7 +271,12 @@ z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
   „Fed Warsh o inflácii" od „Trump na minci" — to je vec kvality zdroja, prah
   to nevyrieši.
 - **ĎALŠÍ KROK (dohodnuté 5. 9.):** nechať bežať deň bez Yahoo šumu, 6. 9.
-  pozrieť väčšiu vzorku faktov a podľa nej rozhodnúť o `live: true`.
+  pozrieť väčšiu vzorku faktov a podľa nej rozhodnúť o `live: true`. TENTO
+  PLÁN BOL 6. 9. RÁNO OBJAVENÝ AKO MŔTVY — commit `357445b` (5. 9. 23:15)
+  vedľajšou cestou zastavil pre neživé sekcie AJ extrakciu, nielen písanie
+  (detail vyššie pri „STAV K 23:20"). Opravené tam istým commitom, čo pridal
+  `vzorka` vetvu — odteraz znova pribúdajú fakty, len pomaly (max. 2/beh,
+  striedavo s Ekonomikou).
 - **Cez RSS ani cez stránku sa k slovenským dátam nedostaneš.** ŠÚSR, OECD, IMF
   aj US BLS vracajú 403/503 aj na HTML aj s naším čestným UA — blokujú automat
   na okraji siete. Obísť sa to dá len predstieraním inej identity a to je proti
@@ -250,15 +291,51 @@ z ručného publikovania, takže prepnutie NEPOTREBUJE deploy.
   `update`, mapovanie JSON-stat na fakty (Layer A, bez AI) a rozhodnutie, kedy
   je nové číslo správa. POZOR: dotaz na HICP vrátil december 2025 s `updated`
   6. 2. 2026 — čerstvosť preveriť skôr, než sa na tom začne stavať.
-- **Čo zostáva neoverené:** ako vyzerá HOTOVÝ ČLÁNOK. Overená je extrakcia
-  (fakty, obdobia, stavy, atribúcia), ale Writer s hospodárskou vetvou promptu
-  ešte nebežal ani raz — gatuje ho `live: false`. Prvý zapnutý beh treba
-  sledovať zblízka.
+- **Čo bolo neoverené, teraz overené (6. 9.):** ako vyzerá HOTOVÝ ČLÁNOK.
+  Writer s hospodárskou vetvou promptu bežal prvý raz, výsledok vyššie.
 
-### Sekcia Svet — postavená, ZATIAĽ NEŽIVÁ (5. 9.)
+### Sekcia Svet — postavená, OTESTOVANÁ 6. 9., OSTÁVA `live: false`
 
-Rovnaký stav ako Ekonomika: celá reťaz commitnutá, `live: false`, web tab „Svet"
-existuje z ručného publikovania, takže zapnutie nepotrebuje deploy.
+Rovnaký stav ako Ekonomika predtým: celá reťaz commitnutá, web tab „Svet"
+existuje z ručného publikovania, takže zapnutie nepotrebuje deploy — ale na
+rozdiel od Ekonomiky NEZAPÍNAM ju natrvalo, len jednorazovo otestovaná.
+
+**JEDNORAZOVÝ TEST 6. 9. — VÝSLEDOK:** dočasne `live: true`, spustený
+`run-pipeline.mjs` dvakrát. Oba behy napísali LEN Ekonomiku, Svet ani raz —
+**objavená príčina**: `claim(50)` v `07-writer.js` je čisté FIFO podľa
+`created_at`, bez ohľadu na sekciu. Ekonomika mala v ten moment ~45-50
+`clustered` položiek starších než ktorýkoľvek svetový kus, takže celé okno 50
+vyplnila sama a Svet sa do kandidátskej množiny (`cerstve`) vôbec nedostal —
+`roundRobinCap` (ktorý má práve toto riešiť) nemá medzi čím striedať, keď
+jedna sekcia obsadí celý claim skôr, než sa k nemu dostane. **Toto je NOVÝ,
+inak umiestnený variant toho istého problému, čo mal fairness fix z 5. 9.
+riešiť pre extrakciu — tu vznikol o krok ďalej, vo Writerovi.** Zapísané ako
+TODO nižšie, netreba to riešiť pred ničím iným.
+
+Aby sa dal vôbec vidieť reálny výstup, napísal som JEDEN konkrétny `clustered`
+kus priamo cez `run(item)` (obídením dávky, mimo `run-pipeline.mjs`) — nie
+niečo, čo by bežná prevádzka niekedy urobila sama, kým sa FIFO problém
+nevyrieši:
+
+- **Výstup:** Sánchez/Ceuta (Španielsko-Maroko, hraničný incident), zdroj
+  Guardian World, `event_type: diplomacy`, `attribution_used: true`,
+  134 slov, jasné „podľa Guardian World" pri sporných tvrdeniach. Kvalitatívne
+  presne to, čo mal sourcing model (atribuovaná agregácia) dosiahnuť.
+- **Nedostal sa do Telegramu** — pri postupe cez `08-proofreader` narazil na
+  priebežný rozpočtový strop (`allowanceUsd()` v `cost.js`, rastie s hodinou
+  dňa). Testovanie tento strop samo vyčerpalo (pozri nižšie). Položka zostala
+  v stave `error`, `retry.js` ju vráti do hry, len čo strop dorastie (do pár
+  hodín) — nepočíta sa jej to do `MAX_RETRIES`.
+- **Cena tohto testu:** ručné behy dnes (dva plné `run-pipeline.mjs` + jeden
+  priamy `run()`) minuli spolu ~$0,39 navyše k bežnej prevádzke, čím sa
+  dnešný priebežný strop vyčerpal skôr, než by inak bol — automatické behy do
+  cca 09:00-10:00 budú mať menej voľného rozpočtu než zvyčajne. Samoopravné,
+  nič nerob.
+
+**Rozhodnutie:** vrátené na `live: false`. Draft ukázal, že sourcing/prompt
+funguje, ale kým sa nevyrieši FIFO problém vo Writerovi (viď TODO), Svet by
+za normálnej prevádzky rovnako nikdy nedostal svoj slot, kým Ekonomika (alebo
+neskôr aj iná hlbšia sekcia) drží dlhší backlog.
 
 - **Zdroje: 10.** Primárne UN News a IAEA; redakcie BBC World, Guardian World,
   DW, France 24, Al Jazeera, NPR World, The Hindu International, Africanews.
@@ -337,6 +414,17 @@ generátor `lib/flow/15-zahrada.js`, zapojený do `run-pipeline.mjs`.
    registrovaných údajov k EV 176/26/SWP.
 4. **Spiaci stroj** — nevyriešené od 9. 8.
 5. **Evidenčné číslo** chýba na stránkach článkov, kde ľudia z Googlu pristávajú.
+6. **`07-writer.js` claim() je FIFO bez ohľadu na sekciu** (nájdené 6. 9. pri
+   teste Sveta) — `claim(STAGE.input, 50)` berie 50 najstarších `clustered`
+   položiek naprieč VŠETKÝMI sekciami. Sekcia s hlbším/starším backlogom
+   (dnes Ekonomika) vyplní celé okno sama a mladšie sekcie sa do kandidátskej
+   množiny nedostanú vôbec — `roundRobinCap`/`topPerSection` (ktoré majú
+   riešiť spravodlivosť MEDZI sekciami) na to nemajú dosah, lebo pracujú až
+   nad tým, čo `claim()` vráti. Rovnaký tvar problému, aký riešil fairness fix
+   z 5. 9. pre `05-verification` (`sectionDue`+`liveFor`), len o krok ďalej v
+   reťazi. Treba PRED tým, ako sa zapne čokoľvek so samostatným backlogom
+   popri Ekonomike (Svet, prípadne ďalšie): buď `claim()` per-sekciu (podobne
+   ako 05), alebo aspoň vyšší limit tak, aby okno pokrylo aj mladšie sekcie.
 
 Úzkym hrdlom **nie je technika** — je to prevádzka (kredit) a obsah.
 
