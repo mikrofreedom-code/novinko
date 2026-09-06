@@ -164,12 +164,12 @@ export const SECTIONS = {
     category: 'ekonomika',
     keywordRe: EKONOMIKA_RE,
     eventBase: EKONOMIKA_EVENT_BASE,
-    // ZATIAĽ NEŽIVÁ. `liveFor()` gatuje Writera (07-writer.js), takže položky
-    // sa zbierajú, extrahujú a skórujú, ale žiadny článok sa nenapíše — a teda
-    // ani nezaplatí. Prepnúť na true AŽ keď web bude mať tab „Ekonomika",
-    // inak by Publisher zverejňoval do kategórie, ktorú stránka nevykreslí.
-    // (Presne v tomto poradí išla aj sekcia AI.)
-    live: false,
+    // ŽIVÁ od 6. 9. Pilot z 5. 9. (18 položiek do `clustered`, Euronews/ECB
+    // skóre 90 presne podľa zámeru — inflácia ako fakt, prognóza so `status:
+    // forecast`, citát) ukázal, že extrakcia funguje. Yahoo a MarketWatch
+    // (0 dobrých položiek z 6) sú už vyhodené z feeds.js. Writer vetva pre
+    // ekonomiku nikdy predtým nebežala — prvé ostré behy sleduj zblízka.
+    live: true,
     // Model zámerne NEPREPÍNAME na lacnejší. Pôvodná úvaha („nové rubriky =
     // priestor skúsiť Gemini") tu neplatí: presnosť v číslach, percentuálnych
     // bodoch, obdobiach a stave údaja je presne to, na čom lacný model šmykne,
@@ -197,10 +197,21 @@ export const SECTIONS = {
     // POZOR: keby sem niekto pridal feed s `keywordFilter: true`, spadne to —
     // keywordReFor() vráti undefined a brána naň zavolá .test(). Vtedy treba
     // najprv dopísať SVET_RE.
+    // Späť na false po jednorazovom teste 6. 9. Zistenie: claim(50) v
+    // 07-writer je FIFO podľa created_at bez ohľadu na sekciu — Ekonomika má
+    // hlbší/starší backlog, takže bežná dávka vyplní celé okno 50 len
+    // Ekonomikou a Svet sa do `cerstve` vôbec nedostane (round-robin cap
+    // vtedy nemá čo striedať). Reálny draft preto vznikol AŽ manuálnym
+    // volaním `run(item)` mimo dávky (mimo run-pipeline.mjs, priamo na
+    // konkrétnu položku), nie normálnym behom.
+    //
+    // Výstup (Sánchez/Ceuta, Guardian World, event_type diplomacy,
+    // attribution_used: true) — kvalitatívne v poriadku, pozri CLAUDE.md.
+    // Predtým než sa zapne natrvalo, treba buď zdvihnúť claim() limit v
+    // 07-writer (a MAX_ARTICLES_PER_RUN/TOTAL, ktoré sú kalibrované na 1-2
+    // sekcie), alebo dať claim()-u prednosť podľa sekcie namiesto čistého FIFO
+    // — inak by Svet za bežnej prevádzky rovnako nikdy nedostal Writer slot.
     live: false,
-    // Nežije z rovnakého dôvodu ako ekonomika: web tab „Svet“ síce existuje
-    // (z ručného publikovania), ale Writer s novou vetvou promptu ešte nikdy
-    // nebežal. Zapnúť až po obhliadke reálnych faktov.
   },
   zahrada: {
     id: 'zahrada',
