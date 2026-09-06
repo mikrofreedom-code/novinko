@@ -54,7 +54,15 @@ exports.handler = async (event) => {
 
   // Vnútorné prelinkovanie — bez neho by ku článkom viedla len sitemap
   // a crawler by nemal po webe ako prejsť ďalej.
-  const dalsie = clanky
+  //
+  // Záhrada je zámerne obmedzená na SVOJU kategóriu ("web vo webe", 2026-09-06)
+  // — čitateľ, ktorý prišiel zo zahrada.html, nemá pod záhradným článkom
+  // vidieť odkazy na krypto/AI. Ostatné kategórie zámerne miešajú naprieč
+  // celým webom (viac krížového prelinkovania = lepší crawl).
+  const rovnakaKategoria = clanok.category === "zahrada"
+    ? clanky.filter((c) => c.category === "zahrada")
+    : clanky;
+  const dalsie = rovnakaKategoria
     .filter((c) => c.id !== id)
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 6)

@@ -65,17 +65,44 @@ function datumSk(iso) {
   });
 }
 
-function hlavicka() {
+// `theme: 'zahrada'` posiela čitateľa naspäť do zahrada.html, nie na hlavnú —
+// súčasť "web vo webe" zámeru (2026-09-06): kto prišiel zo Záhrady, nemá sa
+// pri návrate ocitnúť na bežnej hlavnej stránke.
+function hlavicka(theme) {
+  const domov = theme === "zahrada" ? "/zahrada.html" : "/";
   return `<header>
   <div class="header-inner">
-    <a href="/" class="back-btn">← Späť</a>
-    <a href="/" class="logo">novinko<span>.</span></a>
+    <a href="${domov}" class="back-btn">← Späť</a>
+    <a href="${domov}" class="logo">novinko<span>.</span></a>
     <span class="logo-tagline">Píše AI. Človek kontroluje.</span>
   </div>
 </header>`;
 }
 
-function obal({ title, description, canonical, image, date, telo, jsonLd }) {
+// Prestyluje stránku článku na svetlý dizajn Záhrady (rovnaké tokeny ako
+// zahrada.html) — bez tohto by čitateľ jedným klikom z vlastnej "webstránky"
+// spadol späť do tmavého masthead-u zvyšku Novinka. Prepisuje len farby a
+// písmo cez CSS premenné z clanok.css, nie štruktúru — JSON-LD/meta tagy pre
+// SEO ostávajú rovnaké pre všetky kategórie.
+const ZAHRADA_THEME_CSS = `<style>
+  :root {
+    --bg: #ffffff; --surface: #ffffff; --border: #e3e0d8;
+    --accent: #4a6b1f; --text: #111111; --muted: #7a7468; --header-bg: #ffffff;
+  }
+  body { font-family: 'Source Sans 3', sans-serif; }
+  header { border-bottom: 1px solid var(--border); }
+  .logo, .article-title { font-family: 'Libre Baskerville', serif; }
+  .logo { color: var(--text); }
+  .back-btn { color: var(--muted); }
+  .logo-tagline { color: var(--muted); }
+  .article-date { background: #eef1e3; }
+  .back-link:hover { color: #fff; }
+</style>`;
+
+function obal({ title, description, canonical, image, date, telo, jsonLd, theme }) {
+  const fonts = theme === "zahrada"
+    ? "family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700"
+    : "family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500";
   return `<!DOCTYPE html>
 <html lang="sk">
 <head>
@@ -94,11 +121,11 @@ function obal({ title, description, canonical, image, date, telo, jsonLd }) {
   <meta property="og:url" content="${esc(canonical)}" />
   <meta property="og:site_name" content="Novinko" />
 ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date ? `  <meta property="article:published_time" content="${esc(date)}" />\n` : ""}  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?${fonts}&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/clanok.css" />
-${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
+${theme === "zahrada" ? `  ${ZAHRADA_THEME_CSS}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
-${hlavicka()}
+${hlavicka(theme)}
 ${telo}
 <footer>novinko &mdash; všetky aktuálne správy na jednom mieste<span style="display:block;margin-top:8px"><a href="/archiv" style="color:var(--text2)">Archív článkov</a></span><span style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:10px"><a href="https://www.tiktok.com/@novinko.sk" target="_blank" rel="noopener me" aria-label="Novinko na TikToku" title="Novinko na TikToku" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a><a href="https://x.com/novinkosk" target="_blank" rel="noopener me" aria-label="Novinko na X" title="Novinko na X" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></span></footer>
 </body>
@@ -110,6 +137,7 @@ ${telo}
 // dalsie:  pole { title, url } na vnútorné prelinkovanie (crawl cesta pre Google)
 function renderClanok(article, dalsie = []) {
   const { title, perex, content, source, date, category, imageUrl, imageCredit } = article;
+  const theme = category === "zahrada" ? "zahrada" : null;
   const sourceParts = String(source || "").split("|");
   const sourceName = (sourceParts[0] || "").trim();
   const sourceLink = (sourceParts[1] || "").trim();
@@ -133,10 +161,10 @@ function renderClanok(article, dalsie = []) {
         ? `Zdroj: <a href="${esc(sourceLink)}" target="_blank" rel="noopener nofollow">${esc(sourceName)}</a>`
         : `Zdroj: ${esc(sourceName || "Novinko")}`
     }</div>
-    <a href="/" class="back-link">← Všetky správy</a>
+    <a href="${theme === "zahrada" ? "/zahrada.html" : "/"}" class="back-link">${theme === "zahrada" ? "← Celá rubrika Záhrada" : "← Všetky správy"}</a>
   </div>
 ${dalsie.length ? `  <nav class="dalsie-clanky">
-    <h2>Ďalšie správy</h2>
+    <h2>${theme === "zahrada" ? "Ďalšie zo Záhrady" : "Ďalšie správy"}</h2>
     <ul>
       ${dalsie.map((d) => `<li><a href="${esc(d.url)}">${esc(d.title)}</a></li>`).join("\n      ")}
     </ul>
@@ -151,6 +179,7 @@ ${dalsie.length ? `  <nav class="dalsie-clanky">
     date,
     telo,
     jsonLd: newsArticleJsonLd(article, popis),
+    theme,
   });
 }
 
