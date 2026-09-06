@@ -658,9 +658,22 @@
   }
   function byDateDesc(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }
 
+  // POZOR (nájdené 6. 9.): fetch() nemá vlastný timeout. Keď jediná z 8
+  // súbežných kategórií zavesí na strane servera (naživo skladané dáta —
+  // Blob cache sa aktuálne netrafí ani raz, viď CLAUDE.md), Promise.all
+  // v loadAll() čaká navždy a CELÁ hlavná stránka zostane na "Načítavam
+  // správy…" bez ohľadu na to, že zvyšných 7 kategórií dorazilo v poriadku.
+  // AbortController s 10 s stropom zaručí, že jedna zaseknutá kategória
+  // stiahne len sama seba (vráti []), nie celú stránku.
   async function fetchCat(cat) {
-    try { const r = await fetch(`/.netlify/functions/fetch-rss?category=${cat}`); const d = await r.json(); return d.items || []; }
-    catch (e) { return []; }
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 10000);
+    try {
+      const r = await fetch(`/.netlify/functions/fetch-rss?category=${cat}`, { signal: ac.signal });
+      const d = await r.json();
+      return d.items || [];
+    } catch (e) { return []; }
+    finally { clearTimeout(t); }
   }
   async function loadAll() {
     const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id];
