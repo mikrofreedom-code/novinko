@@ -647,6 +647,34 @@ export async function runBatch(limit = CANDIDATE_POOL) {
     )
     : [];
 
+  // VZORKA PRE NEŽIVÉ SEKCIE — dopĺňa LEN nevyužitý zvyšok rozpočtu tohto
+  // behu (`vybrane` nikdy nedostane menej než by malo, toto berie iba to, čo
+  // by inak prepadlo). Bez tohto Ekonomika/Svet od zavedenia vyššieho filtra
+  // (5. 9. 23:15, commit 357445b) nedostanú NIKDY ani jednu extrakciu navyše
+  // — plán „obhliadnuť väčšiu vzorku faktov pred rozhodnutím o live: true"
+  // (viď CLAUDE.md) by bol bez tohto mŕtvy, lebo fakty by sa už nehromadili.
+  //
+  // Zámerne BEZ vekového škrtu (MAX_AGE_H) — tie fakty nič nepublikuje Writer
+  // bez ohľadu na vek, škrt vyššie rieši len zbytočné platenie za niečo, čo
+  // by zahodil Writer, čo sa tu nedeje.
+  //
+  // Zámerne malý strop (default 2, nie MAX_EXTRACTIONS_PER_RUN) — toto je
+  // prieskum, nie produkcia, a nesmie sa nabaľovať na krypto/AI rozpočet.
+  // Poradie v `[...zadarmo, ...vybrane, ...vzorka]` nižšie navyše zaručuje,
+  // že ak budget guard zastaví AI náklady uprostred behu, vzorka je na rade
+  // posledná — živé sekcie majú vždy prednosť pred prieskumom.
+  const NONLIVE_SAMPLE_CAP = Number(process.env.NONLIVE_SAMPLE_CAP ?? 2);
+  const nezivePolozky = textove.filter((it) => !liveFor(it.raw_data?.section ?? 'krypto'));
+  const volnyRozpocet = Math.max(0, MAX_EXTRACTIONS_PER_RUN - vybrane.length);
+  const vzorka = aiEnabled && volnyRozpocet > 0
+    ? roundRobinCap(
+      nezivePolozky,
+      Math.min(volnyRozpocet, NONLIVE_SAMPLE_CAP),
+      (it) => it.raw_data?.section ?? 'krypto',
+      (it) => prescore(it.raw_data ?? {}).score,
+    )
+    : [];
+
   const results = {
     ok: 0,
     failed: 0,
@@ -654,10 +682,11 @@ export async function runBatch(limit = CANDIDATE_POOL) {
     parked: cerstve.length - vybrane.length,
     zastarane,
     zadarmo: zadarmo.length,
-    neziva, // čaká na sekciu s live: true, nepočíta sa do parked ani zastarane
+    neziva: nezivePolozky.length - vzorka.length, // čaká na sekciu s live: true
+    vzorka: vzorka.length, // prieskumná extrakcia neživej sekcie z voľného rozpočtu
   };
 
-  for (const item of [...zadarmo, ...vybrane]) {
+  for (const item of [...zadarmo, ...vybrane, ...vzorka]) {
     try {
       await run(item);
       results.ok++;
