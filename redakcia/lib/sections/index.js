@@ -197,21 +197,18 @@ export const SECTIONS = {
     // POZOR: keby sem niekto pridal feed s `keywordFilter: true`, spadne to —
     // keywordReFor() vráti undefined a brána naň zavolá .test(). Vtedy treba
     // najprv dopísať SVET_RE.
-    // Späť na false po jednorazovom teste 6. 9. Zistenie: claim(50) v
-    // 07-writer je FIFO podľa created_at bez ohľadu na sekciu — Ekonomika má
-    // hlbší/starší backlog, takže bežná dávka vyplní celé okno 50 len
-    // Ekonomikou a Svet sa do `cerstve` vôbec nedostane (round-robin cap
-    // vtedy nemá čo striedať). Reálny draft preto vznikol AŽ manuálnym
-    // volaním `run(item)` mimo dávky (mimo run-pipeline.mjs, priamo na
-    // konkrétnu položku), nie normálnym behom.
+    // ŽIVÁ od 6. 9. (na žiadosť používateľa — "odtiaľ mi neprichádza").
+    // Jednorazový test z toho istého dňa ukázal reálny problém: claim(50)
+    // v 07-writer bol FIFO naprieč sekciami, takže hlbší backlog Ekonomiky
+    // vyplnil celé okno sám a Svet sa do kandidátskej množiny nedostal
+    // vôbec. OPRAVENÉ v rovnakom commite — 07-writer teraz claimuje
+    // OSOBITNE za každú živú sekciu (claimPerSection()), takže hlbší
+    // backlog jednej sekcie už nemôže vytlačiť inú zo súťaže.
     //
-    // Výstup (Sánchez/Ceuta, Guardian World, event_type diplomacy,
-    // attribution_used: true) — kvalitatívne v poriadku, pozri CLAUDE.md.
-    // Predtým než sa zapne natrvalo, treba buď zdvihnúť claim() limit v
-    // 07-writer (a MAX_ARTICLES_PER_RUN/TOTAL, ktoré sú kalibrované na 1-2
-    // sekcie), alebo dať claim()-u prednosť podľa sekcie namiesto čistého FIFO
-    // — inak by Svet za bežnej prevádzky rovnako nikdy nedostal Writer slot.
-    live: false,
+    // Kvalita overená testom z 6. 9. (Sánchez/Ceuta, Guardian World,
+    // event_type diplomacy, attribution_used: true) — v poriadku, pozri
+    // CLAUDE.md. Sleduj prvé ostré behy zblízka, rovnako ako pri Ekonomike.
+    live: true,
   },
   zahrada: {
     id: 'zahrada',

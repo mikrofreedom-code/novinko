@@ -24,10 +24,10 @@
 //   }
 // ============================================================
 
-import { claim, advance } from '../_shared/queue.js';
+import { claim, advance, db } from '../_shared/queue.js';
 import { ask } from '../_shared/ai-gateway.js';
 import { parseModelJson } from '../_shared/json.js';
-import { liveFor } from '../sections/index.js';
+import { liveFor, SECTIONS } from '../sections/index.js';
 
 export const STAGE = {
   index: 7,
@@ -458,17 +458,43 @@ export function topPerSection(items, cap, sectionOf, importanceOf) {
   return out;
 }
 
+// claim() v queue.js je FIFO naprieč VŠETKÝMI sekciami naraz — nájdené 6. 9.
+// pri teste Sveta: Ekonomika mala hlbší/starší backlog, takže jediný
+// claim(50) vyplnila sama a Svet sa do kandidátskej množiny nedostal vôbec
+// (topPerSection/roundRobinCap nižšie nemali medzi čím striedať, lebo im
+// nikdy nič neprišlo na vstup). Rovnaký tvar problému ako riešil fairness
+// fix z 5. 9. pre 05-verification, len o krok ďalej v reťazi.
+//
+// Riešenie: claimni OSOBITNE za KAŽDÚ živú sekciu, nie raz spoločne — hlbší
+// backlog jednej sekcie tak už nemôže vytlačiť inú z okna skôr, než sa
+// k nej dostane topPerSection/roundRobinCap. limitPerSection je zámerne
+// malý (netreba viac než pár najlepších kandidátov na sekciu, keď aj tak
+// z nej pôjde ďalej najviac MAX_PER_RUN).
+async function claimPerSection(status, limitPerSection) {
+  const ziveSekcie = Object.keys(SECTIONS).filter((id) => liveFor(id));
+  const dávky = await Promise.all(ziveSekcie.map(async (sec) => {
+    const { data, error } = await db.from('queue').select('*')
+      .eq('status', status).eq('facts->>section', sec)
+      .order('created_at', { ascending: true }).limit(limitPerSection);
+    if (error) throw error;
+    return data ?? [];
+  }));
+  return dávky.flat();
+}
+
 // ---------- Dávkové spracovanie fronty v stave `clustered` ----------
-export async function runBatch(limit = 50) {
+export async function runBatch(limitPerSection = 20) {
   // Zberový režim (AI_ENABLED=false): nepíš nič, vybrané položky nechaj čakať.
   if (process.env.AI_ENABLED === 'false') {
-    const waiting = await claim(STAGE.input, limit);
+    const waiting = await claim(STAGE.input, limitPerSection);
     return { ok: 0, failed: 0, parked: waiting.length };
   }
 
-  const items = await claim(STAGE.input, limit);
+  const items = await claimPerSection(STAGE.input, limitPerSection);
   // Sekcie, ktoré ešte nie sú 'live' (napr. AI pred nasadením webu): nepíš ich,
   // nechaj čakať v 'clustered' — žiadny Sonnet/obrázok/publish, kým sa neprepnú.
+  // claimPerSection už berie len živé sekcie, tento filter je len poistka
+  // (napr. položka bez facts.section by inak spadla na 'krypto' default).
   const writable = items.filter((it) => liveFor(it.facts?.section ?? 'krypto'));
   const parked = items.length - writable.length;
 
