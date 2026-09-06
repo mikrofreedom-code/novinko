@@ -294,7 +294,7 @@ išlo o ojedinelý prípad.
 - **Čo bolo neoverené, teraz overené (6. 9.):** ako vyzerá HOTOVÝ ČLÁNOK.
   Writer s hospodárskou vetvou promptu bežal prvý raz, výsledok vyššie.
 
-### Sekcia Svet — postavená, OTESTOVANÁ 6. 9., OSTÁVA `live: false`
+### Sekcia Svet — ŽIVÁ od 6. 9. večer (FIFO chyba opravená)
 
 Rovnaký stav ako Ekonomika predtým: celá reťaz commitnutá, web tab „Svet"
 existuje z ručného publikovania, takže zapnutie nepotrebuje deploy — ale na
@@ -332,10 +332,18 @@ nevyrieši:
   cca 09:00-10:00 budú mať menej voľného rozpočtu než zvyčajne. Samoopravné,
   nič nerob.
 
-**Rozhodnutie:** vrátené na `live: false`. Draft ukázal, že sourcing/prompt
-funguje, ale kým sa nevyrieši FIFO problém vo Writerovi (viď TODO), Svet by
-za normálnej prevádzky rovnako nikdy nedostal svoj slot, kým Ekonomika (alebo
-neskôr aj iná hlbšia sekcia) drží dlhší backlog.
+**Rozhodnutie (ráno):** vrátené na `live: false` — draft ukázal, že
+sourcing/prompt funguje, ale kým sa nevyrieši FIFO problém vo Writerovi,
+Svet by za normálnej prevádzky rovnako nikdy nedostal svoj slot.
+
+**VEČER 6. 9., na žiadosť používateľa ("odtiaľ mi neprichádza"):** FIFO
+problém opravený — `07-writer.js` dostal `claimPerSection()`, ktorá claimuje
+OSOBITNE za každú živú sekciu namiesto jedného globálneho FIFO `claim()`.
+Hlbší backlog Ekonomiky tak už nemôže vytlačiť Svet z kandidátskej množiny.
+Overené priamo v DB (len čítanie): Svet má 20+ pripravených kandidátov.
+`live: true` natrvalo. Sleduj prvé ostré behy zblízka, rovnako ako pri
+Ekonomike — Writer vetva pre Svet stále reálne bežala len raz (manuálne,
+mimo dávky).
 
 - **Zdroje: 10.** Primárne UN News a IAEA; redakcie BBC World, Guardian World,
   DW, France 24, Al Jazeera, NPR World, The Hindu International, Africanews.
@@ -476,6 +484,60 @@ dátami:
 
 Kroky 3-4 (kategória, web) a stav živého testu — pozri hore.
 
+### Rubrika Horoskopy — nová (6. 9. večer), kroky 1-2 hotové
+
+Nová rubrika na žiadosť používateľa, podľa ním zadanej **BIBLIA-HOROSKOP
+V1.0** (nie súbor v repozitári — zadanie prišlo priamo v konverzácii, kľúčové
+pravidlá sú teraz v `HOROSKOP_SYSTEM` v `16-horoskop.js`). Overené naživo,
+že veľké portály horoskop bežne majú (Yahoo, MSN, Pravda.sk/Koktail,
+Zoznam.sk/Sibyla) — nie je to mimo profilu spravodajského webu.
+
+Rovnaký architektonický vzor ako Záhrada: vlastný spúšťač, obchádza 01-08
+(žiadne fakty na overovanie), rovno do `proofed`. Rozdiel oproti Záhrade:
+horoskop nemá ani len register reálnych inštitúcií ako zdroj (ÚKSÚP/SHMÚ)
+— je to čistá lifestylová fikcia, čo aj samotná biblia priznáva. Sebaatribúcia
+"Novinko — Horoskop" sa skladá kódom, nie modelom.
+
+**KĽÚČOVÉ ARCHITEKTONICKÉ ROZHODNUTIE — 3 volania po 4 znameniach, nie 1
+po 12:** prvý pokus (jedno Sonnet volanie na všetkých 12 znamení naraz,
+~2500-3500 slov) opakovane zlyhával — najprv `Request timed out` aj po
+zdvihnutí `AI_TIMEOUT_MS` z 60s na 120s (lokálny `.env`, negituje sa),
+potom orezaný/nevalidný JSON pri `maxTokens: 4000` (model buď nestihol
+dokončiť, alebo ho zaťal strop tokenov uprostred). Namiesto ďalšieho
+naťahovania stropov (krehké, len odsúva problém o kus ďalej) som generovanie
+rozdelil na **3 sekvenčné volania po 4 znameniach**, `maxTokens: 2200`
+každé — rýchle, spoľahlivé, ako bonus núti model menej sa v rámci menšej
+dávky opakovať. Nadpis a perex sa AI vôbec nepýtajú — biblia sama hovorí
+"titulky možno obmieňať", takže sú to rotujúce šablóny v kóde podľa dňa
+v mesiaci, zadarmo a bez rizika clickbaitu.
+
+**`HOROSKOP_CHECKS` v `09-legal.js`** — 8 strojových kontrol (istota,
+zdravie, tehotenstvo, nevera, hazard, financie, astro-udalosti, zdroje),
+druhá vrstva popri prompte, rovnaký princíp ako `ZAHRADA_CHECKS`. Pri
+testovaní chytený a opravený falošný pozitív: `spln\w*` (astrologický
+spln mesiaca) chytal aj úplne bežné slovo "splnený" ("Jeden splnený
+úloha... deň") — opravené na `spln(?![\p{L}])`, presnú hranicu slova.
+Redakčná poznámka (biblia kapitola 16, "horoskop je určený na zábavné a
+lifestylové účely...") sa pripája kódom za posledné znamenie, nie modelom.
+
+**Overené reálnym behom** (3 Sonnet volania, ~$0,05, 98s spolu): 12 znamení,
+každé s odlišnou témou a vetnou štruktúrou, žiadne AI klišé, hviezdičkové
+hodnotenia prirodzene rozložené (nie samé 4-5), prešlo cez `09-legal` bez
+zásahu po oprave regexu.
+
+**Zostáva (krok 3-4, mimo dnešného rozsahu):**
+- Obrázok — dohodnuté: symbolická nebeská/zverokruhová ilustrácia (rovnaká
+  neFoto vetva ako krypto/AI v `11-image.js`), NIE fotorealizmus ako Záhrada
+  — niet čo reálne odfotiť. Ešte nezapojené.
+- Kategória (`CATS`, `POVOLENE_KATEGORIE`, `buildAll()` špeciálny riadok
+  ako pri Záhrade/Krypto škole) — ešte nezapojené.
+- Vlastná stránka `horoskop.html` — používateľ chce "web vo webe" ako
+  Záhrada, ešte nepostavená.
+- Nikdy nebežal cez `run-pipeline.mjs` naostro (len ručné volanie
+  `napisHoroskop()` priamo) — je zapojený (`16-horoskop.js` importovaný
+  a volaný), ale prvý ostrý beh treba sledovať zblízka, rovnako ako pri
+  Záhrade/Ekonomike/Svete.
+
 ### Ďalej v poradí
 
 1. Os **potvrdené/rumor** vo faktoch — dnes leak vyzerá ako hotový fakt.
@@ -493,17 +555,12 @@ Kroky 3-4 (kategória, web) a stav živého testu — pozri hore.
    registrovaných údajov k EV 176/26/SWP.
 4. **Spiaci stroj** — nevyriešené od 9. 8.
 5. **Evidenčné číslo** chýba na stránkach článkov, kde ľudia z Googlu pristávajú.
-6. **`07-writer.js` claim() je FIFO bez ohľadu na sekciu** (nájdené 6. 9. pri
-   teste Sveta) — `claim(STAGE.input, 50)` berie 50 najstarších `clustered`
-   položiek naprieč VŠETKÝMI sekciami. Sekcia s hlbším/starším backlogom
-   (dnes Ekonomika) vyplní celé okno sama a mladšie sekcie sa do kandidátskej
-   množiny nedostanú vôbec — `roundRobinCap`/`topPerSection` (ktoré majú
-   riešiť spravodlivosť MEDZI sekciami) na to nemajú dosah, lebo pracujú až
-   nad tým, čo `claim()` vráti. Rovnaký tvar problému, aký riešil fairness fix
-   z 5. 9. pre `05-verification` (`sectionDue`+`liveFor`), len o krok ďalej v
-   reťazi. Treba PRED tým, ako sa zapne čokoľvek so samostatným backlogom
-   popri Ekonomike (Svet, prípadne ďalšie): buď `claim()` per-sekciu (podobne
-   ako 05), alebo aspoň vyšší limit tak, aby okno pokrylo aj mladšie sekcie.
+6. ~~`07-writer.js` claim() je FIFO bez ohľadu na sekciu~~ **OPRAVENÉ 6. 9.
+   večer** — `claimPerSection()` claimuje osobitne za každú živú sekciu,
+   viď sekcia Svet vyššie. Ostáva overiť na živej prevádzke (nie len v DB
+   dry-run čítaní), či sa Svet naozaj pravidelne dostáva na rad, keď pribudne
+   ďalšia hlboká sekcia (Horoskop nižšie do tohto poolu nepatrí — vlastný
+   spúšťač, nie Writer).
 7. **Záhrada: oblasť/typ metadata sa nedostane na web** (nájdené 6. 9.) —
    `zahrada.html` nevie ukázať štítky úžitková/okrasná/izbovky/trávnik ani
    kedy/ako/prečo, hoci schválený artefakt ich mal. Dôvod: hárok (stĺpce A:I)
