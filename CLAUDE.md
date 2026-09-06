@@ -360,11 +360,59 @@ neskôr aj iná hlbšia sekcia) drží dlhší backlog.
 - **Čo zostáva neoverené:** úplne všetko za extrakciou. Writer so zahraničnou
   vetvou nebežal ani raz.
 
-### Rubrika Záhrada — generátor hotový a commitnutý (7. 9.), NEOTESTOVANÝ NAŽIVO
+### Rubrika Záhrada — kroky 1-4 hotové (6. 9.), čaká na Netlify deploy
 
 Kroky 1-2 z `BIBLIA-ZAHRADA.md` kapitoly 10 hotové: plán 84 tém
 (`content/zahrada/plan.md`, vlastný parser `lib/_shared/zahrada-plan.js`) +
 generátor `lib/flow/15-zahrada.js`, zapojený do `run-pipeline.mjs`.
+
+**ŽIVÝ TEST UŽ PREBEHOL — sám, bez čakania na krok 3-4.** Zistené 6. 9. pri
+kontrole DB: článok „Zalievanie záhrady: kedy a koľko vody skutočne treba"
+prešiel celou reťazou 5. 9. a je `status: published` (schválené v Telegrame,
+`approval_message_id: 694`). Legal profil (`ZAHRADA_CHECKS`) prešiel všetkých
+8 kontrol, obrázok sa vygeneroval. Predchádzajúci zápis „živý test nikdy
+neprebehol" bol zastaraný — nikto ho po schválení nezapísal späť sem.
+Dôsledok: článok bol do dnešného rána na webe len cez „all"/archív (kategória
+`zahrada` chýbala v `CATS`, takže sa nezobrazoval so správnym labelom a nemal
+vlastný tab) — kroky 3-4 nižšie to dorovnávajú.
+
+**Kroky 3-4 dokončené 6. 9.:**
+- `netlify/lib/config.js` (`CATS`) a `netlify/functions/manual-publish.js`
+  (`POVOLENE_KATEGORIE`) — `zahrada` pridané do oboch. Na rozdiel od
+  `krypto-skola` ostáva zahrada aj v `POVOLENE_KATEGORIE` zámerne (BIBLIA
+  kapitola 8: vlastná fotka cez `publikovat.html`, keď AI obrázok nepatrí).
+- `netlify/lib/build.js` (`buildAll()`) — `zahrada` dostala rovnaký evergreen
+  riadok ako `krypto-skola` (celý sheet, bez vekového orezania), zámerne MIMO
+  `CAT_ORDER` (nezahlcuje homepage round-robin).
+- **Vlastná stránka `zahrada.html`**, NIE integrovaná do `index.html`
+  masthead-u — na výslovnú žiadosť používateľa: "chcem aby to bolo tak ako
+  som ti poslal... ako nová webstránka, má vlastný dizajn". Svetlý masthead
+  (na rozdiel od čierneho všade inde), podľa schváleného artefaktu "Sezóna v
+  záhrade" (2026-09-05). `index.html` dostal len malú ochutnávku — blok
+  „Sezóna v záhrade" (`ZAHRADA` konštanta, `--cat-zahrada`, `renderZahrada()`,
+  vzor `.skola-section`, MIMO `SECTIONS`/`LEAD_SECTIONS`) s odkazom „Celá
+  rubrika →" na `zahrada.html`. Žiadny nav-filter button pre zahradu v
+  `index.html` hlavičke (na rozdiel od pôvodného zámeru v BIBLII kapitole 9)
+  — tú úlohu prevzala vlastná stránka.
+- **Čo `zahrada.html` NEMÁ**, hoci artefakt to ukazoval: štítky oblasť/typ
+  (úžitková/okrasná/izbovky/trávnik, kedy/ako/prečo) v zozname článkov. Táto
+  metadata sa NIKDY nedostane do hárku — stĺpce A:I nemajú pre ňu miesto a
+  `articleToRow()`/`sheets.js` ju nečítajú. Pridať by znamenalo zmeniť schému
+  hárku (dotklo by sa `netlify/lib/article-row.js` AJ
+  `redakcia/lib/_shared/article-row.js` — presne tá „dvojitá cesta"
+  z `CLAUDE.md`), čo je za hranicou dnešnej úlohy. Zapísané ako TODO nižšie.
+- **Otvorená otázka od používateľa (6. 9.): zlúčiť Dom/Byt/Záhradu, alebo nie.**
+  Rozhodnuté: najprv len Záhrada, štruktúra nech sa dá neskôr rozšíriť.
+  Dom aj Byt zatiaľ NEEXISTUJÚ v žiadnej podobe — žiadny plán tém, žiadny
+  `oblast` kód, žiadny generátor. Keby sa pridali, pôjde o porovnateľný objem
+  práce ako Záhrada celá (nový ročný plán, nový `09-legal` profil — riziká
+  domácnosti/bytu, napr. elektrina/plyn/stavebné zásahy, sú iné a nebezpečnejšie
+  než záhradné), nie len premenovanie kategórie.
+- **Deploy nutný, ešte neurobený.** Zmeny v `netlify/lib/config.js`,
+  `netlify/functions/manual-publish.js`, `netlify/lib/build.js` aj nový
+  `zahrada.html`/`index.html` blok sa prejavia až po Netlify deploy (15
+  kreditov) — git push sám o sebe nestačí. Do deploy-u zostáva orphaned
+  článok technicky publikovaný, ale bez vlastného tabu/labelu.
 
 - **Vlastný spúšťač, nie facts pipeline.** Vkladá rovno do statusu `proofed`
   — obchádza 01-07 AJ 08 (ten kontroluje článok proti FACTS, ktoré Záhrada
@@ -383,19 +431,8 @@ generátor `lib/flow/15-zahrada.js`, zapojený do `run-pipeline.mjs`.
 - **Používaný slug = navždy, nie len tento rok.** Aktualizačný režim pre
   2. rok (plán ho v hlavičke žiada, aby sa nekanibalizovalo vyhľadávanie)
   ešte nie je postavený — zapísané ako TODO pred 2027-01 priamo v kóde.
-- **Čo NEEXISTUJE ešte:** kategória `zahrada` v `netlify/lib/config.js`
-  (`CATS`) a `netlify/functions/manual-publish.js` (`POVOLENE_KATEGORIE`) —
-  krok 3 z biblie. Web tab a homepage blok „Sezóna v záhrade" — krok 4, na
-  toto existuje schválený vizuálny návrh (artefakt zo 7. 9., biely masthead
-  namiesto čierneho, viď rozhovor). Ani jedno NIE JE nutné na to, aby
-  generátor fungoval — sheet append ide mimo POVOLENE_KATEGORIE (tá platí
-  len pre `publikovat.html` formulár), takže sa dá testovať cez Telegram bez
-  toho, aby o rubrike vedel ktokoľvek okrem schvaľovateľa. Presne to biblia
-  v kapitole 10 odporúča.
-- **Živý test never prebehol.** Prompt, právne kontroly aj `no_ai_image`
-  vetva sú overené len staticky (regexom/logikou, bez AI volania). Prvý
-  skutočný článok bude stáť ~$0,02-0,03 (Sonnet) a pri `MANUAL_APPROVAL=true`
-  pošle skutočnú správu do Telegramu.
+
+Kroky 3-4 (kategória, web) a stav živého testu — pozri hore.
 
 ### Ďalej v poradí
 
@@ -425,6 +462,13 @@ generátor `lib/flow/15-zahrada.js`, zapojený do `run-pipeline.mjs`.
    reťazi. Treba PRED tým, ako sa zapne čokoľvek so samostatným backlogom
    popri Ekonomike (Svet, prípadne ďalšie): buď `claim()` per-sekciu (podobne
    ako 05), alebo aspoň vyšší limit tak, aby okno pokrylo aj mladšie sekcie.
+7. **Záhrada: oblasť/typ metadata sa nedostane na web** (nájdené 6. 9.) —
+   `zahrada.html` nevie ukázať štítky úžitková/okrasná/izbovky/trávnik ani
+   kedy/ako/prečo, hoci schválený artefakt ich mal. Dôvod: hárok (stĺpce A:I)
+   pre ne nemá miesto a `articleToRow()` ich nepíše. Pridanie = zmena schémy
+   hárku, dotkne sa `netlify/lib/article-row.js` AJ
+   `redakcia/lib/_shared/article-row.js` (tá istá dvojitá cesta, pred ktorou
+   varuje časť „Čo bolí" vyššie) — nerobiť to mimochodom pri inej úlohe.
 
 Úzkym hrdlom **nie je technika** — je to prevádzka (kredit) a obsah.
 
