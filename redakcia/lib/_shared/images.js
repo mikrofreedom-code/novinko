@@ -20,7 +20,13 @@ const COIN_THEMES = [
 ];
 const KRYPTO_DEFAULT = 'cryptocurrency and blockchain, digital coins, trading charts';
 const AI_DEFAULT = 'artificial intelligence and machine learning, abstract neural network, futuristic technology, glowing data streams';
-const SECTION_DEFAULT = { krypto: KRYPTO_DEFAULT, ai: AI_DEFAULT };
+const ZAHRADA_DEFAULT = 'a lush green garden with plants and soil, gardening tools';
+const SECTION_DEFAULT = { krypto: KRYPTO_DEFAULT, ai: AI_DEFAULT, zahrada: ZAHRADA_DEFAULT };
+
+// Rovnaká množina ako v 11-image.js — sekcie, ktoré chcú fotorealistický
+// obrázok namiesto symbolickej "digital art" ilustrácie. Zámerne
+// rozšíriteľné pre Dom/Byt, ak pribudnú.
+const PHOTOREALISTIC_SECTIONS = new Set(['zahrada']);
 
 // Vizuálny základ podľa SEKCIE + entity + titulku (FALLBACK bez AI).
 // Spätná kompat: string argument = title (krypto). Objekt = { section, entity, title }.
@@ -36,6 +42,13 @@ export function buildPrompt(arg) {
   } else {
     const base = SECTION_DEFAULT[section] ?? `${section} theme`;
     subject = a.entity ? `${base}, themed around ${a.entity}` : base;
+  }
+  if (PHOTOREALISTIC_SECTIONS.has(section)) {
+    // Rovnaký "vlastná fotka autora" štýl ako v 11-image.js — tento vetva sa
+    // použije len keď Haiku prompt zlyhá, takže nemá konkrétny dej z článku,
+    // len tému. Štýl aspoň nesmie vyzerať ako profesionálna stock fotka.
+    return `candid smartphone photo, ${subject}, natural unstaged lighting, authentic amateur snapshot, `
+         + `real garden or home, no text, no words, no letters, no logos, no visible faces`;
   }
   return `professional news illustration, ${subject}, dark modern background, `
        + `dramatic lighting, clean digital art, high detail, editorial style, `
