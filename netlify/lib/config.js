@@ -33,7 +33,7 @@ if (process.env.SUPABASE_URL && process.env.REDAKCIA_SUPABASE_URL
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
 // Kategórie, ktoré frontend pozná. Poradie = poradie filtrov v hlavičke.
-const CATS = ["all", "slovensko", "svet", "ekonomika", "sport", "krypto", "ai", "krypto-skola"];
+const CATS = ["all", "slovensko", "svet", "ekonomika", "sport", "krypto", "ai", "krypto-skola", "zahrada"];
 // Názvy úložísk v Netlify Blobs
 const STORE_NAME = "news";          // pripravené spravodajstvo pre frontend
 // Oddeľovač odsekov v Google Sheets (skutočné \n by rozbili CSV riadok).

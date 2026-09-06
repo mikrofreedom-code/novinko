@@ -125,6 +125,13 @@ async function buildAll() {
   const skola = ownAll.filter((i) => i.category === "krypto-skola");
   out["krypto-skola"] = { items: skola.slice(0, MAX_ITEMS), count: Math.min(skola.length, MAX_ITEMS), fetched: now };
 
+  // Rovnaký evergreen vzor pre "Záhrada" — sezónne rady nevypršia, vlastná
+  // stránka (zahrada.html), zámerne NIE je v CAT_ORDER (BIBLIA-ZAHRADA.md
+  // kapitola 9: hlavná stránka radí podľa MAX_AGE_HOURS a rotácie, čo by
+  // záhradný článok o pár dní zhodilo dole, hoci má hodnotu ešte mesiac).
+  const zahrada = ownAll.filter((i) => i.category === "zahrada");
+  out["zahrada"] = { items: zahrada.slice(0, MAX_ITEMS), count: Math.min(zahrada.length, MAX_ITEMS), fetched: now };
+
   return out;
 }
 

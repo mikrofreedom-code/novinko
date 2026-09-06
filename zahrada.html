@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Záhrada — Novinko</title>
+<meta name="description" content="Rady zo záhrady viazané na počasie a ročné obdobie, nie na kalendár. Úžitková aj okrasná záhrada, izbové rastliny a trávnik." />
+<link rel="canonical" href="https://novinko.sk/zahrada.html" />
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Vlastný, svetlý dizajn tejto rubriky — zámerná odchýlka od tmavého
+     masthead-u zvyšku webu (schválené 2026-09-05, artefakt "Sezóna v
+     záhrade"). Default je VŽDY svetlý bez ohľadu na systémovú tému
+     prehliadača; tmavý režim sa zapína VÝHRADNE tlačidlom a pamätá sa len
+     lokálne (localStorage), nikdy ako predvolený stav pri prvom otvorení. */
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #faf9f6;
+    --border: #e3e0d8;
+    --border-light: #edeae2;
+    --accent: #c0392b;
+    --gold: #c89b3c;
+    --text: #111111;
+    --text2: #333333;
+    --muted: #7a7468;
+    --cat-zahrada: #4a6b1f;
+  }
+  :root[data-theme="dark"] {
+    --bg: #121212;
+    --surface: #1a1a1a;
+    --surface-2: #212121;
+    --border: #333230;
+    --border-light: #262624;
+    --accent: #ff6b5b;
+    --gold: #e0b34d;
+    --text: #f0ede6;
+    --text2: #b8b4ac;
+    --muted: #8a857c;
+    --cat-zahrada: #a3c85c;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; transition: background .15s, color .15s; }
+
+  .masthead { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 clamp(16px,4vw,48px); }
+  .masthead-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .logo-wrap { text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
+  .logo { font-family: 'Libre Baskerville', serif; font-size: 1.75rem; font-weight: 700; color: var(--text); letter-spacing: -.5px; }
+  .logo-dot { color: var(--gold); }
+  .logo-tagline { font-size: .6rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; border-left: 1px solid var(--border); padding-left: 10px; margin-left: 4px; }
+  .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 34px; height: 34px; border-radius: 3px; cursor: pointer; font-size: .95rem; font-family: inherit; }
+  .theme-btn:hover { border-color: var(--cat-zahrada); color: var(--cat-zahrada); }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px); }
+
+  .rubric-intro { padding: 40px 0 32px; border-bottom: 1px solid var(--border); }
+  .rubric-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .rubric-eyebrow-line { flex: 1; height: 1px; background: var(--border); }
+  .rubric-eyebrow-text { font-size: .7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--cat-zahrada); white-space: nowrap; }
+  .rubric-title { font-family: 'Libre Baskerville', serif; font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.15; letter-spacing: -.5px; max-width: 20ch; margin-bottom: 14px; }
+  .rubric-sub { font-size: 1rem; color: var(--text2); font-weight: 300; line-height: 1.6; max-width: 62ch; margin-bottom: 16px; }
+  .rubric-meta { font-size: .74rem; color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap; }
+  .rubric-meta b { color: var(--text2); font-weight: 600; }
+
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; border-top: 3px solid var(--text); padding-top: 10px; margin: 36px 0 20px; gap: 12px; }
+  .sec-title { font-size: .9rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 9px; }
+  .sec-dot { color: var(--cat-zahrada); }
+  .sec-note { font-size: .72rem; color: var(--muted); font-style: italic; }
+
+  .season-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .season-card { text-decoration: none; color: inherit; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); transition: border-color .15s; }
+  .season-card:hover { border-color: var(--cat-zahrada); }
+  .season-card.lead { grid-column: span 2; }
+  .season-img-wrap { aspect-ratio: 16/9; background: var(--surface-2); overflow: hidden; }
+  .season-card.lead .season-img-wrap { aspect-ratio: 16/7.2; }
+  .season-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .season-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+  .season-label { font-size: .64rem; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--cat-zahrada); }
+  .season-title { font-family: 'Libre Baskerville', serif; font-weight: 700; line-height: 1.28; color: var(--text); }
+  .season-card:not(.lead) .season-title { font-size: 1rem; }
+  .season-card.lead .season-title { font-size: 1.45rem; letter-spacing: -.3px; }
+  .season-perex { font-size: .84rem; color: var(--text2); line-height: 1.55; font-weight: 300; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .season-card.lead .season-perex { font-size: .93rem; -webkit-line-clamp: 3; }
+
+  .archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+  .arch-item { text-decoration: none; color: inherit; display: block; padding: 13px 0; border-bottom: 1px solid var(--border-light); }
+  .arch-title { font-family: 'Libre Baskerville', serif; font-size: 1.02rem; font-weight: 700; line-height: 1.3; color: var(--text); margin-bottom: 4px; }
+  .arch-item:hover .arch-title { color: var(--accent); }
+  .arch-meta { font-size: .68rem; color: var(--muted); }
+
+  .empty-note, .loading-note { color: var(--muted); font-style: italic; font-size: .88rem; padding: 20px 0; }
+  .foot-note { text-align: center; padding: 34px 0 46px; font-size: .72rem; color: var(--muted); }
+  .foot-note a { color: var(--cat-zahrada); }
+
+  @media (max-width: 980px) {
+    .season-grid { grid-template-columns: repeat(2, 1fr); }
+    .season-card.lead { grid-column: span 2; }
+    .archive-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .season-grid { grid-template-columns: 1fr; }
+    .season-card.lead { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="logo-wrap" href="/"><span class="logo">novinko<span class="logo-dot">.</span></span><span class="logo-tagline">Píše AI. Človek kontroluje.</span></a>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Prepnúť na tmavý režim">◐</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <section class="rubric-intro">
+    <div class="rubric-eyebrow"><span class="rubric-eyebrow-text">Rubrika</span><span class="rubric-eyebrow-line"></span></div>
+    <h1 class="rubric-title">Rady zo záhrady viazané na počasie, nie na kalendár</h1>
+    <p class="rubric-sub">Úžitková aj okrasná záhrada, izbové rastliny a trávnik — postupy, ktoré platia každý rok znova, nie jednorazová správa. Píše AI podľa redakčného plánu, každý článok pred zverejnením schvaľuje človek.</p>
+    <div class="rubric-meta">
+      <span><b>84</b> tém v ročnom pláne</span>
+      <span><b>4</b> oblasti: úžitková · okrasná · izbovky · trávnik</span>
+      <span>aktuálne okno: <b id="currentMonth"></b></span>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-title"><span class="sec-dot">●</span> Najnovšie</span>
+    <span class="sec-note">radené podľa dátumu zverejnenia</span>
+  </div>
+  <div id="seasonGrid" class="loading-note">Načítavam…</div>
+
+  <div class="sec-head">
+    <span class="sec-title"><span class="sec-dot">●</span> Celá rubrika</span>
+    <span class="sec-note" id="archiveCount"></span>
+  </div>
+  <div id="archiveGrid"></div>
+
+  <p class="foot-note">Články píše AI podľa redakčného plánu, pred zverejnením ich schvaľuje človek. <a href="/">Späť na novinko.sk</a></p>
+
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var KEY = 'zahrada-theme';
+    function apply(mode) {
+      if (mode === 'dark') { root.setAttribute('data-theme', 'dark'); btn.textContent = '◑'; btn.setAttribute('aria-label', 'Prepnúť na svetlý režim'); }
+      else { root.removeAttribute('data-theme'); btn.textContent = '◐'; btn.setAttribute('aria-label', 'Prepnúť na tmavý režim'); }
+    }
+    try { if (localStorage.getItem(KEY) === 'dark') apply('dark'); } catch (e) {}
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+
+  // Rovnaké bezpečnostné helpery ako index.html/clanok.html/archiv.html —
+  // dáta idú z vlastného hárku, ale cez innerHTML sa neescapované vypisovať
+  // nesmie ani vlastný obsah (obranná vrstva, nie nedôvera k hárku).
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function safeLink(url) {
+    try {
+      var u = new URL(url, location.origin);
+      return ['http:', 'https:'].includes(u.protocol) ? esc(u.href) : '#';
+    } catch (e) { return '#'; }
+  }
+  var MESIACE = ['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
+  document.getElementById('currentMonth').textContent = MESIACE[new Date().getMonth()];
+
+  function dateStr(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function seasonCard(i, lead) {
+    return '<a href="' + safeLink(i.link) + '" class="season-card' + (lead ? ' lead' : '') + '">' +
+      (i.image ? '<div class="season-img-wrap"><img src="' + safeLink(i.image) + '" alt="" loading="lazy"></div>' : '') +
+      '<div class="season-body"><span class="season-label">Záhrada</span>' +
+      '<div class="season-title">' + esc(i.title) + '</div>' +
+      (i.description ? '<div class="season-perex">' + esc(i.description) + '</div>' : '') +
+      '</div></a>';
+  }
+  function archiveItem(i) {
+    return '<a href="' + safeLink(i.link) + '" class="arch-item">' +
+      '<div class="arch-title">' + esc(i.title) + '</div>' +
+      '<div class="arch-meta">' + esc(dateStr(i.pubDate)) + '</div>' +
+      '</a>';
+  }
+
+  fetch('/.netlify/functions/fetch-rss?category=zahrada')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var items = (d && d.items) || [];
+      var seasonEl = document.getElementById('seasonGrid');
+      var archiveEl = document.getElementById('archiveGrid');
+      var countEl = document.getElementById('archiveCount');
+
+      if (!items.length) {
+        seasonEl.className = 'empty-note';
+        seasonEl.textContent = 'Zatiaľ tu nie je žiadny článok — rubrika sa len rozbieha.';
+        countEl.textContent = '';
+        return;
+      }
+
+      var top = items.slice(0, 4);
+      seasonEl.className = 'season-grid';
+      seasonEl.innerHTML = top.map(function (i, idx) { return seasonCard(i, idx === 0); }).join('');
+
+      countEl.textContent = items.length + (items.length === 1 ? ' téma' : items.length < 5 ? ' témy' : ' tém');
+      archiveEl.className = 'archive-grid';
+      archiveEl.innerHTML = items.map(archiveItem).join('');
+    })
+    .catch(function () {
+      var seasonEl = document.getElementById('seasonGrid');
+      seasonEl.className = 'empty-note';
+      seasonEl.textContent = 'Rubriku sa nepodarilo načítať — skús obnoviť stránku.';
+    });
+</script>
+
+</body>
+</html>

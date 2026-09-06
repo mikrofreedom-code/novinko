@@ -11,8 +11,11 @@ const { generateImage, uploadUserImage } = require("../lib/images");
 // Kontroluje sa aj na strane formulára, ale tam sa to dá obísť — tu je to isté.
 // Kategórie, do ktorých sa smie ručne publikovať. Podmnožina CATS z
 // netlify/lib/config.js — 'all' a 'krypto-skola' sem nepatria ('all' je
-// zbernica, krypto-skola má vlastný evergreen mechanizmus).
-const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "sport"];
+// zbernica, krypto-skola má vlastný evergreen mechanizmus). 'zahrada' MÁ
+// zmysel tu byť (na rozdiel od krypto-skoly) — BIBLIA-ZAHRADA.md kapitola 8:
+// keď článok stojí na tom, že čitateľ niečo rozpozná (škodca, odroda), AI
+// obrázok tam nepatrí a ide sa cez vlastnú fotku práve týmto formulárom.
+const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "sport", "zahrada"];
 
 const MAX_FOTO_MB = 4;
 const POVOLENE_TYPY = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
