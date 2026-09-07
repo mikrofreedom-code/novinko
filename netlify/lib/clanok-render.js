@@ -87,7 +87,7 @@ function hlavicka(theme) {
 const ZAHRADA_THEME_CSS = `<style>
   :root {
     --bg: #ffffff; --surface: #ffffff; --border: #e3e0d8;
-    --accent: #4a6b1f; --text: #111111; --muted: #7a7468; --header-bg: #ffffff;
+    --accent: #4a6b1f; --gold: #4a6b1f; --text: #111111; --text2: #333333; --muted: #7a7468; --header-bg: #ffffff;
   }
   body { font-family: 'Source Sans 3', sans-serif; }
   header { border-bottom: 1px solid var(--border); }
@@ -100,9 +100,7 @@ const ZAHRADA_THEME_CSS = `<style>
 </style>`;
 
 function obal({ title, description, canonical, image, date, telo, jsonLd, theme }) {
-  const fonts = theme === "zahrada"
-    ? "family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700"
-    : "family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500";
+  const fonts = "family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700";
   return `<!DOCTYPE html>
 <html lang="sk">
 <head>
