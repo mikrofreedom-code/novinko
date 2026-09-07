@@ -484,7 +484,7 @@ dátami:
 
 Kroky 3-4 (kategória, web) a stav živého testu — pozri hore.
 
-### Rubrika Horoskopy — nová (6. 9. večer), kroky 1-2 hotové
+### Rubrika Horoskopy — nová (6. 9. večer), kroky 1-4 hotové (7. 9.)
 
 Nová rubrika na žiadosť používateľa, podľa ním zadanej **BIBLIA-HOROSKOP
 V1.0** (nie súbor v repozitári — zadanie prišlo priamo v konverzácii, kľúčové
@@ -525,14 +525,46 @@ každé s odlišnou témou a vetnou štruktúrou, žiadne AI klišé, hviezdičk
 hodnotenia prirodzene rozložené (nie samé 4-5), prešlo cez `09-legal` bez
 zásahu po oprave regexu.
 
-**Zostáva (krok 3-4, mimo dnešného rozsahu):**
+**KRITICKÁ OPRAVA nájdená na živom článku (7. 9.):** `paragraphsToCell()`
+(`article-row.js`) delí telo LEN na `\n{2,}` a vnútri odseku každý
+jednoduchý `\n` mení na medzeru. Model píše znamenia s jednoduchým `\n`
+medzi riadkami (nadpis/atmosféra/Láska/Práca/Energia/Rada dňa) — v hárku sa
+preto prvý ostrý článok (7. 9.) zlepil do jednej dlhej vety na znamenie.
+OPRAVENÉ v `16-horoskop.js` funkciou `rozdeľRiadky()` — každý riadok sa
+kódom stane vlastným odsekom PRED zápisom, takže `paragraphsToCell()` už
+nemá čo zlepiť. Dnešný už publikovaný článok (sheet riadok 415) opravený aj
+retroaktívne, priamo v hárku cez autentifikované Sheets API (mimo gitu,
+mimo bežnej pipeline) — 73 `¶¶` segmentov overených (12 znamení × 6 riadkov
++ disclaimer).
+
+**Kroky 3-4 dokončené 7. 9.:**
+- **Kategória** — `horoskop` pridané do `netlify/lib/config.js` (`CATS`) a
+  `netlify/lib/build.js` (`buildAll()`, evergreen-vzor blok mimo
+  `CAT_ORDER`, rovnako ako `zahrada`/`krypto-skola`). **Zámerne NEpridané**
+  do `POVOLENE_KATEGORIE` v `manual-publish.js` — na rozdiel od Záhrady tu
+  neexistuje prípad ručného publikovania (žiadna vlastná fotka, žiadny
+  dôvod obchádzať generátor).
+- **Vlastná stránka `horoskop.html`** — "web vo webe" ako Záhrada, ale s
+  odchýlkami podľa obsahu: tmavá indigo/fialová + zlaté hviezdy paleta
+  (namiesto svetlej záhradnej), **bez prepínača témy** (nočná obloha je celý
+  vizuálny koncept, svetlý režim by ho poprel) a **bez hero fotky** (niet čo
+  fotiť). Keďže `fetch-rss` vracia len súhrnné polia (nie plný text), stránka
+  ťahá dáta priamo z publikovaného CSV hárku v prehliadači — rovnaký vzor,
+  aký už používa `archiv.html`. Rozparsuje `¶¶` odseky podľa prefixu riadku
+  (`♈ Baran`, `Láska:`, `Práca a peniaze:`, `Energia:`, `Rada dňa:`) na 12
+  kariet + samostatný disclaimer box + archív starších dní pod tým.
+- **`index.html`**: odkaz "Horoskopy" v hlavičke (plain `<a>` bez `data-cat`,
+  rovnaký vzor ako Záhrada — mimo filter-btn click handlera) + **1 teaser
+  karta** na hlavnej (NIE mriežka ako pri Záhrade — horoskop je 1 položka/deň,
+  mriežka by nemala čím sa naplniť), linkuje rovno na `horoskop.html`, nie na
+  `clanok.html` (generický template by 12 znamení ukázal ako plochý text).
+- Overené naživo (lokálny server + reálny CSV z produkčného hárku): všetkých
+  12 kariet sa rozparsovalo kompletne, žiadne console chyby.
+
+**Zostáva:**
 - Obrázok — dohodnuté: symbolická nebeská/zverokruhová ilustrácia (rovnaká
   neFoto vetva ako krypto/AI v `11-image.js`), NIE fotorealizmus ako Záhrada
   — niet čo reálne odfotiť. Ešte nezapojené.
-- Kategória (`CATS`, `POVOLENE_KATEGORIE`, `buildAll()` špeciálny riadok
-  ako pri Záhrade/Krypto škole) — ešte nezapojené.
-- Vlastná stránka `horoskop.html` — používateľ chce "web vo webe" ako
-  Záhrada, ešte nepostavená.
 - Nikdy nebežal cez `run-pipeline.mjs` naostro (len ručné volanie
   `napisHoroskop()` priamo) — je zapojený (`16-horoskop.js` importovaný
   a volaný), ale prvý ostrý beh treba sledovať zblízka, rovnako ako pri
