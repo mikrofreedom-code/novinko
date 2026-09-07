@@ -132,6 +132,16 @@ async function buildAll() {
   const zahrada = ownAll.filter((i) => i.category === "zahrada");
   out["zahrada"] = { items: zahrada.slice(0, MAX_ITEMS), count: Math.min(zahrada.length, MAX_ITEMS), fetched: now };
 
+  // Rovnaký vzor pre "Horoskop" — vlastná stránka (horoskop.html), zámerne
+  // NIE je v CAT_ORDER (nie je to spravodajstvo, na hlavnej dostáva len
+  // 1 teaser kartu, nie miešanie do "all"). Na rozdiel od Záhrady/Krypto
+  // školy TU obsah nie je skutočne evergreen — je to 1 článok/deň a starý
+  // horoskop je zajtra nesprávny. To ale rieši horoskop.html (zoberie len
+  // items[0], najnovší) a MAX_AGE_HOURS orezanie tu netreba, lebo sheet
+  // items sú aj tak zoradené najnovšie prvé (sheets.js).
+  const horoskop = ownAll.filter((i) => i.category === "horoskop");
+  out["horoskop"] = { items: horoskop.slice(0, MAX_ITEMS), count: Math.min(horoskop.length, MAX_ITEMS), fetched: now };
+
   return out;
 }
 

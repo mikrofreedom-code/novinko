@@ -50,6 +50,7 @@
       --cat-krypto-skola: #0f7a5a;
       --cat-ai: #6d28d9;
       --cat-zahrada: #4a6b1f;
+      --cat-horoskop: #6b3fa0;
       --hairline: var(--text);
     }
 
@@ -72,6 +73,7 @@
       --cat-krypto-skola: #4fd1a5;
       --cat-ai: #a78bfa;
       --cat-zahrada: #a3c85c;
+      --cat-horoskop: #b98aff;
       --hairline: #3a3a42;
     }
 
@@ -99,7 +101,7 @@
     .logo-tagline { font-size: 0.6rem; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 400; border-left: 1px solid #333; padding-left: 10px; margin-left: 4px; }
 
     .nav-filters { display: flex; gap: 0; border-left: 1px solid #222; margin-left: 12px; }
-    .filter-btn { background: transparent; border: none; border-right: 1px solid #222; color: #888; padding: 0 16px; height: 60px; font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .filter-btn { background: transparent; border: none; border-right: 1px solid #222; color: #888; padding: 0 16px; height: 60px; font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; }
     .filter-btn:hover { color: #fff; background: #1a1a1a; }
     .filter-btn.active { color: #0d0d0d; background: var(--gold); border-color: var(--gold); }
 
@@ -139,6 +141,7 @@
     .label-krypto-skola { color: var(--cat-krypto-skola); }
     .label-ai { color: var(--cat-ai); }
     .label-zahrada { color: var(--cat-zahrada); }
+    .label-horoskop { color: var(--cat-horoskop); }
 
     /* ─── HERO / LEAD ─── */
     .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 8px; }
@@ -223,6 +226,16 @@
     .zahrada-card.lead .zahrada-card-title { font-size: 1.3rem; }
     .zahrada-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     @media (max-width: 480px) { .zahrada-card.lead { grid-column: span 1; } }
+
+    /* ─── HOROSKOP (1 položka/deň → jedna teaser karta, nie mriežka) ─── */
+    .horoskop-section { margin: 34px 0 8px; }
+    .horoskop-teaser { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); text-decoration: none; padding: 18px 20px; transition: border-color 0.15s; }
+    .horoskop-teaser:hover { border-color: var(--cat-horoskop); }
+    .horoskop-teaser-icon { font-size: 2.1rem; line-height: 1; flex-shrink: 0; }
+    .horoskop-teaser-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .horoskop-teaser-title { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 1.05rem; color: var(--text); line-height: 1.3; }
+    .horoskop-teaser-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .horoskop-teaser-cta { font-size: 0.78rem; color: var(--cat-horoskop); margin-top: 2px; }
 
     /* ─── CHART SECTION (len v sekcii Krypto) ─── */
     .market-section { margin-bottom: 36px; }
@@ -371,6 +384,12 @@
       <button class="filter-btn" data-cat="ekonomika">Ekonomika</button>
       <button class="filter-btn" data-cat="ai">AI</button>
       <button class="filter-btn" data-cat="sport">Šport</button>
+      <!-- Bez data-cat zámerne — Záhrada je vlastná stránka ("web vo webe",
+           6. 9.), nie in-page filter. Klikací handler nižšie preto cieli len
+           na .filter-btn[data-cat], aby na tento odkaz nesiahal a nechal ho
+           normálne navigovať. -->
+      <a href="/zahrada.html" class="filter-btn">Záhrada</a>
+      <a href="/horoskop.html" class="filter-btn">Horoskopy</a>
     </nav>
     <div class="masthead-right">
       <div class="world-clock" id="worldClock"></div>
@@ -526,6 +545,7 @@
     <!-- KRYPTO ŠKOLA (edu blok, len domov) -->
     <div class="skola-section" id="skolaSection"></div>
     <div class="zahrada-section" id="zahradaSection"></div>
+    <div class="horoskop-section" id="horoskopSection"></div>
   </main>
 
   <!-- SIDEBAR -->
@@ -625,8 +645,11 @@
   // hlavná radí podľa MAX_AGE_HOURS a záhradný článok by po 48 h spadol dole).
   // Vlastná stránka je zahrada.html, tento blok je len ochutnávka na hlavnej.
   const ZAHRADA = { id: 'zahrada', label: 'Záhrada' };
+  // Rovnaký "ochutnávka na hlavnej, vlastná stránka inde" vzor ako ZAHRADA —
+  // rozdiel: horoskop je 1 položka/deň, teaser preto nie je mriežka kariet.
+  const HOROSKOP = { id: 'horoskop', label: 'Horoskopy' };
   const LEAD_SECTIONS = ['krypto', 'ai', 'slovensko'];  // z čoho sa vyberá hlavná správa (majú/budú mať obrázky)
-  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola', zahrada: 'Záhrada' };
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola', zahrada: 'Záhrada', horoskop: 'Horoskopy' };
 
   let DATA = {};          // { cat: items[] }
   let currentView = 'all';
@@ -687,7 +710,7 @@
     finally { clearTimeout(t); }
   }
   async function loadAll() {
-    const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id];
+    const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id, HOROSKOP.id];
     const res = await Promise.all(ids.map(fetchCat));
     ids.forEach((id, i) => { DATA[id] = res[i]; });
   }
@@ -840,6 +863,27 @@
       <a href="/zahrada.html" class="mag-more" style="display:inline-block;margin-top:10px;">Celá rubrika Záhrada →</a>`;
   }
 
+  // 1 položka/deň → jedna teaser karta (nie mriežka ako Záhrada). Odkazuje
+  // rovno na horoskop.html, nie na clanok.html — tá stránka má vlastné
+  // dizajnované karty pre všetkých 12 znamení, generický článok by ich
+  // ukázal len ako plochý text.
+  function renderHoroskop() {
+    const el = document.getElementById('horoskopSection');
+    const items = DATA[HOROSKOP.id] || [];
+    if (!items.length) { el.innerHTML = ''; return; }
+    const i = items[0];
+    el.innerHTML = `<div class="section-head"><span class="section-head-title">Horoskop</span><span class="section-head-count">na dnes</span></div>
+      <a href="/horoskop.html" class="horoskop-teaser">
+        <span class="horoskop-teaser-icon">🔮</span>
+        <span class="horoskop-teaser-body">
+          <span class="story-label label-horoskop">Horoskop</span>
+          <span class="horoskop-teaser-title">${esc(i.title)}</span>
+          ${i.description ? `<span class="horoskop-teaser-perex">${esc(i.description)}</span>` : ''}
+          <span class="horoskop-teaser-cta">Čítať horoskop pre všetky znamenia →</span>
+        </span>
+      </a>`;
+  }
+
   function renderTrending(items) {
     const el = document.getElementById('trendingList');
     if (!el) return;
@@ -954,6 +998,7 @@
     renderMagSections(used);
     renderSkola();
     renderZahrada();
+    renderHoroskop();
     renderTrending(recentDistinct(allItems(), 6));
   }
   function showSection(cat) {
@@ -964,6 +1009,7 @@
     document.getElementById('magSections').innerHTML = '';
     document.getElementById('skolaSection').innerHTML = '';
     document.getElementById('zahradaSection').innerHTML = '';
+    document.getElementById('horoskopSection').innerHTML = '';
     document.getElementById('sectionList').innerHTML = sectionListHTML(items.slice(4), 'Ďalšie · ' + (CAT_LABELS[cat] || cat));
     toggleCryptoWidgets(cat === 'krypto');
     updateContext(cat);
@@ -977,7 +1023,10 @@
   }
 
   // ─── UDALOSTI ───
-  document.querySelectorAll('.filter-btn').forEach(btn => {
+  // [data-cat] zámerne — odkaz na Záhradu (vlastná stránka, žiadny
+  // in-page filter) nemá data-cat, nech ho tento handler nechá normálne
+  // navigovať namiesto volania go(undefined).
+  document.querySelectorAll('.filter-btn[data-cat]').forEach(btn => {
     btn.addEventListener('click', () => go(btn.dataset.cat));
   });
   // delegácia pre dynamické odkazy „Zobraziť všetko →" a hlavičky digestu

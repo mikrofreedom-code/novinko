@@ -172,7 +172,25 @@ async function napisDavku(datum, znameniaVDavke) {
   }
   const telo = pokus.value?.body;
   if (!telo) throw new Error(`dávka [${znameniaVDavke.join(', ')}] vynechala "body"`);
-  return String(telo).trim();
+  return rozdeľRiadky(String(telo).trim());
+}
+
+// KRITICKÉ pre zobrazenie (nájdené 7. 9. na živom článku): `paragraphsToCell()`
+// v article-row.js delí telo LEN na `\n{2,}` (prázdny riadok = koniec
+// odseku) a VNÚTRI odseku všetky jednoduché \n nahradí medzerou. Model píše
+// jednoduchý \n medzi riadkami znamenia (nadpis/atmosféra/Láska/Práca/
+// Energia/Rada dňa) — v hárku sa preto celé znamenie zlepilo do jednej
+// dlhej vety, čitateľné len ako blok textu, nie ako prehľadné karty.
+// Namiesto spoliehania sa na model, aby vkladal prázdne riadky aj VNÚTRI
+// znamenia (nespoľahlivé, biele znaky sú presne to, čo modely najľahšie
+// nedodržia), to rieši kód: KAŽDÝ riadok sa stane vlastným odsekom. Vedľajší
+// (žiadaný) efekt: aj generická šablóna článku (clanok.js) tak zobrazí
+// znamenie ako čistý zoznam riadkov namiesto jedného zlepeného bloku.
+function rozdeľRiadky(text) {
+  return text
+    .split(/\n{2,}/)
+    .map((blok) => blok.split('\n').map((r) => r.trim()).filter(Boolean).join('\n\n'))
+    .join('\n\n');
 }
 
 // ---------- Napíš dnešný horoskop (3 dávky sekvenčne) ----------

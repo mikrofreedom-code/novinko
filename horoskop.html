@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Horoskop — Novinko</title>
+<meta name="description" content="Denný horoskop pre všetkých 12 znamení zverokruhu — láska, práca a energia na dnešný deň, plus archív starších dní." />
+<link rel="canonical" href="https://novinko.sk/horoskop.html" />
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Vlastný, tmavý dizajn tejto rubriky — "web vo webe" rovnako ako Záhrada
+     (6. 9.), tu ale zámerne BEZ prepínača témy. Nočná obloha/zlatá hviezda
+     je celý vizuálny koncept, svetlý režim by ho poprel — na rozdiel od
+     Záhrady tu teda nie je čo prepínať. */
+  :root {
+    --bg: #14101f;
+    --surface: #1c1730;
+    --surface-2: #221c3a;
+    --border: #322a52;
+    --border-light: #2a2444;
+    --text: #f0ede6;
+    --text2: #c9c2de;
+    --muted: #9088ab;
+    --gold: #d4af6a;
+    --cat-horoskop: #b98aff;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; }
+
+  .masthead { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 clamp(16px,4vw,48px); }
+  .masthead-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .logo-wrap { text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
+  .logo { font-family: 'Libre Baskerville', serif; font-size: 1.75rem; font-weight: 700; color: var(--text); letter-spacing: -.5px; }
+  .logo-dot { color: var(--gold); }
+  .logo-tagline { font-size: .6rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; border-left: 1px solid var(--border); padding-left: 10px; margin-left: 4px; }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px); }
+
+  .rubric-intro { padding: 40px 0 32px; border-bottom: 1px solid var(--border); }
+  .rubric-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .rubric-eyebrow-line { flex: 1; height: 1px; background: var(--border); }
+  .rubric-eyebrow-text { font-size: .7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--cat-horoskop); white-space: nowrap; }
+  .rubric-title { font-family: 'Libre Baskerville', serif; font-size: clamp(1.7rem, 3.6vw, 2.4rem); font-weight: 700; line-height: 1.2; letter-spacing: -.3px; max-width: 26ch; margin-bottom: 14px; }
+  .rubric-sub { font-size: .98rem; color: var(--text2); font-weight: 300; line-height: 1.6; max-width: 64ch; margin-bottom: 16px; }
+  .rubric-meta { font-size: .74rem; color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .rubric-meta b { color: var(--text2); font-weight: 600; }
+  .rubric-note { font-size: .72rem; color: var(--muted); font-style: italic; border-left: 2px solid var(--border); padding-left: 10px; }
+
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; border-top: 3px solid var(--text); padding-top: 10px; margin: 36px 0 20px; gap: 12px; }
+  .sec-title { font-size: .9rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 9px; }
+  .sec-dot { color: var(--cat-horoskop); }
+  .sec-note { font-size: .72rem; color: var(--muted); font-style: italic; }
+
+  .sign-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .sign-card { background: var(--surface); border: 1px solid var(--border); padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
+  .sign-name { font-family: 'Libre Baskerville', serif; font-size: 1.15rem; font-weight: 700; color: var(--gold); }
+  .sign-atmosphere { font-size: .88rem; color: var(--text2); line-height: 1.6; font-weight: 300; }
+  .sign-stats { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-light); padding-top: 10px; }
+  .sign-stat-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: .82rem; }
+  .sign-stat-label { color: var(--text); font-weight: 600; flex-shrink: 0; }
+  .sign-stat-stars { color: var(--gold); letter-spacing: 1px; }
+  .sign-stat-text { color: var(--muted); line-height: 1.5; }
+  .sign-rada { font-size: .84rem; color: var(--text2); font-style: italic; border-top: 1px solid var(--border-light); padding-top: 10px; line-height: 1.5; }
+  .sign-rada-label { color: var(--cat-horoskop); font-style: normal; font-weight: 600; margin-right: 5px; }
+
+  .disclaimer-note { font-size: .74rem; color: var(--muted); line-height: 1.6; margin-top: 22px; padding: 14px 16px; border: 1px solid var(--border-light); background: var(--surface-2); }
+
+  .archive-list { display: flex; flex-direction: column; }
+  .arch-item { text-decoration: none; color: inherit; display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--border-light); }
+  .arch-title { font-family: 'Libre Baskerville', serif; font-size: .98rem; font-weight: 700; line-height: 1.3; color: var(--text); }
+  .arch-item:hover .arch-title { color: var(--cat-horoskop); }
+  .arch-date { font-size: .72rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+
+  .empty-note, .loading-note { color: var(--muted); font-style: italic; font-size: .88rem; padding: 20px 0; }
+  .foot-note { text-align: center; padding: 34px 0 46px; font-size: .72rem; color: var(--muted); }
+  .foot-note a { color: var(--cat-horoskop); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="logo-wrap" href="/"><span class="logo">novinko<span class="logo-dot">.</span></span><span class="logo-tagline">Píše AI. Človek kontroluje.</span></a>
+  </div>
+</header>
+
+<div class="page">
+
+  <section class="rubric-intro">
+    <div class="rubric-eyebrow"><span class="rubric-eyebrow-text">Rubrika · Horoskop</span><span class="rubric-eyebrow-line"></span></div>
+    <h1 class="rubric-title" id="todayTitle">Denný horoskop</h1>
+    <p class="rubric-sub" id="todayPerex">Načítavam dnešný horoskop…</p>
+    <div class="rubric-meta">
+      <span id="todayDate"></span>
+      <span class="rubric-note">Horoskop je zábavný lifestylový obsah, nie veda ani istá predpoveď.</span>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-title"><span class="sec-dot">✦</span> Dnešok pre všetky znamenia</span>
+    <span class="sec-note">láska · práca a peniaze · energia</span>
+  </div>
+  <div id="signGrid" class="loading-note">Načítavam…</div>
+  <div id="disclaimerBox"></div>
+
+  <div class="sec-head">
+    <span class="sec-title"><span class="sec-dot">✦</span> Staršie dni</span>
+    <span class="sec-note" id="archiveCount"></span>
+  </div>
+  <div id="archiveList"></div>
+
+  <p class="foot-note">Horoskopy píše AI podľa redakčného zadania, pred zverejnením ich schvaľuje človek. <a href="/">Späť na novinko.sk</a></p>
+
+</div>
+
+<script>
+  // Rovnaké bezpečnostné helpery ako index.html/zahrada.html/archiv.html.
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  var SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
+
+  function parseCSVLine(line) {
+    var cols = [], cur = "", inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (ch === '"') { if (inQuotes && line[i+1] === '"') { cur += '"'; i++; } else inQuotes = !inQuotes; }
+      else if (ch === "," && !inQuotes) { cols.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    return cols.map(function (c) { return c.trim(); });
+  }
+
+  function dateStr(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // ---------- Rozbor tela článku na 12 kariet znamení ----------
+  // Formát prichádza z redakcia/lib/flow/16-horoskop.js: každý riadok
+  // znamenia (nadpis / atmosféra / Láska / Práca a peniaze / Energia /
+  // Rada dňa) je od 7. 9. vlastný odsek (oddelený "¶¶" v hárku, viď
+  // rozdeľRiadky() tamtiež) — presne preto sa to tu dá rozpoznať podľa
+  // prefixu riadku, nie podľa pozície.
+  var ZNAMENIA = ['♈ Baran','♉ Býk','♊ Blíženci','♋ Rak','♌ Lev','♍ Panna','♎ Váhy','♏ Škorpión','♐ Strelec','♑ Kozorožec','♒ Vodnár','♓ Ryby'];
+
+  function parseHoroskop(content) {
+    var paragraphs = String(content || '').split('¶¶').map(function (p) { return p.trim(); }).filter(Boolean);
+    var cards = [];
+    var current = null;
+    var disclaimer = '';
+    paragraphs.forEach(function (p) {
+      var znamenie = ZNAMENIA.filter(function (z) { return p === z || p.indexOf(z) === 0; })[0];
+      if (znamenie) {
+        current = { sign: znamenie, atmosphere: '', laska: '', praca: '', energia: '', rada: '' };
+        cards.push(current);
+        return;
+      }
+      if (!current) { disclaimer = disclaimer ? disclaimer + ' ' + p : p; return; }
+      if (/^Láska:/i.test(p)) current.laska = p.replace(/^Láska:\s*/i, '');
+      else if (/^Práca a peniaze:/i.test(p)) current.praca = p.replace(/^Práca a peniaze:\s*/i, '');
+      else if (/^Energia:/i.test(p)) current.energia = p.replace(/^Energia:\s*/i, '');
+      else if (/^Rada dňa:/i.test(p)) current.rada = p.replace(/^Rada dňa:\s*/i, '');
+      else if (cards.length >= 12 && current.rada) disclaimer = disclaimer ? disclaimer + ' ' + p : p;
+      else if (!current.atmosphere) current.atmosphere = p;
+      else current.atmosphere += ' ' + p;
+    });
+    return { cards: cards, disclaimer: disclaimer };
+  }
+
+  function splitStars(s) {
+    var m = /^([⭐☆\s]+)[—\-–]\s*(.*)$/.exec(String(s || '').trim());
+    if (m) return { stars: m[1].trim(), text: m[2].trim() };
+    return { stars: '', text: String(s || '').trim() };
+  }
+
+  function statRow(label, raw) {
+    var v = splitStars(raw);
+    if (!v.stars && !v.text) return '';
+    return '<div class="sign-stat-row"><span class="sign-stat-label">' + esc(label) + '</span>' +
+      (v.stars ? '<span class="sign-stat-stars">' + esc(v.stars) + '</span>' : '') +
+      (v.text ? '<span class="sign-stat-text">' + esc(v.text) + '</span>' : '') +
+      '</div>';
+  }
+
+  function signCard(c) {
+    return '<div class="sign-card">' +
+      '<div class="sign-name">' + esc(c.sign) + '</div>' +
+      (c.atmosphere ? '<p class="sign-atmosphere">' + esc(c.atmosphere) + '</p>' : '') +
+      '<div class="sign-stats">' + statRow('Láska', c.laska) + statRow('Práca a peniaze', c.praca) + statRow('Energia', c.energia) + '</div>' +
+      (c.rada ? '<p class="sign-rada"><span class="sign-rada-label">Rada dňa</span>' + esc(c.rada) + '</p>' : '') +
+      '</div>';
+  }
+
+  function archiveItem(a) {
+    return '<a href="/clanok.html?id=' + encodeURIComponent(a.id) + '" class="arch-item">' +
+      '<span class="arch-title">' + esc(a.title) + '</span>' +
+      '<span class="arch-date">' + esc(dateStr(a.date)) + '</span>' +
+      '</a>';
+  }
+
+  function showError() {
+    var el = document.getElementById('signGrid');
+    el.className = 'empty-note';
+    el.textContent = 'Horoskop sa nepodarilo načítať — skús obnoviť stránku.';
+    document.getElementById('todayPerex').textContent = '';
+  }
+
+  fetch(SHEET_CSV)
+    .then(function (r) { return r.text(); })
+    .then(function (csv) {
+      var lines = csv.trim().split("\n").filter(function (l) { return l.trim(); });
+      var articles = lines.slice(1).map(function (line) {
+        var c = parseCSVLine(line);
+        var id = c[0], title = c[1], perex = c[2], content = c[3], date = c[5], category = c[6];
+        if (!id || !title) return null;
+        return { id: id, title: title, perex: perex || '', content: content || '', date: date || '', category: category || '' };
+      }).filter(Boolean).filter(function (a) { return a.category === 'horoskop'; });
+
+      articles.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+
+      if (!articles.length) {
+        document.getElementById('signGrid').className = 'empty-note';
+        document.getElementById('signGrid').textContent = 'Zatiaľ tu nie je žiadny horoskop — rubrika sa len rozbieha.';
+        document.getElementById('todayPerex').textContent = '';
+        document.getElementById('archiveCount').textContent = '';
+        return;
+      }
+
+      var today = articles[0];
+      var older = articles.slice(1);
+
+      document.getElementById('todayTitle').textContent = today.title;
+      document.getElementById('todayPerex').textContent = today.perex;
+      document.getElementById('todayDate').innerHTML = '<b>' + esc(dateStr(today.date)) + '</b>';
+
+      var parsed = parseHoroskop(today.content);
+      var gridEl = document.getElementById('signGrid');
+      if (!parsed.cards.length) {
+        gridEl.className = 'empty-note';
+        gridEl.textContent = 'Dnešný horoskop sa nepodarilo zobraziť v prehľadnej podobe.';
+      } else {
+        gridEl.className = 'sign-grid';
+        gridEl.innerHTML = parsed.cards.map(signCard).join('');
+      }
+      if (parsed.disclaimer) {
+        document.getElementById('disclaimerBox').innerHTML = '<p class="disclaimer-note">' + esc(parsed.disclaimer) + '</p>';
+      }
+
+      var archiveEl = document.getElementById('archiveList');
+      var countEl = document.getElementById('archiveCount');
+      if (!older.length) {
+        archiveEl.className = 'empty-note';
+        archiveEl.textContent = 'Zatiaľ nie sú žiadne staršie dni.';
+        countEl.textContent = '';
+      } else {
+        archiveEl.className = 'archive-list';
+        archiveEl.innerHTML = older.map(archiveItem).join('');
+        countEl.textContent = older.length + (older.length === 1 ? ' deň' : older.length < 5 ? ' dni' : ' dní');
+      }
+    })
+    .catch(showError);
+</script>
+
+</body>
+</html>
