@@ -4,8 +4,8 @@
 // ROLA:          Mozog redakcie. Zoskupí fakty o tej istej udalosti naprieč zdrojmi a rozhodne čo stojí za článok.
 // VSTUP status:  facts_ready
 // VÝSTUP status: clustered
-// STAV:          🟢 MVP (clustering + newsworthiness brána; AI Fáza 2 odložená)
-// AI vrstva:     0 zatiaľ (software-first). Fáza 2 = Haiku, až po reálnych dátach.
+// STAV:          🟢 LIVE (software brána + dávková AI redakčná porada pre Svet)
+// AI vrstva:     0 software pre isté prípady, Haiku pre novosť a prioritu Sveta
 // ------------------------------------------------------------
 // VYMENIŤ TENTO KROK? Meníš LEN tento súbor. Žiadny iný agent
 // sa nedotkne — všetci komunikujú cez status v Event Bus.
@@ -18,13 +18,29 @@
 //   4. NEWSWORTHINESS BRÁNA (software): rozhodne, či cluster stojí za článok.
 //        - neworthy → reprezentant 'clustered', ostatní 'merged'
 //        - not worthy → všetci 'rejected' s dôvodom
-//   5. (Fáza 2, ODLOŽENÉ) AI eskalácia pre hraničné prípady — pozri TODO nižšie.
+//   5. Svet: jedna dávková AI porada posúdi novosť a redakčnú prioritu.
 //
 // Reprezentant clusteru = položka s najviac faktami; pri zhode najstaršia.
 // ============================================================
 
-import { claim, advance } from '../_shared/queue.js';
+import { claim, advance, db } from '../_shared/queue.js';
 import { scoreImportance } from '../_shared/importance.js';
+import { askFull } from '../_shared/ai-gateway.js';
+import { parseModelJson } from '../_shared/json.js';
+import {
+  handledTopicKeys,
+  loadRecentHandledTopicRows,
+  manuallyRejectedTopicKeys,
+  topicKey,
+} from '../_shared/topic-dedup.js';
+import {
+  buildTriagePrompt,
+  editorialOutcome,
+  EDITORIAL_TRIAGE_SYSTEM,
+  triageCandidate,
+  triageRecentArticle,
+  validateTriageDecisions,
+} from '../_shared/editorial-triage.js';
 
 export const STAGE = {
   index: 6,
@@ -40,19 +56,15 @@ const AGENT = '06-chief-editor';
 // (ani sa nenapíše → šetrí drahú AI). Logika skóre je v _shared/importance.js.
 // Latku ľahko zmeníš v .env (IMPORTANCE_BAR): vyššia = menej, dôležitejších článkov.
 const IMPORTANCE_BAR = Number(process.env.IMPORTANCE_BAR ?? 42);
+const TOPIC_COOLDOWN_H = Number(process.env.TOPIC_COOLDOWN_H ?? 48);
+const EDITORIAL_AI_ENABLED = process.env.CHIEF_EDITOR_AI_ENABLED !== 'false';
+const EDITORIAL_AI_MAX_CANDIDATES = Number(process.env.CHIEF_EDITOR_AI_MAX_CANDIDATES ?? 8);
 
 // ---- Fáza 1: zoskupenie ----
-function normEntity(e) {
-  return (e ?? '').toString().trim().toLowerCase();
-}
-
 // Kľúč clusteru. Sekcia je súčasťou kľúča (nikdy nezlučuj naprieč deskami).
 // Položka bez entity sa nedá zlúčiť → vlastný unikátny kľúč.
 function clusterKey(item) {
-  const sec = item.facts?.section ?? 'krypto';
-  const ent = normEntity(item.facts?.entity);
-  const evt = item.facts?.event_type ?? 'other';
-  return ent ? `${sec}|${ent}|${evt}` : `__solo__:${item.id}`;
+  return topicKey(item.facts) ?? `__solo__:${item.id}`;
 }
 
 function groupByEvent(items) {
@@ -143,8 +155,7 @@ const NO_ARTICLE_EVENT_TYPES = new Set(
 // Vráti { worthy, score, reason }. Skóre 0-100 počíta _shared/importance.js
 // (typ udalosti, veľkosť pohybu, kapitalizácia, likvidita, súbeh zdrojov).
 //
-// TODO (Fáza 2, voliteľné): hraničné prípady (skóre tesne pod latkou) by sa
-// dali poslať na Haiku, nech model posúdi dôležitosť. Sem patrí to volanie.
+// Hrubá software brána zostáva pred AI, aby sa neplatilo za zjavný šum.
 function assessNewsworthiness(facts) {
   const { score, reasons } = scoreImportance(facts, facts.section ?? 'krypto');
   const rounded = Math.round(score);
@@ -155,8 +166,57 @@ function assessNewsworthiness(facts) {
   };
 }
 
+// Jedna dávková porada pre celý beh Sveta, nie jedno volanie na položku.
+// Do modelu idú len fakty z 05 a titulky/perexy vlastných článkov. Pri chybe,
+// neplatnom JSON alebo budget guarde sa vráti prázdna mapa a rozhodne software.
+async function triageWorldGroups(groups, recentRows, manualTopics) {
+  if (!EDITORIAL_AI_ENABLED || process.env.AI_ENABLED === 'false') return new Map();
+
+  const candidates = [];
+  for (const items of groups.values()) {
+    const rep = pickRepresentative(items);
+    const facts = mergeClusterFacts(items, rep);
+    if (facts.section !== 'svet' || manualTopics.has(topicKey(facts))) continue;
+    const gate = assessNewsworthiness(facts);
+    if (!gate.worthy || NO_ARTICLE_EVENT_TYPES.has(facts.event_type ?? 'other')) continue;
+    candidates.push({ item: rep, facts, gate });
+  }
+  candidates.sort((a, b) => b.gate.score - a.gate.score
+    || new Date(b.item.created_at ?? 0) - new Date(a.item.created_at ?? 0));
+  const selected = candidates.slice(0, Math.max(0, EDITORIAL_AI_MAX_CANDIDATES));
+  if (!selected.length) return new Map();
+
+  const aiCandidates = selected.map(({ item, facts, gate }) => triageCandidate(item, facts, gate.score));
+  const context = recentRows
+    .filter((row) => row.facts?.section === 'svet')
+    .slice(0, 12)
+    .map(triageRecentArticle);
+
+  try {
+    const res = await askFull({
+      tier: 'cheap',
+      section: 'svet',
+      system: EDITORIAL_TRIAGE_SYSTEM,
+      prompt: buildTriagePrompt(aiCandidates, context, TOPIC_COOLDOWN_H),
+      agent: '06-chief-editor-ai',
+      queueId: selected[0].item.id,
+      maxTokens: 1200,
+      temperature: 0,
+    });
+    const parsed = parseModelJson(res.text);
+    if (res.truncated || !parsed.ok) {
+      console.warn(`[${AGENT}] AI porada vrátila ${res.truncated ? 'urezanú' : 'neplatnú'} odpoveď — používam software`);
+      return new Map();
+    }
+    return validateTriageDecisions(parsed.value, aiCandidates.map((item) => item.id));
+  } catch (err) {
+    console.warn(`[${AGENT}] AI porada zlyhala (${err.message}) — používam software`);
+    return new Map();
+  }
+}
+
 // ---- Spracuj jeden cluster (skupinu položiek o tej istej udalosti) ----
-async function processCluster(items) {
+async function processCluster(items, { recentTopics = new Set(), manualTopics = new Set(), aiDecision } = {}) {
   const rep = pickRepresentative(items);
   const facts = mergeClusterFacts(items, rep);
 
@@ -196,8 +256,37 @@ async function processCluster(items) {
     return { clustered: 0, merged: 0, rejected: items.length };
   }
 
+  const key = topicKey(facts);
+  const outcome = editorialOutcome({
+    decision: aiDecision,
+    manualBlock: Boolean(key && manualTopics.has(key)),
+    recentBlock: Boolean(key && recentTopics.has(key)),
+    softwareScore: gate.score,
+  });
+  if (outcome.reject) {
+    const reason = outcome.reject === 'manual-cooldown'
+      ? `tematický cooldown po ručnom zamietnutí ${TOPIC_COOLDOWN_H} h`
+      : outcome.reject === 'cooldown'
+        ? `tematický cooldown ${TOPIC_COOLDOWN_H} h`
+        : `AI ${aiDecision.decision} (${Math.round(aiDecision.confidence * 100)} %, ${aiDecision.reason})`;
+    for (const item of items) {
+      await advance(item.id, 'rejected', {
+        error: `${AGENT}: ${reason} (${key ?? 'bez topic key'})`,
+      });
+    }
+    return { clustered: 0, merged: 0, rejected: items.length };
+  }
+
+  if (aiDecision) {
+    facts.editorial_ai = { ...aiDecision, assessed_at: new Date().toISOString() };
+    // Software ostáva kotvou; AI mení poradie, ale jedným výstrelkom neprepíše
+    // celé skóre. Rozhodnutia s nízkou istotou skóre nemenia.
+    facts.importance = outcome.importance;
+    if (outcome.cooldownOverride) facts.topic_cooldown_override = true;
+  }
+
   const cluster_id = globalThis.crypto.randomUUID();
-  facts.importance = gate.score; // ulož skóre dôležitosti pre prehľad/triedenie
+  facts.importance ??= gate.score; // ulož skóre dôležitosti pre prehľad/triedenie
   // Reprezentant nesie zlúčené fakty + cluster_id → ide na 'clustered' (vstup Writera).
   await advance(rep.id, STAGE.output, { facts, cluster_id });
   // Ostatní sú pohltení → terminálny stav 'merged' so spätným odkazom.
@@ -214,12 +303,21 @@ async function processCluster(items) {
 export async function runBatch(limit = 50) {
   const items = await claim(STAGE.input, limit);
   const groups = groupByEvent(items);
-  const totals = { clusters: 0, clustered: 0, merged: 0, rejected: 0, failed: 0 };
+  const recentRows = await loadRecentHandledTopicRows(db, TOPIC_COOLDOWN_H);
+  const recentTopics = handledTopicKeys(recentRows);
+  const manualTopics = manuallyRejectedTopicKeys(recentRows);
+  const aiDecisions = await triageWorldGroups(groups, recentRows, manualTopics);
+  const totals = { clusters: 0, clustered: 0, merged: 0, rejected: 0, failed: 0, ai: aiDecisions.size };
 
   for (const group of groups.values()) {
     totals.clusters++;
     try {
-      const r = await processCluster(group);
+      const rep = pickRepresentative(group);
+      const r = await processCluster(group, {
+        recentTopics,
+        manualTopics,
+        aiDecision: aiDecisions.get(rep.id),
+      });
       totals.clustered += r.clustered;
       totals.merged += r.merged;
       totals.rejected += r.rejected;
@@ -235,5 +333,9 @@ export async function runBatch(limit = 50) {
 
 // Pre rozhranie parity: spracuj jednu položku ako cluster veľkosti 1.
 export async function run(item) {
-  return processCluster([item]);
+  const recentRows = await loadRecentHandledTopicRows(db, TOPIC_COOLDOWN_H);
+  return processCluster([item], {
+    recentTopics: handledTopicKeys(recentRows),
+    manualTopics: manuallyRejectedTopicKeys(recentRows),
+  });
 }

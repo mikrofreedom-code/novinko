@@ -4,7 +4,8 @@
   "description": "AI-asistovaná spravodajská redakcia (NovaCore architektúra)",
   "type": "module",
   "scripts": {
-    "dev": "netlify dev"
+    "dev": "netlify dev",
+    "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

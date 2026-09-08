@@ -77,10 +77,14 @@ Learning Engine (`14`) je odložený, kým nebudú reálne publikačné dáta.
 - `04-collector`: normalizuje oba zdroje na facts kontrakt.
 - Celá pipeline: `node --env-file=.env scripts/run-pipeline.mjs`.
 
-**ODLOŽENÉ (nezabudnúť):**
-- `06` newsworthiness brána je zatiaľ LEN software (prah `MIN_PCT_MOVE`, `ALWAYS_WORTHY`).
-  Fáza 2 = AI (Haiku) na hraničné prípady — doplniť AŽ po reálnych dátach, na označenom
-  `TODO` v `assessNewsworthiness()`. Dovtedy prahy ladíš konštantami navrchu súboru.
+**Chief Editor — aktuálny stav:**
+- `06` má lacnú software bránu a pre sekciu Svet jednu dávkovú AI poradu (Haiku) za celý beh.
+  AI porovná najviac `CHIEF_EDITOR_AI_MAX_CANDIDATES` kandidátov s nedávnymi článkami,
+  rozlíši `duplicate | update | new | skip` a upraví ich prioritu. Pri chybe, neplatnom JSON
+  alebo budget guarde sa automaticky použije software rozhodnutie.
+- Topic cooldown (`TOPIC_COOLDOWN_H`) blokuje rovnaký subjekt + typ udalosti aj naprieč behmi;
+  ručné zamietnutie je tvrdý blok, kým potvrdený podstatný update môže bežný cooldown prekročiť.
+- AI poradu možno vypnúť cez `CHIEF_EDITOR_AI_ENABLED=false` bez zmeny pipeline.
 - `06` zaviedol terminálny status `merged` (pohltené položky clusteru) — je v `schema.sql`.
 
 ## AI cost layers (poradie eskalácie)

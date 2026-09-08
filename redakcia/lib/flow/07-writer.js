@@ -28,6 +28,7 @@ import { claim, advance, db } from '../_shared/queue.js';
 import { ask } from '../_shared/ai-gateway.js';
 import { parseModelJson } from '../_shared/json.js';
 import { liveFor, SECTIONS } from '../sections/index.js';
+import { loadRecentHandledTopicKeys, topicKey } from '../_shared/topic-dedup.js';
 
 export const STAGE = {
   index: 7,
@@ -404,6 +405,7 @@ const MAX_TOTAL_PER_RUN = Number(process.env.MAX_ARTICLES_TOTAL_PER_RUN ?? 3);
 // (PENDING_MAX_AGE_H). Bez tohto škrtu platíme za napísanie, korektúru aj
 // obrázok niečoho, čo skončí v koši.
 const MAX_AGE_H = Number(process.env.CLUSTERED_MAX_AGE_H ?? 24);
+const TOPIC_COOLDOWN_H = Number(process.env.TOPIC_COOLDOWN_H ?? 48);
 
 // Vyberá zo sekcií STRIEDAVO (najlepší z krypta, najlepší z AI, druhý
 // z krypta…), kým sa nenaplní strop. Striedanie je zámerné: keby sa len
@@ -519,12 +521,37 @@ export async function runBatch(limitPerSection = 20) {
   // správu (importance 74), zatiaľ čo rovnako dôležitá 2-hodinová čakala ďalej.
   cerstve.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
+  // Poistka pre backlog, ktorý už prešiel Chief Editorom pred zavedením
+  // tematického cooldownu, a pre súbeh s článkom spracovaným v inom behu.
+  // Pri rovnakej téme necháme iba najčerstvejší kandidát; ak už bol článok
+  // publikovaný/pripravený alebo ručne zamietnutý, nepíšeme ďalšiu verziu.
+  const recentTopics = await loadRecentHandledTopicKeys(db, TOPIC_COOLDOWN_H);
+  const seenCandidates = new Set();
+  const rozneTemy = [];
+  let tematicke = 0;
+  for (const it of cerstve) {
+    const key = topicKey(it.facts);
+    const aiApprovedUpdate = it.facts?.topic_cooldown_override === true;
+    const reason = key && recentTopics.has(key) && !aiApprovedUpdate
+      ? `tematický cooldown ${TOPIC_COOLDOWN_H} h`
+      : key && seenCandidates.has(key)
+        ? 'duplicitný kandidát tej istej témy'
+        : null;
+    if (reason) {
+      await advance(it.id, 'rejected', { error: `${AGENT}: ${reason} (${key})` });
+      tematicke++;
+      continue;
+    }
+    if (key) seenCandidates.add(key);
+    rozneTemy.push(it);
+  }
+
   // ŠKRT 1: top N najdôležitejších PER SEKCIA (aby krypto neprebíjalo AI a ďalšie).
-  const perSekcia = topPerSection(cerstve, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
+  const perSekcia = topPerSection(rozneTemy, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
   // ŠKRT 2: globálny strop na celý beh, striedavo zo sekcií.
   const top = roundRobinCap(perSekcia, MAX_TOTAL_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
 
-  const results = { ok: 0, failed: 0, skipped: Math.max(cerstve.length - top.length, 0), parked, zastarane };
+  const results = { ok: 0, failed: 0, skipped: Math.max(rozneTemy.length - top.length, 0), parked, zastarane, tematicke };
   for (const item of top) {
     try {
       await run(item);
