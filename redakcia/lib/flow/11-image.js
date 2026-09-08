@@ -89,6 +89,13 @@ export async function run(item) {
   const article = item.article;
   if (!article?.headline) throw new Error('item.article chýba headline');
 
+  // Denné/evergreen formáty môžu mať vlastný trvalý redakčný vizuál. Keď je
+  // URL pripravená už v článku, nevolaj Haiku ani Replicate a neprepisuj ju.
+  if (article.image_url) {
+    await advance(item.id, STAGE.output, { article });
+    return { image_url: article.image_url, skipped: 'článok už má vlastný obrázok' };
+  }
+
   // ZÁHRADA — identifikačné riziko (BIBLIA-ZAHRADA.md kapitola 8): vygenerovaná
   // voška alebo pleseň vyzerá presvedčivo a je vymyslená, čitateľ podľa nej
   // koná. 15-zahrada.js nastaví article.no_ai_image=true pre témy, kde ide

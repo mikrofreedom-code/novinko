@@ -505,9 +505,9 @@ zdvihnutí `AI_TIMEOUT_MS` z 60s na 120s (lokálny `.env`, negituje sa),
 potom orezaný/nevalidný JSON pri `maxTokens: 4000` (model buď nestihol
 dokončiť, alebo ho zaťal strop tokenov uprostred). Namiesto ďalšieho
 naťahovania stropov (krehké, len odsúva problém o kus ďalej) som generovanie
-rozdelil na **3 sekvenčné volania po 4 znameniach**, `maxTokens: 2200`
-každé — rýchle, spoľahlivé, ako bonus núti model menej sa v rámci menšej
-dávky opakovať. Nadpis a perex sa AI vôbec nepýtajú — biblia sama hovorí
+rozdelil na **3 sekvenčné Haiku volania po 4 znameniach**, `maxTokens: 1400`
+každé. Pokazená dávka sa už za peniaze neopakuje; chýbajúce znamenia doplní
+dátumovo obmieňaný bezpečný fallback. Nadpis a perex sa AI vôbec nepýtajú — biblia sama hovorí
 "titulky možno obmieňať", takže sú to rotujúce šablóny v kóde podľa dňa
 v mesiaci, zadarmo a bez rizika clickbaitu.
 
@@ -520,10 +520,11 @@ spln mesiaca) chytal aj úplne bežné slovo "splnený" ("Jeden splnený
 Redakčná poznámka (biblia kapitola 16, "horoskop je určený na zábavné a
 lifestylové účely...") sa pripája kódom za posledné znamenie, nie modelom.
 
-**Overené reálnym behom** (3 Sonnet volania, ~$0,05, 98s spolu): 12 znamení,
-každé s odlišnou témou a vetnou štruktúrou, žiadne AI klišé, hviezdičkové
-hodnotenia prirodzene rozložené (nie samé 4-5), prešlo cez `09-legal` bez
-zásahu po oprave regexu.
+**Prevádzková zmena 8. 9.:** pôvodné 3 Sonnet volania stáli reálne ~$0,076/deň
+a pri opakovaných pokusoch až $0,180/deň. Horoskop sa teraz o 20:00 pripraví
+na zajtra do atómovo zapisovanej lokálnej cache a o 6:00 sa iba aktivuje.
+Ak večerná príprava neprebehne, ráno sa vygeneruje priamo. Beží pred platenou
+spravodajskou pipeline, takže mu Writer/extrakcie neminú priebežný rozpočet.
 
 **KRITICKÁ OPRAVA nájdená na živom článku (7. 9.):** `paragraphsToCell()`
 (`article-row.js`) delí telo LEN na `\n{2,}` a vnútri odseku každý
@@ -561,14 +562,11 @@ mimo bežnej pipeline) — 73 `¶¶` segmentov overených (12 znamení × 6 riad
 - Overené naživo (lokálny server + reálny CSV z produkčného hárku): všetkých
   12 kariet sa rozparsovalo kompletne, žiadne console chyby.
 
-**Zostáva:**
-- Obrázok — dohodnuté: symbolická nebeská/zverokruhová ilustrácia (rovnaká
-  neFoto vetva ako krypto/AI v `11-image.js`), NIE fotorealizmus ako Záhrada
-  — niet čo reálne odfotiť. Ešte nezapojené.
-- Nikdy nebežal cez `run-pipeline.mjs` naostro (len ručné volanie
-  `napisHoroskop()` priamo) — je zapojený (`16-horoskop.js` importovaný
-  a volaný), ale prvý ostrý beh treba sledovať zblízka, rovnako ako pri
-  Záhrade/Ekonomike/Svete.
+**Trvalý obrázok:** `assets/horoskop-zverokruh.webp` (1600×900, 116 kB) sa
+kopíruje do `_site/assets/` a používa pre každý horoskop. `11-image` článok
+s existujúcim `image_url` iba posunie ďalej — bez Haiku promptu, Replicate,
+čakania a denného poplatku. Obrázok je vlastná AI ilustrácia bez textu,
+ľudí a konkrétnych (potenciálne nesprávnych) znamení.
 
 ### Ďalej v poradí
 

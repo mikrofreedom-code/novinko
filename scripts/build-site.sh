@@ -11,10 +11,9 @@
 # skener tajomstiev našiel hodnotu SUPABASE_URL v redakcia/content/
 # krypto-skola/.images.json, ktorý sa mal zverejniť.
 #
-# Web nemá žiadne lokálne CSS, JS ani obrázky — fonty a grafy sú z CDN,
-# obrázky článkov zo Supabase, dáta z /.netlify/functions/. Stačia teda
-# HTML súbory. Funkcie sa nasadzujú zvlášť (functions = "netlify/functions"),
-# publikačný priečinok sa ich netýka.
+# Väčšina obrázkov článkov je zo Supabase; trvalé redakčné vizuály sú v
+# assets/. Dáta prichádzajú z /.netlify/functions/. Funkcie sa nasadzujú
+# zvlášť (functions = "netlify/functions"), publikačný priečinok sa ich netýka.
 #
 # PRIDÁVAŠ NOVÝ SÚBOR NA WEB? Ak to nie je .html, dopíš ho do zoznamu VOLITELNE
 # nižšie — inak sa na produkciu nedostane.
@@ -35,6 +34,12 @@ VOLITELNE=(robots.txt clanok.css favicon.ico _redirects _headers)
 for f in "${VOLITELNE[@]}"; do
   [ -f "$f" ] && cp -- "$f" "$OUT"/
 done
+
+# Trvalé lokálne vizuály (napr. jeden zverokruhový obrázok pre všetky denné
+# horoskopy). Generované článkové obrázky naďalej žijú v Supabase Storage.
+if [ -d assets ]; then
+  cp -R -- assets "$OUT"/
+fi
 
 # CSP sa generuje AŽ TERAZ, keď sú HTML súbory na mieste — hashe inline
 # skriptov sa počítajú z ich reálneho obsahu, takže sa nemôžu rozísť s kódom.

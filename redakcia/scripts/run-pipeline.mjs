@@ -61,6 +61,13 @@ async function main() {
   log('0) retry — dočasné chyby späť do hry');
   console.log('  ', await retryTransientErrors());
 
+  // Horoskop má pevný ranný termín a nepotrebuje spravodajské dáta. Večer sa
+  // pripraví na zajtra, ráno iba aktivuje z cache. Beží pred platenou dennou
+  // redakciou, aby mu extrakcie a Writer neminuli priebežný budget allowance.
+  log('16-horoskop — večerná príprava / ranná aktivácia → proofed');
+  try { console.log('  ', await horoskop.run()); }
+  catch (e) { console.log('   ⚠️ horoskop preskočený:', e.message); }
+
   if (!SKIP_SCOUT) {
     log('01-scout — sťahujem živé trhy z CoinGecku → raw');
     console.log('  ', await scout.run());
@@ -90,10 +97,6 @@ async function main() {
   log('15-zahrada — sezónny generátor (raz denne) → proofed');
   try { console.log('  ', await zahrada.run()); }
   catch (e) { console.log('   ⚠️ záhrada preskočená:', e.message); }
-
-  log('16-horoskop — denný generátor (raz denne) → proofed');
-  try { console.log('  ', await horoskop.run()); }
-  catch (e) { console.log('   ⚠️ horoskop preskočený:', e.message); }
 
   // Korektúra a právna kontrola bežia AŽ TU, teda aj na denný recap vyššie —
   // práve v ňom sa 30.7. objavila vymyslená príčinná súvislosť.
