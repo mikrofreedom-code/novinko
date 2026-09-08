@@ -63,6 +63,33 @@ async function generovaneDnes() {
   return (data ?? []).length > 0;
 }
 
+// Posledná poistka NAD znameniaZDavky() nižšie — tá už pri zlom AI výstupe
+// nehádže (dopĺňa fallback), takže táto vetva by sa mala trafiť len pri
+// niečom nepredvídanom (napr. chyba v samotnom kóde, nie v AI odpovedi). Bez
+// stropu by sa pri takej chybe pipeline pokúšalo o celý (3-volaniový)
+// horoskop znova KAŽDÚ hodinu až do polnoci. MAX_ATTEMPTS_PER_DAY=2 znamená:
+// dnes to skúsime dvakrát, tretíkrát už nie — čaká sa na zajtrajší reset dayKey().
+const MAX_ATTEMPTS_PER_DAY = Number(process.env.HOROSKOP_MAX_ATTEMPTS ?? 2);
+const ATTEMPT_SRC = 'horoskop-attempt';
+
+async function pokusovDnes() {
+  const { data, error } = await db.from('queue')
+    .select('id').eq('raw_data->>_src', ATTEMPT_SRC).eq('raw_data->>day', dayKey());
+  if (error) throw error;
+  return (data ?? []).length;
+}
+
+async function zapisNeuspesnyPokus(chyba) {
+  const { error } = await db.from('queue').insert({
+    source_id: null,
+    status: 'error',
+    raw_data: { _src: ATTEMPT_SRC, day: dayKey() },
+    facts: { attribution_required: false, section: 'horoskop' },
+    error: `${AGENT}: ${chyba.message}`,
+  });
+  if (error) throw error;
+}
+
 // ---------- Znamenia, rozdelené na 3 dávky po 4 ----------
 // Poradie presne podľa biblie kapitoly 3. Delenie na dávky je len technické
 // (veľkosť volania) — poradie vo finálnom článku sa zachová spojením dávok
@@ -113,21 +140,19 @@ const HOROSKOP_SYSTEM = `Si profesionálny lifestylový redaktor slovenského po
 Horoskop je zábavný lifestylový obsah, NIE veda ani istá predpoveď budúcnosti. Čitateľ má po prečítaní cítiť "pozriem sa, čo dnes píšu pre moje znamenie" — nie "horoskop mi povedal, čo sa mi určite stane".
 
 Výstup je IBA validný JSON, bez code fences, bez prózy navyše.
-Schéma výstupu: {"body": string}
+Schéma výstupu: {"znamenia": [{"nazov": string, "atmosfera": string, "laska": string, "praca": string, "energia": string, "rada": string}, ...]}
+Presne JEDEN objekt v poli "znamenia" pre KAŽDÉ zo zadaných znamení, v zadanom poradí. KAŽDÉ pole je JEDEN krátky text bez odriadkovania — znak nového riadku nepatrí do žiadnej hodnoty, rozloženie do riadkov rieši systém, nie ty.
 
 ŠTÝL:
 - Prirodzený, pozitívny, mierne tajomný tón — nie prehnane ezoterický, nie dramatický, nie katastrofický.
 - Formulácie ako "môže", "oplatí sa", "dnešok môže priať", "môžete cítiť", "situácia môže priniesť". NIKDY isté tvrdenia: "určite sa stane", "hviezdy garantujú", "musíte", "stopercentne".
 - Pri každom zo zadaných znamení INÝ obsah a INÁ vetná štruktúra — nikdy mierne prepísané varianty toho istého textu. Striedaj témy: rozhodovanie, komunikácia, práca, rodina, partnerstvo, nové kontakty, odpočinok, organizácia, kreativita, financie, motivácia, osobný rozvoj.
-- "body": pre KAŽDÉ zo zadaných znamení presne v tomto tvare, oddelené prázdnym riadkom (blank line), žiadny markdown nadpis (##):
-
-[znamenie presne tak, ako ti bolo zadané]
-2-4 prirodzené vety opisujúce atmosféru dňa pre toto znamenie.
-Láska: [1-5 hviezdičiek, napr. ⭐⭐⭐⭐☆] — krátke hodnotenie vzťahov a emócií.
-Práca a peniaze: [hviezdičky] — krátke hodnotenie práce, kariéry, financií.
-Energia: [hviezdičky] — krátke hodnotenie energie, tempa, osobnej pohody.
-Rada dňa: jedna krátka praktická alebo povzbudzujúca veta.
-
+- "nazov": znamenie presne tak, ako ti bolo zadané (so symbolom).
+- "atmosfera": 2-4 prirodzené vety opisujúce atmosféru dňa pre toto znamenie.
+- "laska": hodnotenie vzťahov a emócií, tvar "[1-5 hviezdičiek, napr. ⭐⭐⭐⭐☆] — krátky komentár".
+- "praca": hodnotenie práce, kariéry, financií, rovnaký tvar "[hviezdičky] — krátky komentár".
+- "energia": hodnotenie energie, tempa, osobnej pohody, rovnaký tvar "[hviezdičky] — krátky komentár".
+- "rada": jedna krátka praktická alebo povzbudzujúca veta, bez hviezdičiek.
 - Hviezdičkové hodnotenia rozlož PRIRODZENE — nie stále rovnaký počet, nie samé 4-5 hviezdičiek. Občas aj slabšie hodnotenie (2-3 hviezdičky), nech to pôsobí úprimne, nie ako plošná pochvala.
 
 TÉMY, KTORÝM SA VYHNÚŤ ÚPLNE (nielen zmierniť formuláciu — vôbec ich nespomínaj):
@@ -149,13 +174,13 @@ function buildPrompt(datum, znameniaVDavke) {
 // model zopakuje verne, ale skladá sa kódom).
 const DISCLAIMER = 'Horoskop je určený na zábavné a lifestylové účely. Nemal by byť považovaný za odborné, zdravotné, právne ani finančné odporúčanie.';
 
-async function napisDavku(datum, znameniaVDavke) {
-  const raw = await askFull({
+async function zavolajDavku(datum, znameniaVDavke, extraPokyn) {
+  return askFull({
     tier: 'smart',
     agent: AGENT,
     section: 'horoskop',
     system: HOROSKOP_SYSTEM,
-    prompt: buildPrompt(datum, znameniaVDavke),
+    prompt: buildPrompt(datum, znameniaVDavke) + (extraPokyn ? `\n\n${extraPokyn}` : ''),
     // Zdvihnuté z 1400 na 2200 6. 9. — reálny test ukázal, že 1400 nestačilo
     // ani na 4 znamenia (druhá dávka sa orezala, truncated:true). Model píše
     // "2-4 vety" verbóznejšie, než odhad počítal. Stále ďaleko pod 60s
@@ -166,38 +191,128 @@ async function napisDavku(datum, znameniaVDavke) {
     // skutočne odlišné, nie preformulovania tej istej vety.
     temperature: 0.8,
   });
-  const pokus = parseModelJson(raw.text);
-  if (!pokus.ok) {
-    throw new Error(`dávka [${znameniaVDavke.join(', ')}] vrátila non-JSON (truncated=${raw.truncated}): ${raw.text.slice(0, 200)}`);
-  }
-  const telo = pokus.value?.body;
-  if (!telo) throw new Error(`dávka [${znameniaVDavke.join(', ')}] vynechala "body"`);
-  return rozdeľRiadky(String(telo).trim());
 }
 
-// KRITICKÉ pre zobrazenie (nájdené 7. 9. na živom článku): `paragraphsToCell()`
-// v article-row.js delí telo LEN na `\n{2,}` (prázdny riadok = koniec
-// odseku) a VNÚTRI odseku všetky jednoduché \n nahradí medzerou. Model píše
-// jednoduchý \n medzi riadkami znamenia (nadpis/atmosféra/Láska/Práca/
-// Energia/Rada dňa) — v hárku sa preto celé znamenie zlepilo do jednej
-// dlhej vety, čitateľné len ako blok textu, nie ako prehľadné karty.
-// Namiesto spoliehania sa na model, aby vkladal prázdne riadky aj VNÚTRI
-// znamenia (nespoľahlivé, biele znaky sú presne to, čo modely najľahšie
-// nedodržia), to rieši kód: KAŽDÝ riadok sa stane vlastným odsekom. Vedľajší
-// (žiadaný) efekt: aj generická šablóna článku (clanok.js) tak zobrazí
-// znamenie ako čistý zoznam riadkov namiesto jedného zlepeného bloku.
-function rozdeľRiadky(text) {
-  return text
-    .split(/\n{2,}/)
-    .map((blok) => blok.split('\n').map((r) => r.trim()).filter(Boolean).join('\n\n'))
-    .join('\n\n');
+// ---------- Núdzový obsah (KÓD, nie AI) — posledná poistka ----------
+// "Nemôže zlyhať" v praxi neznamená skúšať donekonečna (to je len drahšie
+// zlyhávanie, presne to sa stalo 8. 9.) — znamená, že KAŽDÉ jednotlivé
+// znamenie dostane text: buď od modelu, alebo výnimočne z tohto vopred
+// schváleného, konzervatívneho zásobníka. Rovnaký princíp ako DISCLAIMER a
+// "sources" vyššie — kritické miesto sa nerieši spoliehaním sa, že model
+// zareaguje správne aj na druhý pokus. Vety sú zámerne všeobecné, bez
+// akejkoľvek konkrétnej udalosti — bezpečne prejdú HOROSKOP_CHECKS aj úplne
+// bez AI, presne ako keby to napísal model podľa vlastných pravidiel vyššie.
+const FALLBACK_ATMOSFERA = [
+  'Dnešok môže priniesť pokojnejšie tempo, ktoré sa oplatí využiť na premyslenie ďalších krokov.',
+  'Deň môže priať drobným, no užitočným rozhodnutiam — netreba riešiť všetko naraz.',
+  'Môžete cítiť chuť posunúť veci vpred, aj keď nie všetko musí ísť presne podľa plánu.',
+  'Atmosféra dňa môže byť vhodná na to, aby ste si urobili poriadok vo vlastných prioritách.',
+];
+const FALLBACK_HVIEZDICKY = ['⭐⭐☆☆☆', '⭐⭐⭐☆☆', '⭐⭐⭐⭐☆', '⭐⭐⭐⭐⭐'];
+const FALLBACK_LASKA = ['pokojné, vyrovnané obdobie.', 'priestor na úprimný rozhovor.', 'trpezlivosť sa dnes oplatí.', 'chvíľa venovaná blízkym môže dnes padnúť vhod.'];
+const FALLBACK_PRACA = ['dobrý deň na dokončenie rozbehnutého.', 'oplatí sa uprednostniť jednu vec pred viacerými naraz.', 'drobný pokrok sa dnes môže počítať viac než veľké plány.', 'organizácia dňa môže ušetriť energiu na neskôr.'];
+const FALLBACK_ENERGIA = ['primeraná, bez väčších výkyvov.', 'oplatí sa nerozdrobiť ju na priveľa vecí naraz.', 'krátka prestávka počas dňa môže pomôcť.', 'lepšie využitá v pokojnejšom tempe.'];
+const FALLBACK_RADA = ['Doprajte si dnes chvíľu len pre seba.', 'Skúste jeden malý krok namiesto veľkého rozhodnutia.', 'Otvorená komunikácia dnes pomôže viac než mlčanie.', 'Nechajte si priestor aj na oddych, nielen na povinnosti.'];
+
+// `seed` (pozícia znamenia 0-11 posunutá o pár, aby sa polia v rámci jedného
+// znamenia nezhodovali) mení výber medzi znameniami aj dňami bez toho, aby
+// bol treba ďalší generátor náhody — deterministické, ale nie jednotvárne.
+const vyberFallback = (zoznam, seed) => zoznam[((seed % zoznam.length) + zoznam.length) % zoznam.length];
+
+function znamenieZFallbacku(nazov, seed) {
+  return {
+    nazov,
+    atmosfera: vyberFallback(FALLBACK_ATMOSFERA, seed),
+    laska: `${vyberFallback(FALLBACK_HVIEZDICKY, seed + 1)} — ${vyberFallback(FALLBACK_LASKA, seed + 1)}`,
+    praca: `${vyberFallback(FALLBACK_HVIEZDICKY, seed + 2)} — ${vyberFallback(FALLBACK_PRACA, seed + 2)}`,
+    energia: `${vyberFallback(FALLBACK_HVIEZDICKY, seed + 3)} — ${vyberFallback(FALLBACK_ENERGIA, seed + 3)}`,
+    rada: vyberFallback(FALLBACK_RADA, seed + 4),
+  };
+}
+
+const POLIA_ZNAMENIA = ['nazov', 'atmosfera', 'laska', 'praca', 'energia', 'rada'];
+function jePlatnaPolozka(z) {
+  return !!z && typeof z === 'object' && POLIA_ZNAMENIA.every((k) => typeof z[k] === 'string' && z[k].trim().length > 0);
+}
+
+function chybajuceZnamenia(pokus, znameniaVDavke) {
+  if (!pokus.ok || !Array.isArray(pokus.value?.znamenia)) return znameniaVDavke;
+  return znameniaVDavke.filter((nazov) => !jePlatnaPolozka(pokus.value.znamenia.find((z) => z?.nazov === nazov)));
+}
+
+function spatnaVazba(pokus, znameniaVDavke, chybajuce) {
+  const dovod = pokus.ok
+    ? `chýbajú alebo majú prázdne/neplatné polia: ${chybajuce.join(', ')}`
+    : `JSON sa nedal spracovať (${pokus.chyba})`;
+  return `(Predošlý pokus zlyhal — ${dovod}. Over si, že pole "znamenia" má presne jeden objekt pre KAŽDÉ zo zadaných znamení ${znameniaVDavke.join(', ')}, každý so všetkými poľami nazov/atmosfera/laska/praca/energia/rada ako NEPRÁZDNY text bez znaku nového riadku, a že "nazov" sedí presne so zadaním.)`;
+}
+
+// Nájdené 8. 9.: dávka [Strelec, Kozorožec, Vodnár, Ryby] vrátila dva dni po
+// sebe nevalidný JSON. Predošlá oprava (retry s pripomienkou) len znížila
+// cenu zlyhania — user chcel niečo, čo NEZLYHÁ, nie lacnejšie zlyhávanie.
+// Tri vrstvy teraz namiesto jednej:
+//   1. Schéma vyššie žiada KRÁTKE polia bez odriadkovania — model už nemusí
+//      sám formátovať viacriadkový blok do JSON stringu (najčastejšia
+//      príčina rozbitia), riadky skladá kód (formatZnamenie nižšie).
+//   2. Keď aj tak dávka zlyhá (parse, alebo chýbajúce/prázdne znamenie),
+//      retry TEJ ISTEJ dávky s KONKRÉTNOU spätnou väzbou (ktoré znamenie,
+//      prečo) namiesto všeobecnej pripomienky — model má čo opraviť.
+//   3. Keby zlyhal aj retry (pretrvávajúci problém, výpadok API), CHÝBAJÚCE
+//      znamenia sa doplnia z fallback zásobníka. Táto funkcia už NEHÁDŽE
+//      výnimku pri obsahových problémoch — horoskop sa publikuje VŽDY,
+//      v najhoršom prípade s pár všeobecnejšími vetami namiesto AI textu.
+async function znameniaZDavky(datum, znameniaVDavke, indexPrveho) {
+  let znameniaOdAI = [];
+  try {
+    let raw = await zavolajDavku(datum, znameniaVDavke);
+    let pokus = parseModelJson(raw.text);
+    let chybajuce = chybajuceZnamenia(pokus, znameniaVDavke);
+    if (chybajuce.length > 0) {
+      raw = await zavolajDavku(datum, znameniaVDavke, spatnaVazba(pokus, znameniaVDavke, chybajuce));
+      pokus = parseModelJson(raw.text);
+    }
+    if (pokus.ok && Array.isArray(pokus.value?.znamenia)) znameniaOdAI = pokus.value.znamenia;
+  } catch (err) {
+    console.warn(`${AGENT}: dávka [${znameniaVDavke.join(', ')}] zlyhala aj na úrovni volania (${err.message}) — dopĺňam z núdzového zásobníka`);
+  }
+
+  let pouzitFallback = 0;
+  const vysledok = znameniaVDavke.map((nazov, i) => {
+    const zhoda = znameniaOdAI.find((z) => z?.nazov === nazov);
+    if (jePlatnaPolozka(zhoda)) return zhoda;
+    pouzitFallback++;
+    return znamenieZFallbacku(nazov, indexPrveho + i);
+  });
+  if (pouzitFallback > 0) {
+    console.warn(`${AGENT}: ${pouzitFallback}/${znameniaVDavke.length} znamení v dávke [${znameniaVDavke.join(', ')}] je z núdzového zásobníka (AI výstup nebol použiteľný ani po opakovaní)`);
+  }
+  return vysledok;
+}
+
+// Skladá riadky znamenia KÓDOM, nie model — odstraňuje riziko, ktoré tu
+// pôvodne riešila rozdeľRiadky() (model zabudne prázdny riadok medzi časťami
+// znamenia, `paragraphsToCell()` v article-row.js potom zlepí celé znamenie
+// do jednej vety, nájdené 7. 9. na živom článku). Keď riadky skladá kód,
+// tento spôsob zlyhania štrukturálne nemôže nastať.
+function formatZnamenie(z) {
+  return [
+    z.nazov,
+    z.atmosfera,
+    `Láska: ${z.laska}`,
+    `Práca a peniaze: ${z.praca}`,
+    `Energia: ${z.energia}`,
+    `Rada dňa: ${z.rada}`,
+  ].join('\n\n');
 }
 
 // ---------- Napíš dnešný horoskop (3 dávky sekvenčne) ----------
 export async function napisHoroskop(datum = new Date()) {
   const casti = [];
+  let indexPrveho = 0;
   for (const davka of ZNAMENIA_DAVKY) {
-    casti.push(await napisDavku(datum, davka));
+    const znamenia = await znameniaZDavky(datum, davka, indexPrveho);
+    casti.push(...znamenia.map(formatZnamenie));
+    indexPrveho += davka.length;
   }
   const { headline, perex } = headlinePerex(datum);
 
@@ -218,8 +333,20 @@ export async function run({ force = false, dryRun = false } = {}) {
   const hour = now.getHours();
   if (!force && hour < GENERATOR_HOUR) return { skipped: `pred ${GENERATOR_HOUR}:00` };
   if (!force && await generovaneDnes()) return { skipped: 'dnešný horoskop už existuje' };
+  if (!force) {
+    const pokusy = await pokusovDnes();
+    if (pokusy >= MAX_ATTEMPTS_PER_DAY) {
+      return { skipped: `vzdané pre dnešok — ${pokusy} neúspešné pokusy (limit ${MAX_ATTEMPTS_PER_DAY})` };
+    }
+  }
 
-  const article = await napisHoroskop(now);
+  let article;
+  try {
+    article = await napisHoroskop(now);
+  } catch (err) {
+    if (!dryRun) await zapisNeuspesnyPokus(err);
+    throw err;
+  }
   if (dryRun) return { dryRun: true, article };
 
   const { error } = await db.from('queue').insert({

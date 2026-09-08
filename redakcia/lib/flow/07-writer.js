@@ -392,6 +392,18 @@ const MAX_PER_RUN = Number(process.env.MAX_ARTICLES_PER_RUN ?? 2);
 // by človek čakal. Tento strop hovorí, koľko ich smie byť dokopy.
 const MAX_TOTAL_PER_RUN = Number(process.env.MAX_ARTICLES_TOTAL_PER_RUN ?? 3);
 
+// Po koľkých hodinách ticha ide sekcia PRVÁ, bez ohľadu na importance skóre.
+//
+// PREČO EXISTUJE (nájdené 8. 9.): pri MAX_TOTAL_PER_RUN < počet živých sekcií
+// vyberal roundRobinCap čisto podľa toho, ktorá sekcia má najlepší (najčerstvejší
+// pri zhode) kandidát — a sekcia s hlbším backlogom (Svet, 20 čakajúcich kusov)
+// tak vyhrávala jediný slot KAŽDÚ hodinu, kým krypto (8 kusov, nižšie skóre)
+// nedostalo slot 24+ h v kuse, hoci malo hotové, plne faktované kandidáty
+// čakajúce v `clustered`. Skóre kvality nie je to isté ako právo na slot —
+// bez tohto stropu môže silnejšia sekcia slabšiu vytlačiť navždy, nielen na
+// jednu hodinu, presne to tu vzniklo.
+const STARVED_SECTION_H = Number(process.env.WRITER_STARVED_SECTION_H ?? 3);
+
 // Ako dlho smie správa čakať vo fronte, kým ju ešte má zmysel napísať.
 //
 // PREČO: pri strope 1 článok/hodinu vzniká rad, a ten sa po každom výpadku
@@ -484,6 +496,46 @@ async function claimPerSection(status, limitPerSection) {
   return dávky.flat();
 }
 
+// Kedy táto sekcia naposledy dostala článok (podľa article.written_at, ktorý
+// tento súbor sám zapisuje v run()). Používa STARVED_SECTION_H nižšie —
+// rovnaký vzor dotazu ako claimPerSection (jeden dotaz na sekciu, žiadny
+// zdieľaný FIFO, ktorý by hlbší backlog jednej sekcie zvýhodnil).
+async function lastWrittenAt(sections) {
+  const out = new Map();
+  await Promise.all(sections.map(async (sec) => {
+    // article.written_at je presný čas (nastavuje ho run() nižšie), ale
+    // PostgREST/.order() nemá v tomto kóde nikde precedens na triedenie
+    // podľa JSON cesty priamo v dopyte — radšej stiahni pár posledných
+    // (podľa created_at, ktoré poradie ordering skutočne podporuje) a
+    // written_at porovnaj klient-side. 50 s rezervou pokrýva aj sekciu,
+    // ktorej sa práve teraz píše veľa naraz.
+    const { data, error } = await db.from('queue').select('article->>written_at')
+      .eq('facts->>section', sec).not('article', 'is', null)
+      .order('created_at', { ascending: false }).limit(50);
+    if (error) throw error;
+    const casy = (data ?? []).map((r) => r.written_at).filter(Boolean).sort();
+    out.set(sec, casy.length ? casy[casy.length - 1] : null);
+  }));
+  return out;
+}
+
+// Zoradí sekcie na VYHLADOVANÉ (>= STARVED_SECTION_H h bez článku, alebo
+// nikdy žiadny nedostali — najdlhšie čakajúca prvá) a OSTATNÉ. Vyhladovaná
+// sekcia dostane svoj najlepší kandidát PRED normálnym porovnávaním podľa
+// importance — pozri komentár pri STARVED_SECTION_H vyššie prečo.
+function rozdelPodlaVyhladovania(bySekcia, lastWritten, now) {
+  const vyhladovane = [];
+  const ostatne = new Map();
+  for (const [sec, items] of bySekcia) {
+    const posledny = lastWritten.get(sec);
+    const hodinC = posledny ? (now - new Date(posledny).getTime()) / 3600000 : Infinity;
+    if (hodinC >= STARVED_SECTION_H) vyhladovane.push({ sec, items, hodinC });
+    else ostatne.set(sec, items);
+  }
+  vyhladovane.sort((a, b) => b.hodinC - a.hodinC);
+  return { vyhladovane, ostatne };
+}
+
 // ---------- Dávkové spracovanie fronty v stave `clustered` ----------
 export async function runBatch(limitPerSection = 20) {
   // Zberový režim (AI_ENABLED=false): nepíš nič, vybrané položky nechaj čakať.
@@ -548,8 +600,32 @@ export async function runBatch(limitPerSection = 20) {
 
   // ŠKRT 1: top N najdôležitejších PER SEKCIA (aby krypto neprebíjalo AI a ďalšie).
   const perSekcia = topPerSection(rozneTemy, MAX_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
-  // ŠKRT 2: globálny strop na celý beh, striedavo zo sekcií.
-  const top = roundRobinCap(perSekcia, MAX_TOTAL_PER_RUN, (it) => it.facts?.section, (it) => it.facts?.importance);
+
+  // ŠKRT 2: globálny strop na celý beh. VYHLADOVANÁ sekcia (viď STARVED_SECTION_H)
+  // ide prvá, každá najviac s jedným kandidátom — inak by mohla vlastným hlbokým
+  // backlogom vytlačiť ostatné vyhladované sekcie z toho istého behu. Zvyšné
+  // sloty (ak ostanú) sa naplnia normálne, podľa importance (roundRobinCap).
+  const bySekcia = new Map();
+  for (const it of perSekcia) {
+    const sec = it.facts?.section ?? 'krypto';
+    if (!bySekcia.has(sec)) bySekcia.set(sec, []);
+    bySekcia.get(sec).push(it);
+  }
+  const lastWritten = await lastWrittenAt([...bySekcia.keys()]);
+  const { vyhladovane, ostatne } = rozdelPodlaVyhladovania(bySekcia, lastWritten, Date.now());
+
+  const top = [];
+  for (const { items } of vyhladovane) {
+    if (top.length >= MAX_TOTAL_PER_RUN) break;
+    if (items[0]) top.push(items[0]);
+  }
+  if (top.length < MAX_TOTAL_PER_RUN) {
+    const zvysne = roundRobinCap(
+      [...ostatne.values()].flat(), MAX_TOTAL_PER_RUN - top.length,
+      (it) => it.facts?.section, (it) => it.facts?.importance,
+    );
+    top.push(...zvysne);
+  }
 
   const results = { ok: 0, failed: 0, skipped: Math.max(rozneTemy.length - top.length, 0), parked, zastarane, tematicke };
   for (const item of top) {

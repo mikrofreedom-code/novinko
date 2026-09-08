@@ -51,20 +51,64 @@ export function repairStrayQuotes(s) {
   return out;
 }
 
-// Odpoveď modelu → objekt. Najprv poctivo, a až keď to zlyhá, so záchranou.
-// Vracia { ok, value } / { ok:false, chyba, cistyText } — volajúci si podľa
-// `res.truncated` rozhodne, ako pád nahlási.
+// ZÁCHRANA PRI SUROVOM RIADIACOM ZNAKU V REŤAZCI.
+//
+// Niektoré prompty (napr. 16-horoskop.js) explicitne pýtajú od modelu VIAC
+// RIADKOV vnútri jedného JSON reťazca (napr. "body": "znamenie\natmosféra\n...").
+// Model to má napísať ako escapované \n — ale namiesto toho občas vloží
+// skutočný, surový znak nového riadku (alebo tabulátor/CR). Platný JSON string
+// nesmie obsahovať surový riadiaci znak (U+0000–U+001F) neescapovaný — taký
+// výstup zhodí JSON.parse s "Bad control character in string literal", a to
+// repairStrayQuotes nerieši (tá sa stará len o znak ", nie o \n/\r/\t).
+//
+// Nájdené 8. 9. na horoskope: dávka [Strelec…Ryby] — presne tento prompt so
+// striktne viacriadkovým "body" — padla na non-JSON dva dni po sebe aj po
+// repairStrayQuotes. Namiesto plátania len na jednom mieste (16-horoskop.js)
+// patrí oprava sem — parseModelJson zdieľa 05/06/07/08/13/15/16, takýto istý
+// spôsob zlyhania môže nastať pri hocktorom viacriadkovom textovom poli.
+//
+// Rovnaký princíp ako repairStrayQuotes: sleduj, či sme vnútri reťazca (mimo
+// nej sú riadiace znaky v JSON bežné a neškodné — formátovacie medzery medzi
+// tokenmi), a VNÚTRI reťazca surový riadiaci znak escapuj namiesto zahodenia.
+export function repairRawControlChars(s) {
+  let out = '';
+  let vRetazci = false;
+  let escapovane = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (escapovane) { out += ch; escapovane = false; continue; }
+    if (ch === '\\') { out += ch; escapovane = true; continue; }
+    if (ch === '"') { vRetazci = !vRetazci; out += ch; continue; }
+    if (vRetazci && ch === '\n') { out += '\\n'; continue; }
+    if (vRetazci && ch === '\r') { out += '\\r'; continue; }
+    if (vRetazci && ch === '\t') { out += '\\t'; continue; }
+    out += ch;
+  }
+  return out;
+}
+
+// Odpoveď modelu → objekt. Najprv poctivo, a až keď to zlyhá, postupne skús
+// opravy — surové riadiace znaky aj zatúlané úvodzovky sa môžu vyskytnúť
+// spolu, preto skúšame aj ich kombináciu. Vracia { ok, value } / { ok:false,
+// chyba, cistyText } — volajúci si podľa `res.truncated` rozhodne, ako pád
+// nahlási.
 export function parseModelJson(text) {
   const cistyText = stripFences(text);
-  try {
-    return { ok: true, value: JSON.parse(cistyText), opravene: false };
-  } catch (prva) {
+  const pokusy = [
+    cistyText,
+    repairRawControlChars(cistyText),
+    repairStrayQuotes(cistyText),
+    repairStrayQuotes(repairRawControlChars(cistyText)),
+  ];
+  let prvaChyba;
+  for (let i = 0; i < pokusy.length; i++) {
     try {
-      return { ok: true, value: JSON.parse(repairStrayQuotes(cistyText)), opravene: true };
-    } catch {
-      return { ok: false, chyba: prva.message, cistyText };
+      return { ok: true, value: JSON.parse(pokusy[i]), opravene: i > 0 };
+    } catch (chyba) {
+      if (i === 0) prvaChyba = chyba.message;
     }
   }
+  return { ok: false, chyba: prvaChyba, cistyText };
 }
 
 export function stripFences(s) {
