@@ -76,9 +76,29 @@ const NO_IMAGE_SLUGS = new Set([
   'choroby-rastlin-prevencia',
   'skodcovia-na-okrasnych-rastlinach',
 ]);
+
+// Explicitná VÝNIMKA z regexu — potvrdené falošné pozitíva, kde slovo z
+// NO_IMAGE_RE padne len mimochodom a článok nie je o rozpoznávaní škodcu/
+// choroby. Kontroluje sa PRED regexom a vždy vyhráva nad ním (nie však nad
+// NO_IMAGE_SLUGS vyššie — explicitný zákaz ostáva nadradený). Pridávaj sem
+// LEN po ručnom prečítaní osnovy, nikdy naslepo len preto, že článok vyšiel
+// bez obrázka — to je zámerné bezpečné zlyhanie, nie automaticky chyba.
+//
+// izbovky-presun-dnu: nájdené naživo 9. 9. 2026 (článok publikovaný bez
+// obrázka), presne ten prípad opísaný v komentári vyššie — jediná zmienka
+// škodcov je "kontrola škodcov pred presunom", nejde o identifikáciu.
+// Dodatočný obrázok k už publikovanému článku doplnený ručne cez
+// scripts/doplni-obrazok.mjs (tá istá cesta funguje pre akýkoľvek budúci
+// nález rovnakého druhu, nemusí čakať na tento zoznam).
+const FORCE_IMAGE_SLUGS = new Set([
+  'izbovky-presun-dnu',
+]);
 const NO_IMAGE_RE = /(?<![\p{L}])(škodc|škodl|chorob|pliesň|pliesne|hniloba|háďat|voš|roztoč)/iu;
-const jeIdentifikacneRiziko = (topic) =>
-  NO_IMAGE_SLUGS.has(topic.slug) || NO_IMAGE_RE.test(`${topic.slug} ${topic.osnova}`);
+const jeIdentifikacneRiziko = (topic) => {
+  if (NO_IMAGE_SLUGS.has(topic.slug)) return true;
+  if (FORCE_IMAGE_SLUGS.has(topic.slug)) return false;
+  return NO_IMAGE_RE.test(`${topic.slug} ${topic.osnova}`);
+};
 
 function dayKey(d = new Date()) { return d.toISOString().slice(0, 10); }
 

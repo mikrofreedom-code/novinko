@@ -57,7 +57,7 @@ Describe the SPECIFIC concrete action or subject from the headline/summary — w
 Strict: NO text/words/letters in the image, hands/tools doing the work are fine but NO visible faces or identifiable people, NO brand marks, NO watermarks.
 Style: candid smartphone snapshot, natural unstaged composition, slightly imperfect framing, real garden or home — NOT polished stock photography, NOT professional studio or DSLR look.`;
 
-async function aiImagePrompt(item) {
+export async function aiImagePrompt(item) {
   const a = item.article || {};
   const foto = PHOTOREALISTIC_SECTIONS.has(a.section);
   try {
