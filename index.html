@@ -293,6 +293,18 @@
     .today-meniny { font-family: 'Libre Baskerville', serif; font-size: 1.05rem; color: var(--text); line-height: 1.3; margin-bottom: 5px; }
     .today-meniny strong { color: var(--accent); }
     .today-tomorrow { font-size: 0.72rem; color: var(--muted); font-style: italic; }
+
+    /* ─── MINI HOROSKOP (pod meninami v bloku "Dnes"), striedanie znamení ─── */
+    .mini-horo { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+    .mini-horo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .mini-horo-label { font-size: 0.64rem; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--cat-horoskop); }
+    .mini-horo-link { font-size: 0.68rem; color: var(--muted); text-decoration: none; }
+    .mini-horo-link:hover { color: var(--accent); }
+    .mini-horo-body { display: flex; gap: 10px; align-items: flex-start; min-height: 58px; }
+    .mini-horo-icon { font-size: 1.3rem; line-height: 1.2; flex-shrink: 0; }
+    .mini-horo-text { min-width: 0; }
+    .mini-horo-sign { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 0.86rem; color: var(--text); margin-bottom: 2px; }
+    .mini-horo-line { font-size: 0.78rem; color: var(--text2); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .wx-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-light); font-size: 0.86rem; }
     .wx-row:last-child { border-bottom: none; }
     .wx-ico { font-size: 1.1rem; width: 22px; text-align: center; }
@@ -762,7 +774,15 @@
   async function loadAll() {
     const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id, HOROSKOP.id];
     const res = await Promise.all(ids.map(fetchCat));
-    ids.forEach((id, i) => { DATA[id] = res[i]; });
+    // Backend skladá "slovensko" (a ostatné čisto RSS sekcie) round-robinom
+    // naprieč zdrojmi kvôli rozmanitosti, nie podľa času — vlastný obsah
+    // (krypto/ai/ekonomika/svet) je zoradený už pri zápise, ale RSS sekcie
+    // bez tohto zoradenia pôsobia "zaseknuto": rovnaké staré titulky navrchu,
+    // hoci iný zdroj medzitým priniesol niečo čerstvejšie. Zoradením tu,
+    // hneď po načítaní, vidí návštevník vždy najnovšiu správu prvú — vo
+    // všetkých blokoch (hero, magazínové sekcie, zoznam sekcie), keďže tie
+    // čítajú priamo z DATA[cat] bez vlastného triedenia.
+    ids.forEach((id, i) => { DATA[id] = res[i].slice().sort(byDateDesc); });
   }
 
   function allItems() {
@@ -1001,7 +1021,85 @@
     el.innerHTML = `<div class="sidebar-head">Dnes</div>
       <div class="today-date">${dstr}</div>
       <div class="today-meniny">Meniny má <strong>${meninyFor(now)}</strong></div>
-      <div class="today-tomorrow">Zajtra: ${meninyFor(tmr)}</div>`;
+      <div class="today-tomorrow">Zajtra: ${meninyFor(tmr)}</div>
+      <div class="mini-horo" id="miniHoro">
+        <div class="mini-horo-head"><span class="mini-horo-label">Horoskop dnes</span><a href="/horoskop.html" class="mini-horo-link">Celý horoskop →</a></div>
+        <div class="mini-horo-body"><span class="mini-horo-line" style="color:var(--muted);font-style:italic">Načítavam…</span></div>
+      </div>`;
+  }
+
+  // ─── MINI HOROSKOP (pod meninami): striedanie 12 znamení, zdroj vždy
+  // dnešný horoskop z hárku. fetch-rss vracia pre kategóriu horoskop len
+  // perex (nie plný text so 6 riadkami na znamenie), takže sa to — rovnako
+  // ako horoskop.html — číta rovno z publikovaného CSV hárku.
+  const HORO_SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
+  const ZNAMENIA = ['♈ Baran','♉ Býk','♊ Blíženci','♋ Rak','♌ Lev','♍ Panna','♎ Váhy','♏ Škorpión','♐ Strelec','♑ Kozorožec','♒ Vodnár','♓ Ryby'];
+  function parseCSVLineHoro(line) {
+    let cols = [], cur = '', inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { if (inQuotes && line[i+1] === '"') { cur += '"'; i++; } else inQuotes = !inQuotes; }
+      else if (ch === ',' && !inQuotes) { cols.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    return cols.map(c => c.trim());
+  }
+  // Rozbor tela na karty znamení — rovnaká logika ako horoskop.html
+  // (redakcia/lib/flow/16-horoskop.js: každý riadok znamenia je od 7. 9.
+  // vlastný ¶¶ odsek, rozpoznateľný podľa prefixu).
+  function parseHoroskopCards(content) {
+    const paragraphs = String(content || '').split('¶¶').map(p => p.trim()).filter(Boolean);
+    const cards = [];
+    let current = null;
+    paragraphs.forEach(p => {
+      const znamenie = ZNAMENIA.find(z => p === z || p.indexOf(z) === 0);
+      if (znamenie) { current = { sign: znamenie, atmosphere: '', laska: '', praca: '', energia: '', rada: '' }; cards.push(current); return; }
+      if (!current) return;
+      if (/^Láska:/i.test(p)) current.laska = p.replace(/^Láska:\s*/i, '');
+      else if (/^Práca a peniaze:/i.test(p)) current.praca = p.replace(/^Práca a peniaze:\s*/i, '');
+      else if (/^Energia:/i.test(p)) current.energia = p.replace(/^Energia:\s*/i, '');
+      else if (/^Rada dňa:/i.test(p)) current.rada = p.replace(/^Rada dňa:\s*/i, '');
+      else if (!current.atmosphere && cards.length <= 12) current.atmosphere = p;
+    });
+    return cards;
+  }
+  let miniHoroTimer = null;
+  function startMiniHoroskop(cards) {
+    if (!cards.length) return;
+    let idx = 0;
+    const tick = () => {
+      const el = document.getElementById('miniHoro');
+      const body = el && el.querySelector('.mini-horo-body');
+      if (!body) { clearInterval(miniHoroTimer); return; }
+      const c = cards[idx];
+      const [icon, ...nameParts] = c.sign.split(' ');
+      const line = c.rada || c.atmosphere || c.laska || c.praca || c.energia || '';
+      body.className = 'mini-horo-body fade-in';
+      body.innerHTML = `<span class="mini-horo-icon">${esc(icon)}</span>
+        <span class="mini-horo-text"><span class="mini-horo-sign">${esc(nameParts.join(' '))}</span>
+        <span class="mini-horo-line">${esc(line)}</span></span>`;
+      idx = (idx + 1) % cards.length;
+    };
+    tick();
+    if (miniHoroTimer) clearInterval(miniHoroTimer);
+    miniHoroTimer = setInterval(tick, 4500);
+  }
+  async function loadMiniHoroskop() {
+    try {
+      const r = await fetch(HORO_SHEET_CSV);
+      const csv = await r.text();
+      const lines = csv.trim().split('\n').filter(l => l.trim());
+      const articles = lines.slice(1).map(line => {
+        const c = parseCSVLineHoro(line);
+        const [id, title, , content, , date, category] = c;
+        if (!id || !title) return null;
+        return { content: content || '', date: date || '', category: category || '' };
+      }).filter(Boolean).filter(a => a.category === 'horoskop');
+      articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+      if (!articles.length) return;
+      startMiniHoroskop(parseHoroskopCards(articles[0].content));
+    } catch (e) { /* ticho zlyhá, widget ostane na "Načítavam…" — nie je kritické */ }
   }
 
   // ─── POČASIE: open-meteo (zadarmo, bez kľúča) ───
@@ -1090,9 +1188,10 @@
   document.getElementById('refreshBtn').addEventListener('click', async () => {
     const btn = document.getElementById('refreshBtn'); btn.classList.add('spinning');
     await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate();
+    loadMiniHoroskop();
     btn.classList.remove('spinning');
   });
-  setInterval(async () => { await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate(); }, 5 * 60 * 1000);
+  setInterval(async () => { await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate(); loadMiniHoroskop(); }, 5 * 60 * 1000);
 
   // ─── WORLD CLOCK ───
   const CLOCK_CITIES = [
@@ -1141,6 +1240,7 @@
   // ─── INIT ───
   renderToday();
   loadWeather();
+  loadMiniHoroskop();
   (async () => { await loadAll(); go('all'); stampUpdate(); })();
 </script>
 
