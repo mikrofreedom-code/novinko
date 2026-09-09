@@ -29,8 +29,29 @@
     --cat-horoskop: #b98aff;
   }
 
-  html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; }
+  /* Vesmírne pozadie celej stránky — vlastný obrázok od používateľa, rovnaká
+     evergreen cesta ako horoskop-zverokruh.webp (assets/, kopíruje sa do
+     _site/ pri builde).
+     ZÁMERNE NIE fixed: skúšané naživo (position:fixed pseudo-element,
+     viazaný na viewport) a pri rolovaní kolieskom myši Chrome opakovane
+     vykresľoval nekonzistentný/nesprávny výrez obrázka — nespoľahlivé.
+     Namiesto toho beží štandardné pravidlo pre canvas (CSS2.1 §14.2): keď
+     <html> nemá vlastné pozadie, `body`-in sa použije na celé plátno
+     (celú výšku dokumentu), takže obrázok sa PRIRODZENE roztiahne od
+     úvodu až po archív — čo sedí aj kompozične (svetlý mesiac hore pri
+     nadpise, tmavý pokojný stred za kartami znamení, planéta a zverokruh
+     dole pri archíve/pätičke). Gradient navrch drží kontrast textu
+     konzistentný bez ohľadu na to, ktorá časť obrázka je práve vidno. */
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(180deg, rgba(15,11,26,.55), rgba(15,11,26,.76) 45%, rgba(15,11,26,.92)),
+      url('/assets/horoskop-pozadie.webp');
+    background-size: cover, cover;
+    background-position: center, center top;
+    background-repeat: no-repeat, no-repeat;
+    color: var(--text); font-family: 'Source Sans 3', sans-serif;
+  }
 
   .masthead { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 clamp(16px,4vw,48px); }
   .masthead-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
