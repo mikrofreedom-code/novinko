@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Recepty — Novinko</title>
+<meta name="description" content="Vyskúšané recepty na hlavné jedlá, polievky, dezerty a bezmäsité/fit jedlá — presné množstvá, čas prípravy aj postup v krokoch." />
+<link rel="canonical" href="https://novinko.sk/recepty.html" />
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Vlastný, svetlý dizajn — rovnaký "web vo webe" vzor ako Záhrada, teplá
+     terakotová farba namiesto zelenej, nech sú rubriky na prvý pohľad
+     rozlíšiteľné. Default VŽDY svetlý bez ohľadu na systémovú tému. */
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #faf7f4;
+    --border: #e8ddd3;
+    --border-light: #f0e8e0;
+    --accent: #b5502e;
+    --gold: #b5502e;
+    --text: #111111;
+    --text2: #333333;
+    --muted: #7a6e64;
+    --cat-recepty: #b5502e;
+  }
+  :root[data-theme="dark"] {
+    --bg: #16110d;
+    --surface: #1e1712;
+    --surface-2: #241c16;
+    --border: #382c22;
+    --border-light: #2a2119;
+    --accent: #e2916a;
+    --gold: #e2916a;
+    --text: #f3ede6;
+    --text2: #c9beb2;
+    --muted: #94897c;
+    --cat-recepty: #e2916a;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; transition: background .15s, color .15s; }
+
+  .masthead { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 clamp(16px,4vw,48px); }
+  .masthead-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .logo-wrap { text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
+  .logo { font-family: 'Libre Baskerville', serif; font-size: 1.75rem; font-weight: 700; color: var(--text); letter-spacing: -.5px; }
+  .logo-dot { color: var(--gold); }
+  .logo-tagline { font-size: .6rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; border-left: 1px solid var(--border); padding-left: 10px; margin-left: 4px; }
+  .theme-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 34px; height: 34px; border-radius: 3px; cursor: pointer; font-size: .95rem; font-family: inherit; }
+  .theme-btn:hover { border-color: var(--cat-recepty); color: var(--cat-recepty); }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px,4vw,48px); }
+
+  .rubric-intro { padding: 40px 0 32px; border-bottom: 1px solid var(--border); }
+  .rubric-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .rubric-eyebrow-line { flex: 1; height: 1px; background: var(--border); }
+  .rubric-eyebrow-text { font-size: .7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--cat-recepty); white-space: nowrap; }
+  .rubric-title { font-family: 'Libre Baskerville', serif; font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.15; letter-spacing: -.5px; max-width: 22ch; margin-bottom: 14px; }
+  .rubric-sub { font-size: 1rem; color: var(--text2); font-weight: 300; line-height: 1.6; max-width: 62ch; margin-bottom: 16px; }
+  .rubric-meta { font-size: .74rem; color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap; }
+  .rubric-meta b { color: var(--text2); font-weight: 600; }
+
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; border-top: 3px solid var(--text); padding-top: 10px; margin: 36px 0 20px; gap: 12px; }
+  .sec-title { font-size: .9rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 9px; }
+  .sec-dot { color: var(--cat-recepty); }
+  .sec-note { font-size: .72rem; color: var(--muted); font-style: italic; }
+
+  /* auto-fit namiesto pevných stĺpcov (rovnaký nález ako pri Záhrade 6. 9.):
+     pri menej položkách, než je stĺpcov, by pevný repeat() nechal prázdnu
+     medzeru. auto-fit ju zbalí sám, bez media queries na počet stĺpcov. */
+  .recept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .recept-card { text-decoration: none; color: inherit; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); transition: border-color .15s; }
+  .recept-card:hover { border-color: var(--cat-recepty); }
+  .recept-card.lead { grid-column: span 2; }
+  .recept-img-wrap { aspect-ratio: 16/9; background: var(--surface-2); overflow: hidden; position: relative; }
+  .recept-card.lead .recept-img-wrap { aspect-ratio: 16/7.2; }
+  .recept-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .recept-time-badge { position: absolute; right: 8px; bottom: 8px; background: rgba(17,17,17,.72); color: #fff; font-size: .68rem; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+  .recept-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+  .recept-label { font-size: .64rem; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--cat-recepty); }
+  .recept-title { font-family: 'Libre Baskerville', serif; font-weight: 700; line-height: 1.28; color: var(--text); }
+  .recept-card:not(.lead) .recept-title { font-size: 1rem; }
+  .recept-card.lead .recept-title { font-size: 1.45rem; letter-spacing: -.3px; }
+  .recept-perex { font-size: .84rem; color: var(--text2); line-height: 1.55; font-weight: 300; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .recept-card.lead .recept-perex { font-size: .93rem; -webkit-line-clamp: 3; }
+
+  .kat-list { display: flex; flex-direction: column; }
+  .kat-item { text-decoration: none; color: inherit; display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+  .kat-item:hover .kat-item-title { color: var(--accent); }
+  .kat-item-title { font-family: 'Libre Baskerville', serif; font-size: .98rem; font-weight: 700; color: var(--text); }
+  .kat-item-meta { font-size: .7rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+
+  .kat-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+
+  .empty-note, .loading-note { color: var(--muted); font-style: italic; font-size: .88rem; padding: 20px 0; }
+  .foot-note { text-align: center; padding: 34px 0 46px; font-size: .72rem; color: var(--muted); }
+  .foot-note a { color: var(--cat-recepty); }
+
+  @media (max-width: 980px) { .kat-cols { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .recept-card.lead { grid-column: span 1; } }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="logo-wrap" href="/"><span class="logo">novinko<span class="logo-dot">.</span></span><span class="logo-tagline">Píše AI. Človek kontroluje.</span></a>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Prepnúť na tmavý režim">◐</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <section class="rubric-intro">
+    <div class="rubric-eyebrow"><span class="rubric-eyebrow-text">Rubrika</span><span class="rubric-eyebrow-line"></span></div>
+    <h1 class="rubric-title">Recepty s presnými množstvami a postupom, ktorý naozaj funguje</h1>
+    <p class="rubric-sub">Hlavné jedlá, polievky, dezerty aj bezmäsité a fit varianty — každý recept s časom prípravy, presnými surovinami a krokmi, ktoré sa dajú sledovať bez ďalších otázok.</p>
+    <div class="rubric-meta">
+      <span id="receptCount"></span>
+      <span>4 kategórie: Hlavné jedlá · Polievky · Dezerty · Bezmäsité a fit</span>
+    </div>
+  </section>
+
+  <div class="sec-head">
+    <span class="sec-title"><span class="sec-dot">●</span> Najnovšie</span>
+    <span class="sec-note">radené podľa dátumu zverejnenia</span>
+  </div>
+  <div id="latestGrid" class="loading-note">Načítavam…</div>
+
+  <div id="katSekcie"></div>
+
+  <p class="foot-note">Recepty píše AI podľa redakčného plánu, pred zverejnením ich schvaľuje človek. <a href="/">Späť na novinko.sk</a></p>
+
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var KEY = 'recepty-theme';
+    function apply(mode) {
+      if (mode === 'dark') { root.setAttribute('data-theme', 'dark'); btn.textContent = '◑'; btn.setAttribute('aria-label', 'Prepnúť na svetlý režim'); }
+      else { root.removeAttribute('data-theme'); btn.textContent = '◐'; btn.setAttribute('aria-label', 'Prepnúť na tmavý režim'); }
+    }
+    try { if (localStorage.getItem(KEY) === 'dark') apply('dark'); } catch (e) {}
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+
+  // Rovnaké bezpečnostné helpery ako index.html/horoskop.html/archiv.html.
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function safeLink(url) {
+    try {
+      var u = new URL(url, location.origin);
+      return ['http:', 'https:'].includes(u.protocol) ? esc(u.href) : '#';
+    } catch (e) { return '#'; }
+  }
+  function dateStr(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  var KATEGORIE = ['Hlavné jedlá', 'Polievky', 'Dezerty', 'Bezmäsité a fit'];
+
+  var SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
+
+  function parseCSVLine(line) {
+    var cols = [], cur = "", inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (ch === '"') { if (inQuotes && line[i+1] === '"') { cur += '"'; i++; } else inQuotes = !inQuotes; }
+      else if (ch === "," && !inQuotes) { cols.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    return cols.map(function (c) { return c.trim(); });
+  }
+
+  // Rozbor tela receptu — IDENTICKÁ logika ako parseRecept() v
+  // netlify/lib/clanok-render.js (server) — jeden formát (¶¶ predpony), dve
+  // miesta čítania. fetch-rss dáva len perex, preto sa tu číta rovno CSV
+  // (rovnaký vzor ako horoskop.html) — čas/porcie/kategóriu vieme len z
+  // plného tela.
+  function parseRecept(content) {
+    var odseky = String(content || '').split('¶¶').map(function (p) { return p.trim(); }).filter(Boolean);
+    var r = { intro: '', kategoria: '', prep: null, cook: null, servings: null, ingredients: [], steps: [] };
+    var mode = 'intro';
+    var metaRe = /^Príprava:\s*(\d+)\s*min(?:\s*·\s*Varenie:\s*(\d+)\s*min)?\s*·\s*Porcie:\s*(\d+)/;
+    odseky.forEach(function (p) {
+      var m = metaRe.exec(p);
+      if (m) { r.prep = Number(m[1]); r.cook = m[2] ? Number(m[2]) : 0; r.servings = Number(m[3]); return; }
+      if (/^Kategória:/.test(p)) { r.kategoria = p.replace(/^Kategória:\s*/, ''); return; }
+      if (p === 'Suroviny:') { mode = 'ingredients'; return; }
+      if (p === 'Postup:') { mode = 'steps'; return; }
+      if (mode === 'intro') { r.intro = r.intro ? r.intro + ' ' + p : p; return; }
+      if (mode === 'ingredients') { r.ingredients.push(p); return; }
+      if (mode === 'steps') { r.steps.push(p.replace(/^\d+\.\s*/, '')); return; }
+    });
+    return r;
+  }
+
+  function timeBadge(r) {
+    var total = (r.prep || 0) + (r.cook || 0);
+    return total > 0 ? total + ' min' : '';
+  }
+
+  function receptCard(item, lead) {
+    var badge = timeBadge(item.recept);
+    return '<a href="' + safeLink(item.link) + '" class="recept-card' + (lead ? ' lead' : '') + '">' +
+      '<div class="recept-img-wrap">' +
+      (item.image ? '<img src="' + safeLink(item.image) + '" alt="" loading="lazy">' : '') +
+      (badge ? '<span class="recept-time-badge">⏱ ' + esc(badge) + '</span>' : '') +
+      '</div>' +
+      '<div class="recept-body"><span class="recept-label">' + esc(item.recept.kategoria || 'Recepty') + '</span>' +
+      '<div class="recept-title">' + esc(item.title) + '</div>' +
+      (item.description ? '<div class="recept-perex">' + esc(item.description) + '</div>' : '') +
+      '</div></a>';
+  }
+
+  function katItem(item) {
+    var badge = timeBadge(item.recept);
+    return '<a href="' + safeLink(item.link) + '" class="kat-item">' +
+      '<span class="kat-item-title">' + esc(item.title) + '</span>' +
+      '<span class="kat-item-meta">' + (badge ? '⏱ ' + esc(badge) + ' · ' : '') + esc(dateStr(item.pubDate)) + '</span>' +
+      '</a>';
+  }
+
+  function showError() {
+    var el = document.getElementById('latestGrid');
+    el.className = 'empty-note';
+    el.textContent = 'Rubriku sa nepodarilo načítať — skús obnoviť stránku.';
+  }
+
+  fetch(SHEET_CSV)
+    .then(function (r) { return r.text(); })
+    .then(function (csv) {
+      var lines = csv.trim().split('\n').filter(function (l) { return l.trim(); });
+      var items = lines.slice(1).map(function (line) {
+        var c = parseCSVLine(line);
+        var id = c[0], title = c[1], perex = c[2], content = c[3], date = c[5], category = c[6], imageUrl = c[7];
+        if (!id || !title || category !== 'recepty') return null;
+        return {
+          id: id, title: title, description: perex || '',
+          pubDate: date || '', image: imageUrl || '',
+          link: '/clanok/' + slugify(title) + '-' + encodeURIComponent(id),
+          recept: parseRecept(content),
+        };
+      }).filter(Boolean);
+
+      items.sort(function (a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
+
+      var latestEl = document.getElementById('latestGrid');
+      var katEl = document.getElementById('katSekcie');
+      var countEl = document.getElementById('receptCount');
+
+      if (!items.length) {
+        latestEl.className = 'empty-note';
+        latestEl.textContent = 'Zatiaľ tu nie je žiadny recept — rubrika sa len rozbieha.';
+        countEl.textContent = '';
+        return;
+      }
+
+      countEl.innerHTML = '<b>' + items.length + '</b> ' + (items.length === 1 ? 'recept' : items.length < 5 ? 'recepty' : 'receptov');
+
+      var top = items.slice(0, 4);
+      latestEl.className = 'recept-grid';
+      latestEl.innerHTML = top.map(function (i, idx) { return receptCard(i, idx === 0); }).join('');
+
+      katEl.innerHTML = KATEGORIE.map(function (kat) {
+        var zoznam = items.filter(function (i) { return i.recept.kategoria === kat; });
+        if (!zoznam.length) return '';
+        var stlpce = [[], []];
+        zoznam.forEach(function (i, idx) { stlpce[idx % 2].push(i); });
+        return '<div class="sec-head"><span class="sec-title"><span class="sec-dot">●</span> ' + esc(kat) + '</span>' +
+          '<span class="sec-note">' + zoznam.length + (zoznam.length === 1 ? ' recept' : zoznam.length < 5 ? ' recepty' : ' receptov') + '</span></div>' +
+          '<div class="kat-cols">' + stlpce.map(function (col) {
+            return '<div class="kat-list">' + col.map(katItem).join('') + '</div>';
+          }).join('') + '</div>';
+      }).join('');
+    })
+    .catch(showError);
+
+  // Rovnaký slugify ako netlify/lib/clanok-render.js — musí dávať IDENTICKÚ
+  // adresu, inak odkaz z tejto stránky mieri na 404.
+  function slugify(s) {
+    return String(s || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 70) || 'clanok';
+  }
+</script>
+
+</body>
+</html>

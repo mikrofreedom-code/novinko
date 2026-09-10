@@ -36,12 +36,12 @@
   </label>
 
   <label>Text článku
-    <textarea name="text" required></textarea>
+    <textarea name="text" id="textField" required></textarea>
     <small>Odseky oddeľuj Enterom — stačí raz, prázdny riadok funguje tiež.</small>
   </label>
 
   <label>Kategória
-    <select name="category">
+    <select name="category" id="categorySelect">
       <option value="krypto">Krypto</option>
       <option value="ai">AI</option>
       <option value="slovensko">Slovensko</option>
@@ -49,9 +49,57 @@
       <option value="ekonomika">Ekonomika</option>
       <option value="sport">Šport</option>
       <option value="zahrada">Záhrada</option>
+      <option value="recepty">Recepty</option>
     </select>
     <small>Zoznam musí sedieť s POVOLENE_KATEGORIE v manual-publish.js — čokoľvek mimo neho skončí v Krypte.</small>
   </label>
+
+  <!-- Recept má vlastnú štruktúru (suroviny/postup/časy), nie voľný text —
+       rovnaký formát, aký kódom skladá formatRecept() v redakcia/lib/flow/
+       17-recepty.js (ten generátor je vypnutý, tento formulár je teraz
+       jediná cesta, ako recept pribudne). JS nižšie z týchto polí poskladá
+       presne ten istý text a pošle ho ako obyčajné pole "text" — server sa
+       nemení, recepty.html aj stránka článku ho rozparsujú rovnako, či prišiel
+       odtiaľto alebo od generátora. -->
+  <fieldset id="receptFields" style="display:none; border:1px solid #ddd; border-radius:6px; padding:4px 14px 14px; margin-top:16px;">
+    <legend style="padding:0 6px; font-weight:600; font-size:0.9rem;">Recept</legend>
+
+    <label>Podkategória
+      <select name="receptKategoria">
+        <option value="Hlavné jedlá">Hlavné jedlá</option>
+        <option value="Polievky">Polievky</option>
+        <option value="Dezerty">Dezerty</option>
+        <option value="Bezmäsité a fit">Bezmäsité a fit</option>
+      </select>
+    </label>
+
+    <label>Úvod (2-4 vety pred receptom)
+      <textarea name="receptIntro" style="min-height:70px"></textarea>
+    </label>
+
+    <div style="display:flex; gap:12px;">
+      <label style="flex:1">Príprava (min)
+        <input type="number" name="receptPrep" min="0" placeholder="15">
+      </label>
+      <label style="flex:1">Varenie (min)
+        <input type="number" name="receptCook" min="0" placeholder="25">
+        <small>Nechaj prázdne/0, keď sa nič nevarí ani nepečie.</small>
+      </label>
+      <label style="flex:1">Porcie
+        <input type="number" name="receptServings" min="1" placeholder="4">
+      </label>
+    </div>
+
+    <label>Suroviny
+      <textarea name="receptSuroviny" placeholder="500 g mleté mäso&#10;1 ks cibuľa&#10;podľa chuti soľ, korenie"></textarea>
+      <small>Jedna surovina na riadok, množstvo aj názov spolu (napr. "500 g mleté mäso").</small>
+    </label>
+
+    <label>Postup
+      <textarea name="receptPostup" placeholder="Cibuľu nakrájame nadrobno a orestujeme.&#10;Pridáme mäso a opekáme dozlata."></textarea>
+      <small>Jeden krok na riadok, čísla pred krokmi dopĺňa web sám — nepíš ich.</small>
+    </label>
+  </fieldset>
 
   <label>Zdroj (meno)
     <input type="text" name="source" placeholder="napr. Polícia SR">
@@ -133,6 +181,55 @@ async function zmensiFotku(subor) {
   }
 }
 
+// Prepínanie "Text článku" ↔ štruktúrovaný "Recept" podľa kategórie. Bez
+// tohto by pri recepte ostal prázdny povinný textarea (required) a formulár
+// by sa nedal odoslať, aj keby boli recept-polia vyplnené.
+const categorySelect = document.getElementById('categorySelect');
+const textField = document.getElementById('textField');
+const receptFields = document.getElementById('receptFields');
+function toggleReceptFields() {
+  const jeRecept = categorySelect.value === 'recepty';
+  receptFields.style.display = jeRecept ? 'block' : 'none';
+  textField.closest('label').style.display = jeRecept ? 'none' : 'block';
+  textField.required = !jeRecept;
+}
+categorySelect.addEventListener('change', toggleReceptFields);
+toggleReceptFields();
+
+// Poskladá text articleu z recept-polí presne tak, ako to kódom robí
+// formatRecept() v redakcia/lib/flow/17-recepty.js — rovnaké poradie
+// odsekov (¶¶ delenie rieši až paragraphsToCell() na serveri, tu stačí
+// oddeliť dvojitým Enterom). Vyhodí Error, keď niečo povinné chýba —
+// odchytáva ho volajúci try/catch v submit handleri.
+function poskladajReceptText(data) {
+  const suroviny = String(data.receptSuroviny || '').split('\n').map((s) => s.trim()).filter(Boolean);
+  const postup = String(data.receptPostup || '').split('\n').map((s) => s.trim()).filter(Boolean);
+  const intro = String(data.receptIntro || '').trim();
+  const prep = data.receptPrep !== '' ? Number(data.receptPrep) : NaN;
+  const cook = data.receptCook !== '' ? Number(data.receptCook) : 0;
+  const servings = data.receptServings !== '' ? Number(data.receptServings) : NaN;
+
+  if (!intro) throw new Error('Recept potrebuje úvod.');
+  if (isNaN(prep)) throw new Error('Recept potrebuje čas prípravy (min).');
+  if (isNaN(servings)) throw new Error('Recept potrebuje počet porcií.');
+  if (!suroviny.length) throw new Error('Recept potrebuje aspoň jednu surovinu.');
+  if (!postup.length) throw new Error('Recept potrebuje aspoň jeden krok postupu.');
+
+  let meta = `Príprava: ${prep} min`;
+  if (cook > 0) meta += ` · Varenie: ${cook} min`;
+  meta += ` · Porcie: ${servings}`;
+
+  return [
+    intro,
+    `Kategória: ${data.receptKategoria}`,
+    meta,
+    'Suroviny:',
+    ...suroviny,
+    'Postup:',
+    ...postup.map((s, i) => `${i + 1}. ${s}`),
+  ].join('\n\n');
+}
+
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btn');
@@ -148,6 +245,15 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   status.className = '';
 
   try {
+    if (data.category === 'recepty') {
+      data.text = poskladajReceptText(data);
+    }
+    // Pomocné polia manual-publish.js nepozná — nemá zmysel ich posielať
+    // (a keby náhodou nemal server whitelist tvrdý, len by to bola zbytočná
+    // dátová záťaž navyše).
+    delete data.receptKategoria; delete data.receptIntro; delete data.receptPrep;
+    delete data.receptCook; delete data.receptServings; delete data.receptSuroviny; delete data.receptPostup;
+
     // datetime-local dáva "2026-09-12T18:30" bez časovej zóny — new Date(...)
     // ju vyloží v miestnom čase PREHLIADAČA (tvojom, keď píšeš článok), takže
     // .toISOString() pošle serveru jednoznačný UTC okamih namiesto reťazca,

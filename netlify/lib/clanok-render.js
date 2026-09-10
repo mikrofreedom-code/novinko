@@ -65,11 +65,52 @@ function datumSk(iso) {
   });
 }
 
-// `theme: 'zahrada'` posiela čitateľa naspäť do zahrada.html, nie na hlavnú —
-// súčasť "web vo webe" zámeru (2026-09-06): kto prišiel zo Záhrady, nemá sa
-// pri návrate ocitnúť na bežnej hlavnej stránke.
+// Rozbor tela receptu na intro/meta/suroviny/postup — presne ten istý formát,
+// aký kódom skladá formatRecept() v redakcia/lib/flow/17-recepty.js (¶¶ medzi
+// každým riadkom, nie voľný text od modelu — viď hlavička toho súboru pre
+// dôvod). recepty.html na klientovi parsuje identickú štruktúru rovnakým
+// spôsobom, zámerne — jeden formát, dva miesta čítania.
+function parseRecept(content) {
+  const odseky = String(content ?? "")
+    .split(new RegExp(`\\s*${PARAGRAPH_DELIM}\\s*|\\n\\n`))
+    .map((p) => p.trim()).filter(Boolean);
+  const r = { intro: "", kategoria: "", prep: null, cook: null, servings: null, ingredients: [], steps: [] };
+  let mode = "intro";
+  const metaRe = /^Príprava:\s*(\d+)\s*min(?:\s*·\s*Varenie:\s*(\d+)\s*min)?\s*·\s*Porcie:\s*(\d+)/;
+  for (const p of odseky) {
+    const m = metaRe.exec(p);
+    if (m) { r.prep = Number(m[1]); r.cook = m[2] ? Number(m[2]) : 0; r.servings = Number(m[3]); continue; }
+    if (/^Kategória:/.test(p)) { r.kategoria = p.replace(/^Kategória:\s*/, ""); continue; }
+    if (p === "Suroviny:") { mode = "ingredients"; continue; }
+    if (p === "Postup:") { mode = "steps"; continue; }
+    if (mode === "intro") { r.intro = r.intro ? `${r.intro} ${p}` : p; continue; }
+    if (mode === "ingredients") { r.ingredients.push(p); continue; }
+    if (mode === "steps") { r.steps.push(p.replace(/^\d+\.\s*/, "")); continue; }
+  }
+  return r;
+}
+
+function receptTelo(r) {
+  const badge = [];
+  if (r.prep != null) badge.push(`<span class="recept-meta-item">⏱ Príprava ${r.prep} min</span>`);
+  if (r.cook) badge.push(`<span class="recept-meta-item">🔥 Varenie ${r.cook} min</span>`);
+  if (r.servings != null) badge.push(`<span class="recept-meta-item">🍽 ${r.servings} porcie</span>`);
+  return `${r.intro ? `<p class="recept-intro">${esc(r.intro)}</p>\n  ` : ""}${badge.length ? `<div class="recept-meta">${badge.join("")}</div>\n  ` : ""}<h2 class="recept-h2">Suroviny</h2>
+  <ul class="recept-ingredients">
+    ${r.ingredients.map((i) => `<li>${esc(i)}</li>`).join("\n    ")}
+  </ul>
+  <h2 class="recept-h2">Postup</h2>
+  <ol class="recept-steps">
+    ${r.steps.map((s) => `<li>${esc(s)}</li>`).join("\n    ")}
+  </ol>`;
+}
+
+// `theme: 'zahrada'`/`'recepty'` posiela čitateľa naspäť na vlastnú stránku
+// rubriky, nie na hlavnú — súčasť "web vo webe" zámeru (2026-09-06/10): kto
+// prišiel zo Záhrady/Receptov, nemá sa pri návrate ocitnúť na bežnej hlavnej.
+const THEME_HOME = { zahrada: "/zahrada.html", recepty: "/recepty.html" };
 function hlavicka(theme) {
-  const domov = theme === "zahrada" ? "/zahrada.html" : "/";
+  const domov = THEME_HOME[theme] ?? "/";
   return `<header>
   <div class="header-inner">
     <a href="${domov}" class="back-btn">← Späť</a>
@@ -99,6 +140,35 @@ const ZAHRADA_THEME_CSS = `<style>
   .back-link:hover { color: #fff; }
 </style>`;
 
+// Rovnaký princíp ako ZAHRADA_THEME_CSS — svetlý dizajn namiesto tmavého
+// masthead-u — plus vlastné triedy pre štruktúrovaný recept (suroviny/postup),
+// ktoré generický .article-content odsekový render (odseky()) nevie ukázať
+// prehľadne. Teplá terakotová farba namiesto zelenej Záhrady, nech sú rubriky
+// vizuálne odlíšiteľné na prvý pohľad.
+const RECEPTY_THEME_CSS = `<style>
+  :root {
+    --bg: #ffffff; --surface: #ffffff; --border: #e8ddd3;
+    --accent: #b5502e; --gold: #b5502e; --text: #111111; --text2: #333333; --muted: #7a6e64; --header-bg: #ffffff;
+  }
+  body { font-family: 'Source Sans 3', sans-serif; }
+  header { border-bottom: 1px solid var(--border); }
+  .logo, .article-title { font-family: 'Libre Baskerville', serif; }
+  .logo { color: var(--text); }
+  .back-btn { color: var(--muted); }
+  .logo-tagline { color: var(--muted); }
+  .article-date { background: #f7ede4; }
+  .back-link:hover { color: #fff; }
+  .recept-intro { font-size: 1.05rem; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+  .recept-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .recept-meta-item { font-size: .85rem; font-weight: 600; background: #f7ede4; color: var(--accent); padding: 6px 12px; border-radius: 20px; }
+  .recept-h2 { font-family: 'Libre Baskerville', serif; font-size: 1.25rem; margin: 28px 0 12px; }
+  .recept-ingredients { padding-left: 20px; line-height: 1.9; }
+  .recept-steps { padding-left: 22px; line-height: 1.7; }
+  .recept-steps li { margin-bottom: 12px; }
+</style>`;
+
+const THEME_CSS = { zahrada: ZAHRADA_THEME_CSS, recepty: RECEPTY_THEME_CSS };
+
 function obal({ title, description, canonical, image, date, telo, jsonLd, theme }) {
   const fonts = "family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700";
   return `<!DOCTYPE html>
@@ -121,7 +191,7 @@ function obal({ title, description, canonical, image, date, telo, jsonLd, theme 
 ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date ? `  <meta property="article:published_time" content="${esc(date)}" />\n` : ""}  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?${fonts}&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/clanok.css" />
-${theme === "zahrada" ? `  ${ZAHRADA_THEME_CSS}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
+${THEME_CSS[theme] ? `  ${THEME_CSS[theme]}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
 ${hlavicka(theme)}
 ${telo}
@@ -133,25 +203,33 @@ ${telo}
 
 // article: { id, title, perex, content, source, date, category, imageUrl, imageCredit }
 // dalsie:  pole { title, url } na vnútorné prelinkovanie (crawl cesta pre Google)
+const THEME_LABEL = { zahrada: { home: "/zahrada.html", back: "← Celá rubrika Záhrada", dalsie: "Ďalšie zo Záhrady" },
+                       recepty: { home: "/recepty.html", back: "← Celá rubrika Recepty", dalsie: "Ďalšie recepty" } };
+
 function renderClanok(article, dalsie = []) {
   const { title, perex, content, source, date, category, imageUrl, imageCredit } = article;
-  const theme = category === "zahrada" ? "zahrada" : null;
+  const theme = THEME_CSS[category] ? category : null;
+  const label = THEME_LABEL[theme] ?? { home: "/", back: "← Všetky správy", dalsie: "Ďalšie správy" };
   const sourceParts = String(source || "").split("|");
   const sourceName = (sourceParts[0] || "").trim();
   const sourceLink = (sourceParts[1] || "").trim();
   const popis = (perex || String(content || "").slice(0, 200)).replace(/\s+/g, " ").trim().slice(0, 300);
+  // Recept má vlastnú, štruktúrovanú prezentáciu (suroviny/postup) — generický
+  // odsekový render (odseky()) by ich ukázal ako plochý zoznam jednovetových
+  // odsekov, čitateľné, ale zbytočne horšie než to, na čo dáta stačia.
+  const recept = category === "recepty" ? parseRecept(content) : null;
 
   const telo = `<div class="article-wrap">
   <div class="article-meta">
-    <span class="cat-badge">${esc(category || "správy")}</span>
+    <span class="cat-badge">${esc((recept && recept.kategoria) || category || "správy")}</span>
     <span class="article-source">tím Novinko</span>
     <span class="article-date"><time datetime="${esc(date)}">${esc(datumSk(date))}</time></span>
   </div>
   <h1 class="article-title">${esc(title)}</h1>
   ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">${popisObrazka(imageUrl, imageCredit)}</figure>` : ""}
-  ${perex ? `<div class="article-perex">${esc(perex)}</div>` : ""}
+  ${!recept && perex ? `<div class="article-perex">${esc(perex)}</div>` : ""}
   <div class="article-content">
-        ${odseky(content)}
+        ${recept ? receptTelo(recept) : odseky(content)}
   </div>
   <div class="article-footer">
     <div class="source-link">${
@@ -159,10 +237,10 @@ function renderClanok(article, dalsie = []) {
         ? `Zdroj: <a href="${esc(sourceLink)}" target="_blank" rel="noopener nofollow">${esc(sourceName)}</a>`
         : `Zdroj: ${esc(sourceName || "Novinko")}`
     }</div>
-    <a href="${theme === "zahrada" ? "/zahrada.html" : "/"}" class="back-link">${theme === "zahrada" ? "← Celá rubrika Záhrada" : "← Všetky správy"}</a>
+    <a href="${label.home}" class="back-link">${label.back}</a>
   </div>
 ${dalsie.length ? `  <nav class="dalsie-clanky">
-    <h2>${theme === "zahrada" ? "Ďalšie zo Záhrady" : "Ďalšie správy"}</h2>
+    <h2>${label.dalsie}</h2>
     <ul>
       ${dalsie.map((d) => `<li><a href="${esc(d.url)}">${esc(d.title)}</a></li>`).join("\n      ")}
     </ul>
@@ -176,7 +254,7 @@ ${dalsie.length ? `  <nav class="dalsie-clanky">
     image: imageUrl,
     date,
     telo,
-    jsonLd: newsArticleJsonLd(article, popis),
+    jsonLd: recept ? recipeJsonLd(article, popis, recept) : newsArticleJsonLd(article, popis),
     theme,
   });
 }
@@ -209,6 +287,31 @@ function newsArticleJsonLd(article, popis) {
   if (imageUrl) data.image = [imageUrl];
   // </script> vnútri JSON by predčasne ukončilo blok — jediný reálny únikový
   // vektor pri vkladaní JSON do HTML.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+// Recipe namiesto NewsArticle — recept nie je spravodajstvo, a Google recept
+// bez schema.org Recipe nezaradí do bohatých výsledkov (foto/čas/porcie
+// priamo vo vyhľadávaní). `recept` prichádza z parseRecept() vyššie, nie
+// znova parsuje content — jeden rozbor, dve použitia (HTML aj JSON-LD).
+function recipeJsonLd(article, popis, recept) {
+  const { title, date, imageUrl } = article;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    name: String(title).slice(0, 110),
+    description: popis,
+    datePublished: date,
+    author: { "@type": "Organization", name: "Novinko", url: SITE },
+    inLanguage: "sk-SK",
+    recipeIngredient: recept.ingredients,
+    recipeInstructions: recept.steps.map((s) => ({ "@type": "HowToStep", text: s })),
+  };
+  if (recept.servings != null) data.recipeYield = `${recept.servings} porcie`;
+  if (recept.prep != null) data.prepTime = `PT${recept.prep}M`;
+  if (recept.cook) data.cookTime = `PT${recept.cook}M`;
+  if (recept.prep != null || recept.cook) data.totalTime = `PT${(recept.prep || 0) + (recept.cook || 0)}M`;
+  if (imageUrl) data.image = [imageUrl];
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 

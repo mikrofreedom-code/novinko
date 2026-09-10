@@ -142,6 +142,12 @@ async function buildAll() {
   const horoskop = ownAll.filter((i) => i.category === "horoskop");
   out["horoskop"] = { items: horoskop.slice(0, MAX_ITEMS), count: Math.min(horoskop.length, MAX_ITEMS), fetched: now };
 
+  // Rovnaký evergreen vzor ako Záhrada — recept nevyprší, vlastná stránka
+  // (recepty.html), zámerne NIE je v CAT_ORDER (rovnaký dôvod ako Záhrada:
+  // MAX_AGE_HOURS/rotácia by starší, stále platný recept zhodili dole).
+  const recepty = ownAll.filter((i) => i.category === "recepty");
+  out["recepty"] = { items: recepty.slice(0, MAX_ITEMS), count: Math.min(recepty.length, MAX_ITEMS), fetched: now };
+
   return out;
 }
 

@@ -21,12 +21,13 @@ const COIN_THEMES = [
 const KRYPTO_DEFAULT = 'cryptocurrency and blockchain, digital coins, trading charts';
 const AI_DEFAULT = 'artificial intelligence and machine learning, abstract neural network, futuristic technology, glowing data streams';
 const ZAHRADA_DEFAULT = 'a lush green garden with plants and soil, gardening tools';
-const SECTION_DEFAULT = { krypto: KRYPTO_DEFAULT, ai: AI_DEFAULT, zahrada: ZAHRADA_DEFAULT };
+const RECEPTY_DEFAULT = 'a home-cooked meal freshly plated on a kitchen table, warm natural light';
+const SECTION_DEFAULT = { krypto: KRYPTO_DEFAULT, ai: AI_DEFAULT, zahrada: ZAHRADA_DEFAULT, recepty: RECEPTY_DEFAULT };
 
 // Rovnaká množina ako v 11-image.js — sekcie, ktoré chcú fotorealistický
 // obrázok namiesto symbolickej "digital art" ilustrácie. Zámerne
 // rozšíriteľné pre Dom/Byt, ak pribudnú.
-const PHOTOREALISTIC_SECTIONS = new Set(['zahrada']);
+const PHOTOREALISTIC_SECTIONS = new Set(['zahrada', 'recepty']);
 
 // Vizuálny základ podľa SEKCIE + entity + titulku (FALLBACK bez AI).
 // Spätná kompat: string argument = title (krypto). Objekt = { section, entity, title }.

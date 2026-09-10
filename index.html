@@ -51,6 +51,7 @@
       --cat-ai: #6d28d9;
       --cat-zahrada: #4a6b1f;
       --cat-horoskop: #6b3fa0;
+      --cat-recepty: #b5502e;
       --hairline: var(--text);
     }
 
@@ -74,6 +75,7 @@
       --cat-ai: #a78bfa;
       --cat-zahrada: #a3c85c;
       --cat-horoskop: #b98aff;
+      --cat-recepty: #e2916a;
       --hairline: #3a3a42;
     }
 
@@ -153,6 +155,7 @@
     .label-ai { color: var(--cat-ai); }
     .label-zahrada { color: var(--cat-zahrada); }
     .label-horoskop { color: var(--cat-horoskop); }
+    .label-recepty { color: var(--cat-recepty); }
 
     /* ─── HERO / LEAD ─── */
     .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 8px; }
@@ -248,6 +251,28 @@
     .horoskop-teaser-title { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 1.05rem; color: var(--text); line-height: 1.3; }
     .horoskop-teaser-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .horoskop-teaser-cta { font-size: 0.78rem; color: var(--cat-horoskop); margin-top: 2px; }
+
+    /* ─── RECEPTY (evergreen blok, rovnaký vzor ako Záhrada — vlastná stránka
+       recepty.html) ─── */
+    /* Zámerne BEZ časového štítku (⏱ Xmin) na tomto teaseri, hoci ho
+       recepty.html má — fetch-rss dáva len perex, nie plné telo, z ktorého
+       sa čas parsuje (viď parseRecept() v recepty.html). Ťahať kvôli tomu
+       na hlavnej navyše celý CSV hárok (ako to robí recepty.html/horoskop.html)
+       by spomalilo načítanie domovskej stránky pre 4 karty, ktoré aj tak
+       vedú na plnú rubriku. */
+    .recepty-section { margin: 34px 0 8px; }
+    .recepty-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .recepty-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.15s; }
+    .recepty-card:hover { border-color: var(--cat-recepty); }
+    .recepty-card.lead { grid-column: span 2; }
+    .recepty-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .recepty-card.lead .recepty-card-img { aspect-ratio: 16/7.2; }
+    .recepty-card-body { padding: 14px 16px; }
+    .recepty-card-title { font-family: 'Libre Baskerville', serif; font-weight: 700; color: var(--text); line-height: 1.3; margin: 6px 0; }
+    .recepty-card:not(.lead) .recepty-card-title { font-size: 1rem; }
+    .recepty-card.lead .recepty-card-title { font-size: 1.3rem; }
+    .recepty-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    @media (max-width: 480px) { .recepty-card.lead { grid-column: span 1; } }
 
     /* ─── CHART SECTION (len v sekcii Krypto) ─── */
     .market-section { margin-bottom: 36px; }
@@ -444,6 +469,7 @@
           <button class="filter-btn mobile-only more-ai" data-cat="ai">AI</button>
           <button class="filter-btn" data-cat="sport">Šport</button>
           <a href="/zahrada.html" class="filter-btn">Záhrada</a>
+          <a href="/recepty.html" class="filter-btn">Recepty</a>
           <a href="/horoskop.html" class="filter-btn">Horoskopy</a>
         </div>
       </details>
@@ -607,6 +633,7 @@
     <!-- KRYPTO ŠKOLA (edu blok, len domov) -->
     <div class="skola-section" id="skolaSection"></div>
     <div class="zahrada-section" id="zahradaSection"></div>
+    <div class="recepty-section" id="receptySection"></div>
     <div class="horoskop-section" id="horoskopSection"></div>
   </main>
 
@@ -710,8 +737,12 @@
   // Rovnaký "ochutnávka na hlavnej, vlastná stránka inde" vzor ako ZAHRADA —
   // rozdiel: horoskop je 1 položka/deň, teaser preto nie je mriežka kariet.
   const HOROSKOP = { id: 'horoskop', label: 'Horoskopy' };
+  // Rovnaký vzor ako ZAHRADA (mriežka kariet, nie teaser jednej položky —
+  // recepty pribúdajú priebežne, nie 1/deň ako horoskop). Vlastná stránka
+  // je recepty.html.
+  const RECEPTY = { id: 'recepty', label: 'Recepty' };
   const LEAD_SECTIONS = ['krypto', 'ai', 'slovensko'];  // z čoho sa vyberá hlavná správa (majú/budú mať obrázky)
-  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola', zahrada: 'Záhrada', horoskop: 'Horoskopy' };
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola', zahrada: 'Záhrada', horoskop: 'Horoskopy', recepty: 'Recepty' };
 
   let DATA = {};          // { cat: items[] }
   let currentView = 'all';
@@ -772,7 +803,7 @@
     finally { clearTimeout(t); }
   }
   async function loadAll() {
-    const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id, HOROSKOP.id];
+    const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id, RECEPTY.id, HOROSKOP.id];
     const res = await Promise.all(ids.map(fetchCat));
     // Backend skladá "slovensko" (a ostatné čisto RSS sekcie) round-robinom
     // naprieč zdrojmi kvôli rozmanitosti, nie podľa času — vlastný obsah
@@ -931,6 +962,24 @@
     el.innerHTML = `<div class="section-head"><span class="section-head-title">Sezóna v záhrade</span><span class="section-head-count">rady podľa ročného obdobia</span></div>
       <div class="zahrada-grid">${card(f, ' lead')}${rest.map(i => card(i, '')).join('')}</div>
       <a href="/zahrada.html" class="mag-more" style="display:inline-block;margin-top:10px;">Celá rubrika Záhrada →</a>`;
+  }
+
+  // Rovnaký vzor ako renderZahrada() vyššie — mriežka kariet, najnovší
+  // recept ako lead. Bez časového štítku (⏱ Xmin), ktorý má recepty.html —
+  // fetch-rss dáva len perex, nie plné telo (viď komentár pri CSS vyššie).
+  function renderRecepty() {
+    const el = document.getElementById('receptySection');
+    const items = (DATA[RECEPTY.id] || []).slice(0, 4);
+    if (!items.length) { el.innerHTML = ''; return; }
+    const [f, ...rest] = items;
+    const card = (i, cls) => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="recepty-card${cls}">
+        ${ownImg(i, 'recepty-card-img')}
+        <div class="recepty-card-body"><span class="story-label label-recepty">Recepty</span>
+        <div class="recepty-card-title">${esc(i.title)}</div>${i.description ? `<div class="recepty-card-perex">${esc(i.description)}</div>` : ''}</div>
+      </a>`;
+    el.innerHTML = `<div class="section-head"><span class="section-head-title">Recepty</span><span class="section-head-count">hlavné jedlá, polievky, dezerty a fit</span></div>
+      <div class="recepty-grid">${card(f, ' lead')}${rest.map(i => card(i, '')).join('')}</div>
+      <a href="/recepty.html" class="mag-more" style="display:inline-block;margin-top:10px;">Celá rubrika Recepty →</a>`;
   }
 
   // 1 položka/deň → jedna teaser karta (nie mriežka ako Záhrada). Odkazuje
@@ -1146,6 +1195,7 @@
     renderMagSections(used);
     renderSkola();
     renderZahrada();
+    renderRecepty();
     renderHoroskop();
     renderTrending(recentDistinct(allItems(), 6));
   }
@@ -1157,6 +1207,7 @@
     document.getElementById('magSections').innerHTML = '';
     document.getElementById('skolaSection').innerHTML = '';
     document.getElementById('zahradaSection').innerHTML = '';
+    document.getElementById('receptySection').innerHTML = '';
     document.getElementById('horoskopSection').innerHTML = '';
     document.getElementById('sectionList').innerHTML = sectionListHTML(items.slice(4), 'Ďalšie · ' + (CAT_LABELS[cat] || cat));
     toggleCryptoWidgets(cat === 'krypto');

@@ -224,6 +224,15 @@ export const SECTIONS = {
     // ktorý Záhrada nikdy neprejde (vlastný generátor píše rovno). true je
     // tu len pre čitateľnosť, nech register netvrdí niečo, čo nie je pravda.
   },
+  recepty: {
+    id: 'recepty',
+    category: 'recepty',
+    // Rovnaký dôvod ako pri zahrada vyššie — vlastný spúšťač (17-recepty.js),
+    // nie feed, bez eventBase/keywordRe. Zápis tu je LEN kvôli categoryFor()
+    // (12-publisher) a modelsFor() (ai-gateway), aby section('recepty')
+    // nespadla ticho na DEFAULT_SECTION (krypto).
+    live: true,
+  },
 };
 
 export const DEFAULT_SECTION = 'krypto';

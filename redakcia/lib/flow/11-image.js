@@ -42,7 +42,7 @@ Style: clean, modern, editorial.`;
 // stále beží PRED týmto krokom a vyradí témy, kde treba rozpoznať konkrétneho
 // škodcu/chorobu. Sem sa dostanú len bezpečné, všeobecné témy — fotorealizmus
 // tam riziko nezvyšuje.
-const PHOTOREALISTIC_SECTIONS = new Set(['zahrada']);
+const PHOTOREALISTIC_SECTIONS = new Set(['zahrada', 'recepty']);
 
 // Sprísnené 6. 9. na žiadosť používateľa: "musia viac sedieť s témou, akoby
 // som to fotil ja a písal som ja o tom" — dva samostatné problémy s prvou

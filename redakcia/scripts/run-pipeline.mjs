@@ -23,6 +23,7 @@ import * as legal from '../lib/flow/09-legal.js';
 import * as marketRecap from '../lib/flow/13-market-recap.js';
 import * as zahrada from '../lib/flow/15-zahrada.js';
 import * as horoskop from '../lib/flow/16-horoskop.js';
+import * as recepty from '../lib/flow/17-recepty.js';
 import * as image from '../lib/flow/11-image.js';
 import * as publisher from '../lib/flow/12-publisher.js';
 
@@ -97,6 +98,15 @@ async function main() {
   log('15-zahrada — sezónny generátor (raz denne) → proofed');
   try { console.log('  ', await zahrada.run()); }
   catch (e) { console.log('   ⚠️ záhrada preskočená:', e.message); }
+
+  // 17-recepty VYPNUTÉ (2026-09-10, na žiadosť používateľa): recepty pridáva
+  // ručne cez publikovat.html, nie AI z plánu tém. Generátor aj plán tém
+  // (content/recepty/plan.md) ostávajú v repozitári nedotknuté, len bez
+  // volania tu — rovnaký vzor ako generate-svet.js/generate-sport.js
+  // v netlify.toml (súbor existuje, len sa sám nespustí). Zapnutie = odkomentovať.
+  // log('17-recepty — sezónny/evergreen generátor (raz denne) → proofed');
+  // try { console.log('  ', await recepty.run()); }
+  // catch (e) { console.log('   ⚠️ recepty preskočené:', e.message); }
 
   // Korektúra a právna kontrola bežia AŽ TU, teda aj na denný recap vyššie —
   // práve v ňom sa 30.7. objavila vymyslená príčinná súvislosť.

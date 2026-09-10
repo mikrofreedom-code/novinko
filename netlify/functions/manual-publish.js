@@ -15,7 +15,8 @@ const { generateImage, uploadUserImage } = require("../lib/images");
 // zmysel tu byť (na rozdiel od krypto-skoly) — BIBLIA-ZAHRADA.md kapitola 8:
 // keď článok stojí na tom, že čitateľ niečo rozpozná (škodca, odroda), AI
 // obrázok tam nepatrí a ide sa cez vlastnú fotku práve týmto formulárom.
-const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "sport", "zahrada"];
+// 'recepty' rovnako — vlastný recept s reálnou fotkou jedla.
+const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "sport", "zahrada", "recepty"];
 
 const MAX_FOTO_MB = 4;
 const POVOLENE_TYPY = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];

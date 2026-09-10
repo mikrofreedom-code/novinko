@@ -154,6 +154,97 @@ const ZAHRADA_CHECKS = [
 ];
 
 // ============================================================
+// RECEPTY — vlastný profil kontrol (od 2026-09-10)
+// ------------------------------------------------------------
+// PREČO VLASTNÝ PROFIL: rovnaký princíp ako Záhrada — riziko nie je zlá
+// atribúcia (ADVICE_RE/CONSUMER_ADVICE_RE sem nepatria), je ŠKODLIVÁ RADA.
+// Pri jedle konkrétne: potravinová bezpečnosť (nedopečené mäso/vajcia),
+// alkohol, huby (zámena druhu), domáce zaváranie/kvasenie (botulizmus) a
+// zdravotné tvrdenia o jedle. Viď content/recepty/plan.md, sekcia "Pravidlá
+// pre osnovy" — rovnaké zákazy, tu ich strojová poistka.
+//
+// Rovnaká filozofia ako Záhrada/Horoskop: falošný pozitív (recept ide na
+// 'rejected', hoci bol v poriadku) je zotaviteľná chyba — človek v Telegrame
+// ho aj tak nikdy neuvidí. Falošný negatív (skutočne nebezpečná rada prejde)
+// nie je. Kontroly preto zámerne CHYTAJÚ ŠIRŠIE, než je nutné.
+//
+// Huby a zdravotné tvrdenia zdieľajú regex priamo so ZÁHRADOU — je to ten istý
+// vecný problém (zámena druhu / jedlo-ako-liek), nie duplicita na opravu.
+// POZOR na \w: v JS je definované cez ASCII, nezahŕňa diakritiku. Pre pádové
+// koncovky priamo za kmeňom (surov+É, zavár+ANIE...) treba [\p{L}]* — inak
+// stem+\s+ zlyhá presne tak, ako by zlyhalo \b (rovnaká trieda chýb ako
+// KRYPTO_RE, zdokumentovaná v koreňovom CLAUDE.md). Overené naživo pred
+// zavedením: „surov\w*\s+vajc\w*" nechytilo „surové vajcia", lebo \w* za
+// „surov" nevie prekročiť „é" a nasledujúca medzera už nesedí.
+const RECEPTY_ALKOHOL_RE = /(?<![\p{L}])(alkohol[\p{L}]*|rum(?![\p{L}])|rumu(?![\p{L}])|rumom(?![\p{L}])|vín[\p{L}]*|pivo(?![\p{L}])|piva(?![\p{L}])|pivom(?![\p{L}])|likér[\p{L}]*|whisky|vodk[\p{L}]*|koňak[\p{L}]*|brandy|tequil[\p{L}]*|sekt(?![\p{L}])|sektu(?![\p{L}])|šampanské|prosecco)/iu;
+const RECEPTY_SUROVE_RE = /(?<![\p{L}])(tat[áa]r[\p{L}]*|carpaccio|surov[\p{L}]*\s+vajc[\p{L}]*|surov[\p{L}]*\s+mäs[\p{L}]*|surov[\p{L}]*\s+kuracie[\p{L}]*|surov[\p{L}]*\s+kurča[\p{L}]*|dom[áa]c[\p{L}]*\s+majonéz[\p{L}]*|sushi|sashimi|studeno\s+uden[\p{L}]*)/iu;
+const RECEPTY_ZAVARANIE_RE = /(?<![\p{L}])(zavár[\p{L}]*|nakladan[\p{L}]*\s+na\s+zim[\p{L}]*|kv[áa]s[\p{L}]*|ferment[\p{L}]*|steriliz[\p{L}]*)/iu;
+const RECEPTY_DOJCATA_RE = /(?<![\p{L}])(dojčat[\p{L}]*|batoľ[\p{L}]*|bábätk[\p{L}]*|detsk[áeý][\p{L}]*\s+výživ[\p{L}]*|prv[éý][\p{L}]*\s+príkrm[\p{L}]*)/iu;
+
+const RECEPTY_CHECKS = [
+  {
+    id: 'zdroje',
+    run: ({ article }) => (article.sources ?? []).length === 0 ? 'článok nemá ani jeden zdroj' : null,
+  },
+  {
+    id: 'alkohol',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(RECEPTY_ALKOHOL_RE);
+      return hit ? `alkohol ako surovina: „${hit[0]}" — V1 rubriky Recepty je bez alkoholu` : null;
+    },
+  },
+  {
+    id: 'surové-jedlo',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(RECEPTY_SUROVE_RE);
+      return hit ? `surové/nedopečené jedlo: „${hit[0]}" — riziko salmonely/E. coli, mimo rozsahu rubriky` : null;
+    },
+  },
+  {
+    id: 'huby',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_HUBY_RE);
+      return hit ? `zmienka o hubách: „${hit[0]}" — huby sa v tejto rubrike nespracúvajú vôbec` : null;
+    },
+  },
+  {
+    id: 'zaváranie-kvasenie',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(RECEPTY_ZAVARANIE_RE);
+      return hit ? `domáce zaváranie/kvasenie: „${hit[0]}" — riziko botulizmu, mimo rozsahu rubriky` : null;
+    },
+  },
+  {
+    id: 'dojčenská-výživa',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(RECEPTY_DOJCATA_RE);
+      return hit ? `zmienka o dojčenskej/detskej výžive: „${hit[0]}" — iné bezpečnostné hranice, mimo rozsahu rubriky` : null;
+    },
+  },
+  {
+    id: 'zdravotné-tvrdenia',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_ZDRAVIE_RE);
+      return hit ? `zdravotné tvrdenie o jedle: „${hit[0]}" — jedlo je jedlo, nie liek` : null;
+    },
+  },
+  {
+    id: 'kúpna-výzva',
+    run: ({ article }) => {
+      const body = `${article.headline} ${article.perex ?? ''} ${article.body}`;
+      const hit = body.match(ZAHRADA_KUP_RE);
+      return hit ? `výzva na kúpu: „${hit[0].trim()}"` : null;
+    },
+  },
+];
+
+// ============================================================
 // HOROSKOP — vlastný profil kontrol (od 2026-09-06)
 // ------------------------------------------------------------
 // PREČO VLASTNÝ PROFIL: rovnaký princíp ako pri Záhrade — CHECKS nižšie sú
@@ -305,6 +396,7 @@ function checksFor(article, facts) {
   const section = article?.section ?? facts?.section;
   if (section === 'zahrada') return ZAHRADA_CHECKS;
   if (section === 'horoskop') return HOROSKOP_CHECKS;
+  if (section === 'recepty') return RECEPTY_CHECKS;
   return CHECKS;
 }
 
