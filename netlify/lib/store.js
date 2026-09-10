@@ -95,7 +95,29 @@ async function clearFailures(key) {
   try { await s.delete(rlKey(key)); } catch { /* ignoruj */ }
 }
 
+// --- Fronta naplánovaných článkov (publikovat.html "Naplánovať zverejnenie") ---
+// Hárok nemá koncept budúceho dátumu — čokoľvek doň zapíšeš, je na webe
+// okamžite (žiadne zo 7 miest, ktoré hárok čítajú, nefiltruje podľa dátumu).
+// Naplánovaný článok preto NEJDE do hárku hneď — čaká tu ako hotový riadok
+// (manual-publish.js ho zostaví celý vrátane obrázka) a publish-scheduled.js
+// ho každých 5 minút vyzdvihne, keď príde jeho čas. Jeden kľúč, celý zoznam —
+// objem je rádovo jednotky/desiatky položiek, netreba per-položkové kľúče.
+const SCHEDULED_KEY = "scheduled-articles";
+
+async function loadScheduled() {
+  const s = store();
+  if (!s) return [];
+  try { return (await s.get(SCHEDULED_KEY, { type: "json" })) || []; } catch { return []; }
+}
+
+async function saveScheduled(list) {
+  const s = store();
+  if (!s) throw new Error("Netlify Blobs nie sú dostupné");
+  await s.setJSON(SCHEDULED_KEY, list);
+}
+
 module.exports = {
   connect, saveNews, loadNews, acquireLock, releaseLock,
   recentFailures, recordFailure, clearFailures, RL_MAX_FAILURES,
+  loadScheduled, saveScheduled,
 };

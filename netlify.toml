@@ -97,6 +97,13 @@
 [functions."refresh-feeds"]
   schedule = "*/10 * * * *"
 
+# Zverejní naplánované články z publikovat.html (pole "Naplánovať zverejnenie"),
+# ktorých čas už prišiel — viď manual-publish.js a lib/store.js (SCHEDULED_KEY).
+# 5-minútový krok = presnosť naplánovaného času je ±5 min, nie na sekundu.
+# BEZ tohto pravidla naplánovaný článok NIKDY nezíde z Blobs frontu do hárku.
+[functions."publish-scheduled"]
+  schedule = "*/5 * * * *"
+
 # Generátory vlastných SK článkov – ČASOVO ROZLOŽENÉ, aby nešli naraz
 # (predtým o polnoci bežali všetky súčasne a vznikali kolízie ID + duplicity).
 #

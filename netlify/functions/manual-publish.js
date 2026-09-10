@@ -20,7 +20,16 @@ const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "s
 const MAX_FOTO_MB = 4;
 const POVOLENE_TYPY = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 const { safeEqual } = require("../lib/guard");
-const { connect, recentFailures, recordFailure, clearFailures, RL_MAX_FAILURES } = require("../lib/store");
+const {
+  connect, recentFailures, recordFailure, clearFailures, RL_MAX_FAILURES,
+  loadScheduled, saveScheduled,
+} = require("../lib/store");
+
+// Kým čas nepríde aspoň o toľko dopredu, publikuj hneď namiesto naplánovania —
+// naplánovanie závisí od cronu s 5-minútovým krokom (netlify.toml), takže
+// "o 30 sekúnd" by tak či tak čakalo na najbližší beh. Radšej okamžitá cesta,
+// ktorá nezávisí od cronu vôbec.
+const MIN_SCHEDULE_AHEAD_MS = 2 * 60 * 1000;
 
 const SECRET = process.env.MANUAL_PUBLISH_SECRET;
 
@@ -58,9 +67,21 @@ exports.handler = async (event) => {
   await clearFailures(ip);
 
   const { headline, perex, text, source, sourceUrl, category, imageUrl, generateAiImage, imagePrompt,
-          imageBase64, imageType, imageCredit } = body;
+          imageBase64, imageType, imageCredit, publishAt } = body;
   if (!headline || !text) {
     return { statusCode: 400, body: JSON.stringify({ error: "chýba titulok alebo text článku" }) };
+  }
+
+  // Naplánovanie: formulár posiela už hotový ISO string (new Date(...).toISOString()
+  // v prehliadači, viď publikovat.html) — tu len over, že je to platný dátum
+  // dosť ďaleko v budúcnosti, inak sa to spracuje ako okamžité publikovanie.
+  let scheduledIso = null;
+  if (publishAt) {
+    const t = Date.parse(publishAt);
+    if (isNaN(t)) {
+      return { statusCode: 400, body: JSON.stringify({ error: "neplatný dátum naplánovania" }) };
+    }
+    if (t > Date.now() + MIN_SCHEDULE_AHEAD_MS) scheduledIso = new Date(t).toISOString();
   }
 
   const article = {
@@ -115,7 +136,29 @@ exports.handler = async (event) => {
   }
 
   try {
-    const row = articleToRow(article, article.category);
+    const row = articleToRow(article, article.category, scheduledIso);
+
+    if (scheduledIso) {
+      // NEZAPISUJ do hárku teraz — hárok je zdroj pravdy a číta ho 7 rôznych
+      // miest webu bez akéhokoľvek filtra na budúci dátum (žiadne "draft").
+      // Hotový riadok čaká v Blobs, publish-scheduled.js (cron */5 min) ho
+      // zapíše, keď príde čas — viď komentár pri SCHEDULED_KEY v store.js.
+      const list = await loadScheduled();
+      list.push({
+        row,
+        publishAt: scheduledIso,
+        headline: article.headline,
+        perex: article.perex,
+        imageUrl: article.image_url || "",
+        queuedAt: new Date().toISOString(),
+      });
+      await saveScheduled(list);
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ ok: true, scheduled: true, publishAt: scheduledIso, id: row[0] }),
+      };
+    }
+
     await appendRow(process.env.GOOGLE_SHEETS_ID, row, process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
     const tg = await sendArticle({ title: article.headline, perex: article.perex, imageUrl: article.image_url, sheetId: row[0] });
     return {

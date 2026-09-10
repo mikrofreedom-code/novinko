@@ -86,6 +86,11 @@
     <small>Nechaj prázdne a zaškrtni políčko vyššie, ak chceš automatický prompt podľa titulku/kategórie. Vyplň toto pole, ak chceš vlastnú predstavu — netreba potom zaškrtávať checkbox.</small>
   </label>
 
+  <label>Naplánovať zverejnenie (voliteľné)
+    <input type="datetime-local" name="publishAt" id="publishAt">
+    <small>Nechaj prázdne pre okamžité publikovanie. Naplánovaný čas je orientačný — kontroluje sa každých 5 minút, nie na sekundu presne. Zadávaj vo svojom miestnom (bratislavskom) čase.</small>
+  </label>
+
   <button type="submit" id="btn">Publikovať</button>
 </form>
 
@@ -143,6 +148,18 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   status.className = '';
 
   try {
+    // datetime-local dáva "2026-09-12T18:30" bez časovej zóny — new Date(...)
+    // ju vyloží v miestnom čase PREHLIADAČA (tvojom, keď píšeš článok), takže
+    // .toISOString() pošle serveru jednoznačný UTC okamih namiesto reťazca,
+    // ktorý by si server musel sám hádať, v akej zóne bol napísaný.
+    if (data.publishAt) {
+      const d = new Date(data.publishAt);
+      if (isNaN(d)) throw new Error('Neplatný dátum naplánovania.');
+      data.publishAt = d.toISOString();
+    } else {
+      delete data.publishAt;
+    }
+
     // Fotku najprv zmenšíme (viď zmensiFotku hore), až potom ju pošleme ako
     // base64 v JSON tele. Netlify má strop ~6 MB na telo a base64 nafúkne dáta
     // o ~37 %, preto 4 MB. Po zmenšení sa ten strop prakticky nedá dosiahnuť,
@@ -176,7 +193,12 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     const j = await res.json();
     if (res.ok && j.ok) {
       status.className = 'ok';
-      status.textContent = '✅ Publikované (id: ' + j.id + '). Telegram: ' + j.telegram;
+      if (j.scheduled) {
+        const cas = new Date(j.publishAt).toLocaleString('sk-SK', { dateStyle: 'medium', timeStyle: 'short' });
+        status.textContent = '🕒 Naplánované na ' + cas + ' (id: ' + j.id + '). Zverejní sa automaticky, keď príde čas (kontrola každých 5 minút).';
+      } else {
+        status.textContent = '✅ Publikované (id: ' + j.id + '). Telegram: ' + j.telegram;
+      }
       e.target.reset();
     } else {
       status.className = 'err';

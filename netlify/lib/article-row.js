@@ -29,7 +29,12 @@ function paragraphsToCell(body) {
 let _counter = 0;
 function uniqueId() { _counter += 1; return `${Date.now()}${String(_counter).padStart(2, "0")}`; }
 
-function articleToRow(article, category) {
+// publishAt (voliteľné): ISO dátum pre stĺpec F namiesto "teraz". Používa
+// manual-publish.js pri naplánovanom článku — riadok sa zostaví celý hneď pri
+// odoslaní formulára, ale F má niesť ČAS ZVEREJNENIA (kedy sa má tváriť ako
+// nový), nie čas, keď bol napísaný. Inak by pri skutočnom zápise o pár hodín/
+// dní neskôr vyzeral hneď ako starý článok (vek sa počíta z F).
+function articleToRow(article, category, publishAt) {
   const first = (article.sources || [])[0] || {};
   return [
     uniqueId(),
@@ -37,7 +42,7 @@ function articleToRow(article, category) {
     article.perex || "",
     paragraphsToCell(article.body),
     `${first.name || "—"} | ${first.url || ""}`,
-    new Date().toISOString(),
+    publishAt ? new Date(publishAt).toISOString() : new Date().toISOString(),
     article.category || category || "krypto",
     article.image_url || "",
     article.image_credit || "",   // I: zdroj obrázka (len pri vlastnej fotke)
