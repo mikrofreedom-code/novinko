@@ -142,6 +142,19 @@
       return ['http:', 'https:'].includes(u.protocol) ? esc(u.href) : '';
     } catch { return ''; }
   }
+  // Rovnaká funkcia ako slugify() v netlify/lib/clanok-render.js — musí dať
+  // identický slug, inak odkaz mieri na iný riadok, než aký si web sám
+  // zostaví. /clanok.html?id=... (predtým tu) skladá obsah až JavaScript bez
+  // og: značiek — Facebook/X pri zdieľaní takého odkazu nezobrazí ani
+  // titulok, ani obrázok (nájdené a opravené 12. 9.).
+  function slugify(s) {
+    return String(s ?? '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 70) || 'clanok';
+  }
 
   function parseCSVLine(line) {
     const cols = []; let cur = "", inQuotes = false;
@@ -185,7 +198,7 @@
     shown = next.length;
     let html = '<div class="arch-list">';
     html += next.map(a => `
-      <a href="/clanok.html?id=${encodeURIComponent(a.id)}" class="arch-item">
+      <a href="/clanok/${slugify(a.title)}-${encodeURIComponent(a.id)}" class="arch-item">
         ${a.image ? `<img src="${safeLink(a.image)}" alt="" class="arch-img" loading="lazy">` : ''}
         <span class="arch-cat label-${esc(a.category)}">${esc(CAT_LABELS[a.category] || a.category)}</span>
         <span class="arch-body">
