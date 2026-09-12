@@ -75,18 +75,33 @@ function roundRobin(lists) {
   return out;
 }
 
-// Poradie: čerstvé vlastné → RSS → (len ak by sekcia bola tenká) staršie vlastné.
+// RSS agregácia (cudzie médiá) beží od 12. 9. LEN pre Slovensko a Šport —
+// jediné dve kategórie bez vlastného AI-písaného obsahu (žiadny generátor
+// pre ne v redakcii neexistuje, sú a ostávajú čisto agregačné). Ostatné
+// (krypto/ai/svet/ekonomika) majú od tohto dátumu ukazovať VÝHRADNE vlastnú
+// produkciu — na žiadosť používateľa, cudzie médiá tam už nechce.
+//
+// ZATIAĽ, ľahko vratné: zmaž 'sport' z množiny a/alebo celý tento riadok,
+// aby sa RSS vrátilo aj ostatným — merge bod je tu jediný, fetch (gatherRss
+// nižšie) sa nemení, takže návrat späť je jedna riadková úprava.
+const RSS_KATEGORIE = new Set(["slovensko", "sport"]);
+
+// Poradie: čerstvé vlastné → RSS (len povolené kategórie) → (len ak by sekcia
+// bola tenká) staršie vlastné.
 //
 // Staršie vlastné idú AŽ NA KONIEC a len keď ich treba. Keby sa dopĺňali vždy a
-// navrch, tak v športe/svete/ekonomike by nad dnešným RSS visel vlastný článok
-// starý aj 100+ h — overené pri teste 2026-08-10. Sekcie so slovenskými feedmi
-// sa naplnia samy, takže sa ich poistka vôbec nedotkne; zachraňuje krypto a ai.
+// navrch, tak v športe by nad dnešným RSS visel vlastný článok starý aj 100+ h
+// — overené pri teste 2026-08-10. Slovensko a Šport sa naplnia RSS samy, takže
+// sa ich poistka vôbec nedotkne; zachraňuje krypto/ai/svet/ekonomiku, ktoré
+// teraz stoja výhradne na vlastnej produkcii.
 //
 // Súčasní volajúci sem "all" neposielajú (buildPayload aj buildAll idú po
 // kategóriách cez CAT_ORDER), takže hranica vychádza vždy per sekcia.
 function combineCategory(rss, own, category) {
   const o = category === "all" ? own : own.filter((i) => i.category === category);
-  const r = category === "all" ? rss : rss.filter((i) => i.category === category);
+  const r = category === "all"
+    ? rss.filter((i) => RSS_KATEGORIE.has(i.category))
+    : RSS_KATEGORIE.has(category) ? rss.filter((i) => i.category === category) : [];
   const { fresh, stale } = splitByAge(o);
   const base = [...fresh, ...r];
   if (base.length >= MIN_SECTION_ITEMS) return base;

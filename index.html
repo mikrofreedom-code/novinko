@@ -630,9 +630,11 @@
       </div>
     </div>
 
-    <!-- KRYPTO ŠKOLA (edu blok, len domov) -->
-    <div class="skola-section" id="skolaSection"></div>
+    <!-- Poradie divov = vizuálne poradie (každý render*() cieli na vlastný pevný
+         div, poradie volania funkcií v JS naň nemá vplyv) — 7. Záhrada, 8. Krypto
+         škola, zmenené 12. 9. na žiadosť používateľa. -->
     <div class="zahrada-section" id="zahradaSection"></div>
+    <div class="skola-section" id="skolaSection"></div>
     <div class="recepty-section" id="receptySection"></div>
     <div class="horoskop-section" id="horoskopSection"></div>
   </main>
@@ -720,12 +722,14 @@
 <script>
   // ─── KONFIGURÁCIA SEKCIÍ (render engine sa riadi TÝMTO) ───
   // Pridať sekciu = pridať riadok. Povýšiť (napr. Slovensko) = zmeniť tier.
+  // Poradie = poradie kariet na hlavnej stránke po hlavnej správe (zmenené 12. 9.
+  // na žiadosť používateľa: krypto, slovensko, ai, svet, ekonomika, šport).
   const DOMOV = [
-    { id: 'svet',      label: 'Svet',      tier: 1 },
-    { id: 'slovensko', label: 'Slovensko', tier: 1 },
     { id: 'krypto',    label: 'Krypto',    tier: 1 },
-    { id: 'ekonomika', label: 'Ekonomika', tier: 1 },
+    { id: 'slovensko', label: 'Slovensko', tier: 1 },
     { id: 'ai',        label: 'AI',        tier: 1 },
+    { id: 'svet',      label: 'Svet',      tier: 1 },
+    { id: 'ekonomika', label: 'Ekonomika', tier: 1 },
     { id: 'sport',     label: 'Šport',     tier: 2 },   // jediný menší blok, drží stránku konečnú
   ];
   const EDU = { id: 'krypto-skola', label: 'Krypto škola' };
