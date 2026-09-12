@@ -222,8 +222,22 @@
       '</div>';
   }
 
+  // Rovnaká funkcia ako slugify() v netlify/lib/clanok-render.js — musí dať
+  // identický slug, inak by odkaz mieril na iný riadok, než aký si web sám
+  // zostaví. /clanok.html?id=... (predtým tu) skladá obsah až JavaScript
+  // bez akýchkoľvek og: značiek — Facebook/X pri zdieľaní takého odkazu
+  // nezobrazí ani titulok, ani obrázok (nájdené a opravené 12. 9.).
+  function slugify(s) {
+    return String(s || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 70) || 'clanok';
+  }
+
   function archiveItem(a) {
-    return '<a href="/clanok.html?id=' + encodeURIComponent(a.id) + '" class="arch-item">' +
+    return '<a href="/clanok/' + slugify(a.title) + '-' + encodeURIComponent(a.id) + '" class="arch-item">' +
       '<span class="arch-title">' + esc(a.title) + '</span>' +
       '<span class="arch-date">' + esc(dateStr(a.date)) + '</span>' +
       '</a>';

@@ -105,6 +105,28 @@ header {
   margin-bottom: 20px;
 }
 
+/* ZDIEĽANIE — pod telom článku, nad zdrojom/späť. Ikony sú odkazy priamo na
+   share-URL jednotlivých sietí (žiadny JS, žiadny SDK, žiadny nový CSP
+   povoľovník) okrem "kopírovať odkaz", ktoré potrebuje /share.js (viď
+   build-site.sh prečo externý súbor, nie inline). */
+.share-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 32px 0; padding-top: 24px; border-top: 1px solid var(--border);
+}
+.share-label {
+  font-size: 0.78rem; font-weight: 700; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px;
+}
+.share-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  text-decoration: none; cursor: pointer; transition: all 0.15s;
+}
+.share-btn svg { width: 16px; height: 16px; }
+.share-btn:hover { border-color: var(--accent); color: var(--accent); }
+.share-btn.share-copy-ok { border-color: var(--gold); color: var(--gold); }
+
 .article-footer {
   margin-top: 40px; padding-top: 24px;
   border-top: 1px solid var(--border);

@@ -93,7 +93,10 @@ async function main() {
     article,
   }).catch(() => {});
 
-  console.log(`\n✅ publikované → ${SITE_URL}/clanok.html?id=${row[0]}`);
+  // /clanok.html?id=... skladá obsah až JavaScript bez og: značiek — pri
+  // zdieľaní na Facebooku/X by sa nezobrazil ani titulok, ani obrázok
+  // (nájdené a opravené 12. 9. v lib/_shared/telegram.js; tu len log).
+  console.log(`\n✅ publikované → ${SITE_URL}/clanok/${slugify(article.headline)}-${row[0]}`);
   console.log(`   telegram: ${tg.sent ? 'poslané' : (tg.skipped || tg.error)}`);
   console.log('   (na webe do ~10 min po obnovení cache)');
   process.exit(0);

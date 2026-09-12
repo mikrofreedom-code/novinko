@@ -28,9 +28,12 @@ cp -- *.html "$OUT"/
 
 # Súbory, ktoré web zatiaľ nemá, ale keď pribudnú, majú ísť von tiež.
 # clanok.css zdieľa clanok.html aj funkcia clanok.js — bez neho by obe stránky
-# prišli o štýly. sitemap.xml sa NEGENERUJE do súboru, servíruje ju funkcia
-# (viď prepisy v netlify.toml).
-VOLITELNE=(robots.txt clanok.css favicon.ico _redirects _headers)
+# prišli o štýly. share.js rovnako (tlačidlo "kopírovať odkaz" pod článkom) —
+# MUSÍ byť externý súbor, nie inline <script>, lebo clanok.js skladá HTML za
+# behu a gen-csp.mjs nižšie by jeho inline skript nevidelo (hashuje len
+# _site/ pri builde), CSP by ho zablokovala. sitemap.xml sa NEGENERUJE do
+# súboru, servíruje ju funkcia (viď prepisy v netlify.toml).
+VOLITELNE=(robots.txt clanok.css share.js favicon.ico _redirects _headers)
 for f in "${VOLITELNE[@]}"; do
   [ -f "$f" ] && cp -- "$f" "$OUT"/
 done

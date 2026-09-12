@@ -19,6 +19,21 @@ function esc(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// IDENTICKÁ s netlify/lib/clanok-render.js slugify() — musí dať rovnaký slug
+// pre ten istý titulok, inak by URL, ktorú pošle tento súbor do Telegramu,
+// neviedla na ten istý riadok, aký si fetchSheetItems() zostaví pre web.
+// Dve oddelené kópie (redakcia/ a netlify/lib/ sú samostatné codebase-y,
+// žiadny spoločný import) — rovnaký vzor ako articleToRow, zdokumentovaný
+// v koreňovom CLAUDE.md ("dve cesty k tomu istému").
+function slugify(s) {
+  return String(s ?? '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 70) || 'clanok';
+}
+
 // Zostaví text správy (HTML). Perex bezpečne oreže, nech sa zmestí do caption limitu.
 function buildCaption(article, url) {
   const perex = article.perex ? esc(article.perex).slice(0, 600) : '';
@@ -35,7 +50,13 @@ export async function sendArticle(article, sheetId) {
   if (!token || !chat) return { skipped: 'telegram nenastavený (chýba TELEGRAM_BOT_TOKEN/CHAT_ID)' };
   if (!article?.headline) return { skipped: 'bez headline' };
 
-  const url = `${SITE_URL}/clanok.html?id=${encodeURIComponent(sheetId)}`;
+  // POZOR (nájdené 12. 9.): predtým tu bolo /clanok.html?id=... — tú stránku
+  // skladá až JavaScript v prehliadači, takže Facebook/X/akýkoľvek crawler
+  // (nespúšťa JS) videl len prázdnu hlavičku bez og:image/og:title. Presne
+  // preto sa pri zdieľaní na Facebooku nezobrazoval obrázok. /clanok/<slug>-<id>
+  // je funkcia (netlify/functions/clanok.js), ktorá vráti hotové HTML s og:
+  // značkami hneď, bez JS.
+  const url = `${SITE_URL}/clanok/${slugify(article.headline)}-${encodeURIComponent(sheetId)}`;
   const caption = buildCaption(article, url);
 
   try {

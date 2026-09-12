@@ -2,6 +2,7 @@
 // Odchádzajúce volanie, no-op ak chýba token/chat (nezhodí generovanie).
 // Rovnaký bot a chat ako v novinko-redakcia (lib/_shared/telegram.js).
 const { httpsPost } = require("./net");
+const { slugify } = require("./clanok-render");
 
 const SITE_URL = process.env.SITE_URL || "https://novinko.sk";
 
@@ -21,7 +22,14 @@ async function sendArticle({ title, perex, imageUrl, sheetId }) {
   if (!token || !chat) return { skipped: "telegram nenastavený (chýba TELEGRAM_BOT_TOKEN/CHAT_ID)" };
   if (!title) return { skipped: "bez titulku" };
 
-  const url = `${SITE_URL}/clanok.html?id=${encodeURIComponent(sheetId)}`;
+  // POZOR (nájdené 12. 9.): predtým tu bolo /clanok.html?id=... — tú stránku
+  // skladá až JavaScript v prehliadači, takže Facebook/Twitter/akýkoľvek
+  // crawler (nespúšťa JS) videl len prázdnu hlavičku bez og:image/og:title.
+  // Presne preto sa pri zdieľaní na Facebooku nezobrazoval obrázok článku.
+  // /clanok/<slug>-<id> je funkcia (netlify/functions/clanok.js), ktorá
+  // vracia hotové HTML s og: značkami hneď — slugify() musí byť IDENTICKÁ
+  // s tou v netlify/lib/sheets.js (fetchSheetItems), inak by sa URL rozišli.
+  const url = `${SITE_URL}/clanok/${slugify(title)}-${encodeURIComponent(sheetId)}`;
   const caption = buildCaption(title, perex, url);
   const hasImg = typeof imageUrl === "string" && imageUrl.startsWith("http");
 
