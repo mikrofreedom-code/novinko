@@ -125,6 +125,25 @@ tie témy cez `cryptoFilter` neprejdú. Neopravoval som to, lebo je to živá se
 a zmena filtra patrí do samostatného commitu s meraním, čo pribudne.
 `EKONOMIKA_RE` tú chybu už nemá (len celé slová a explicitné varianty).
 
+## Audit 13. 9. 2026 — publikovanie, výpadky, rozpočet
+
+- **Webové generátory zmazané** (`generate-krypto/svet/sport`, `netlify/lib/generator.js`,
+  `ai.js`). Mali vypnutý rozvrh, takže boli verejným endpointom; `svet` a `sport`
+  pustili každého s `{"next_run":…}` v tele a AI článok by šiel rovno do hárku
+  **bez schválenia**. Na Netlify ostali nepoužívané `ANTHROPIC_API_KEY` a `CRON_SECRET`.
+- **Telegram ✅/❌ je idempotentný.** Prevzatie položky = podmienený zápis na
+  `updated_at` + značka `raw_data.publish_claim` s pevným ID riadku. Nový stav vo
+  fronte zámerne nie je (migráciu check constraintu prostredie zablokovalo, netreba
+  ju). Prerušené publikovanie sa dá po 2 min zopakovať, pred zápisom sa overí ID v hárku.
+- **`appendRow` hádže pri chybe Google API** — `httpsPost` chybovú odpoveď predtým
+  vracal ako úspech. Plánovač navyše overuje ID v hárku a pred uložením frontu načíta znova.
+- **Výpadok hárku nevyprázdni web.** `buildAll` pri chybe hádže, `refresh-feeds`
+  neuloží nič a ostáva posledná dobrá cache. Hlavná stránka pri chybe ponechá staré
+  dáta, správy vykreslí pred evergreen blokmi a v skrytej karte neobnovuje.
+- **Budget guard pri neoverenom náklade zastaví platené volania** (`budget guard:` →
+  retry bez započítania pokusu). Nezapísaný náklad drží pamäť behu. Test:
+  `redakcia/test/cost.test.mjs`.
+
 ## Čo čaká (stav k 5. 9. 2026)
 
 ### ✅ VÝPADOK KREDITU VYRIEŠENÝ (5. 9.)

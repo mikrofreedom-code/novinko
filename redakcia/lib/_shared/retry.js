@@ -53,7 +53,9 @@ export async function retryTransientErrors(limit = 200) {
     // vráť do hry", položka by v tom istom behu zase narazila na priebežný strop
     // a takto by lietala tam a späť každú hodinu.
     if (/budget/i.test(err)) {
-      if (await todaySpendUsd() >= allowanceUsd()) { res.skipped++; continue; }
+      let nadStropom;
+      try { nadStropom = await todaySpendUsd() >= allowanceUsd(); } catch { nadStropom = true; }
+      if (nadStropom) { res.skipped++; continue; }
       await db.from('queue').update({ status: input, error: null }).eq('id', item.id);
       res.reset++;
       continue;

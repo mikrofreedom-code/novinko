@@ -55,22 +55,36 @@ export function hasPrice(model) {
   return Array.isArray(PRICING[model]);
 }
 
+// Náklad, ktorý sa nepodarilo zapísať do DB — ďalší refresh by ho inak zo súčtu vypustil.
+let _unlogged = 0;
+// Ako dlho smie guard veriť poslednej overenej hodnote, keď DB neodpovedá.
+const SPEND_STALE_MS = 10 * 60 * 1000;
+
 export async function logCost({ agent, model, usage, queueId }) {
   const i = usage?.input_tokens ?? 0, o = usage?.output_tokens ?? 0;
   const [pin, pout] = PRICING[model] ?? [0, 0];
   const cost_usd = (i/1e6)*pin + (o/1e6)*pout;
-  await db.from('ai_cost_log').insert({
+  const { error } = await db.from('ai_cost_log').insert({
     agent, model, input_tokens: i, output_tokens: o, cost_usd, queue_id: queueId ?? null,
   });
   _spend.val += cost_usd; // drž cache aktuálnu počas behu
+  if (error) {
+    _unlogged += cost_usd;
+    console.error(`⚠️ ai_cost_log: zápis zlyhal ($${cost_usd.toFixed(4)}, ${agent}) — náklad drží len pamäť behu: ${error.message}`);
+  }
 }
 
 // Dnešný AI náklad v USD (od polnoci). Pre budget guard v ai-gateway.
+// Neoverený náklad zastaví platené volanie; „budget guard" v správe vráti položku cez retry.js bez pokusu.
 export async function todaySpendUsd() {
   if (Date.now() - _spend.ts < 60000) return _spend.val;
   const since = new Date(); since.setHours(0, 0, 0, 0);
   const { data, error } = await db.from('ai_cost_log')
     .select('cost_usd').gte('created_at', since.toISOString());
-  if (!error) _spend = { ts: Date.now(), val: (data ?? []).reduce((s, r) => s + Number(r.cost_usd), 0) };
-  return _spend.val;
+  if (!error) {
+    _spend = { ts: Date.now(), val: (data ?? []).reduce((s, r) => s + Number(r.cost_usd), 0) + _unlogged };
+    return _spend.val;
+  }
+  if (_spend.ts && Date.now() - _spend.ts < SPEND_STALE_MS) return _spend.val;
+  throw new Error(`budget guard: dnešný AI náklad sa nedá overiť (${error.message}) — platené volanie zastavené`);
 }
