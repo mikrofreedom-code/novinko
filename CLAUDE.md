@@ -144,6 +144,36 @@ a zmena filtra patrí do samostatného commitu s meraním, čo pribudne.
   retry bez započítania pokusu). Nezapísaný náklad drží pamäť behu. Test:
   `redakcia/test/cost.test.mjs`.
 
+Commity `87c0705` (web) a `aad9690` (redakcia).
+
+**Dôsledky zmazania generátorov (overené 13. 9.):** z 595 článkov od ostrého štartu
+nenapísal ani jeden webový generátor, obsah webu sa teda nemení. Publikované články
+ostávajú (zmazal sa kód, nie hárok), Šport a Slovensko ďalej stoja len na RSS.
+Adresy `/.netlify/functions/generate-*` po nasadení vracajú 404. **Nevracať ich:**
+prepisovali cudzie články (BBC, Euronews, CoinTelegraph = zakázaný Model 3) a
+zapisovali bez schválenia v Telegrame, čím by padala výnimka podľa AI Act. Vlastné
+športové články = nová sekcia redakcie. Kód v prípade potreby:
+`git show 87c0705^:netlify/functions/generate-sport.js`.
+
+**Po nasadení — k 13. 9. ešte NEurobené (push robí používateľ):**
+- [ ] push → Netlify deploy (15 kreditov); dovtedy je diera v generátoroch otvorená
+- [ ] skontrolovať prvé schválenie ✅ v Telegrame (na Netlify neoverené: Blobs, reálny klik)
+- [ ] na Netlify zmazať `ANTHROPIC_API_KEY` a `CRON_SECRET` — web ich už nečíta
+- [ ] zrušiť prípadnú externú cron úlohu, ktorá volala `generate-*` (logy Netlify sme nevideli)
+- [ ] nastaviť mesačný limit výdavkov v Anthropic Console
+
+**Z auditu zámerne odložené:**
+- Pripravené dáta namiesto sťahovania celého hárku (detail článku, rubriky, archív) —
+  pri ~600 riadkoch zbytočné, cache funguje (namerané `x-source: blob`, 0,6–1 s).
+  Spojiť s plánovaným evergreen úložiskom, nerobiť zvlášť.
+- Redakcia mimo desktopu (VPS ~4–5 €/mes.) — rozhodnutie o peniazoch. Lacný prvý
+  krok: externá kontrola času posledného úspešného behu.
+- TradingView widgety načítavať až pri zobrazení; `srcset` (zmenšovanie obrázkov
+  v Supabase je platená funkcia).
+- Dizajn (jednotná hlavička, vlastné adresy rubrík, súvisiace články podľa témy)
+  a rozdelenie `index.html` (~83 kB). Audit hlásil chybu v `targetAttr()` — v praxi
+  nenastáva, vlastné články majú relatívne odkazy.
+
 ## Čo čaká (stav k 5. 9. 2026)
 
 ### ✅ VÝPADOK KREDITU VYRIEŠENÝ (5. 9.)
