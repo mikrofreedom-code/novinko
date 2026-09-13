@@ -469,7 +469,11 @@
           <button class="filter-btn mobile-only more-ai" data-cat="ai">AI</button>
           <button class="filter-btn" data-cat="sport">Šport</button>
           <a href="/zahrada.html" class="filter-btn">Záhrada</a>
-          <a href="/recepty.html" class="filter-btn">Recepty</a>
+          <!-- Recepty dočasne skryté z navigácie — rubrika je ešte prázdna,
+               žiadny recept ešte nebol publikovaný (viď redakcia/lib/flow/17-recepty.js).
+               renderRecepty() na hlavnej sa aj tak sama skryje, keď DATA['recepty']
+               nemá položky — toto len odstraňuje priamy odkaz na /recepty.html.
+               Vráť späť, hneď ako pribudne prvý publikovaný recept. -->
           <a href="/horoskop.html" class="filter-btn">Horoskopy</a>
         </div>
       </details>
