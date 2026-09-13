@@ -1,5 +1,5 @@
 // GOOGLE SHEETS — zápis článku do existujúceho Novinko (živá stránka).
-// Rovnaký formát ako generate-krypto v novinko-clean: hárok "articles", stĺpce A:H.
+// Rovnaký formát ako netlify/lib/article-row.js: hárok "articles", stĺpce A:I.
 // Zámerne ŽIADNE čítanie/miešanie s pipeline Supabase — len zápis riadku.
 import jwt from 'jsonwebtoken';
 
@@ -54,7 +54,7 @@ export function articleToRow(article, category = 'krypto') {
     article.perex || '',                          // C: perex
     paragraphsToCell(article.body),               // D: telo (¶¶)
     `${first.name ?? '—'} | ${first.url ?? ''}`,  // E: zdroj | link
-    new Date().toISOString(),                     // F: dátum zverejnenia (ako generate-krypto)
+    new Date().toISOString(),                     // F: dátum zverejnenia
     article.category || category,                 // G: kategória
     article.image_url || '',                      // H: obrázok
     article.image_credit || '',                   // I: zdroj obrázka (autor/agentúra)

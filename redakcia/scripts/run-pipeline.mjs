@@ -102,8 +102,7 @@ async function main() {
   // 17-recepty VYPNUTÉ (2026-09-10, na žiadosť používateľa): recepty pridáva
   // ručne cez publikovat.html, nie AI z plánu tém. Generátor aj plán tém
   // (content/recepty/plan.md) ostávajú v repozitári nedotknuté, len bez
-  // volania tu — rovnaký vzor ako generate-svet.js/generate-sport.js
-  // v netlify.toml (súbor existuje, len sa sám nespustí). Zapnutie = odkomentovať.
+  // volania tu. Zapnutie = odkomentovať.
   // log('17-recepty — sezónny/evergreen generátor (raz denne) → proofed');
   // try { console.log('  ', await recepty.run()); }
   // catch (e) { console.log('   ⚠️ recepty preskočené:', e.message); }

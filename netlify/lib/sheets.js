@@ -34,44 +34,26 @@ async function appendRow(sheetsId, row, serviceAccountKey) {
   const path =
     `/v4/spreadsheets/${sheetsId}/values/articles!A:I:append` +
     `?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
-  return httpsPost("sheets.googleapis.com", path, { values: [row] }, {
+  const res = await httpsPost("sheets.googleapis.com", path, { values: [row] }, {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   });
-}
-// Načíta existujúce titulky a zdrojové linky -> Set-y pre spoľahlivý dedup.
-// Stĺpec B = titulok, stĺpec E = "Zdroj | originálny link".
-function normalizeLink(link) {
-  if (!link) return "";
-  let s = String(link).trim();
-  try {
-    const u = new URL(s);
-    u.search = "";
-    u.hash = "";
-    return u.toString().replace(/\/+$/, "").toLowerCase();
-  } catch (e) {
-    return s.replace(/[?#].*$/, "").replace(/\/+$/, "").toLowerCase();
+  // httpsPost neodmieta HTTP chyby — bez kontroly by sa neúspešný zápis tváril ako zverejnený článok.
+  if (!res || !res.updates) {
+    throw new Error(`zápis do hárku zlyhal: ${JSON.stringify(res?.error ?? res).slice(0, 200)}`);
   }
+  return res;
 }
 
-async function readArticlesIndex(sheetsId, serviceAccountKey) {
+// ID všetkých riadkov (stĺpec A) cez API — publikovaný CSV zaostáva o minúty.
+async function sheetRowIds(sheetsId, serviceAccountKey) {
   const token = await getAccessToken(serviceAccountKey);
-  const path =
-    `/v4/spreadsheets/${sheetsId}/values:batchGet` +
-    `?ranges=${encodeURIComponent("articles!B:B")}` +
-    `&ranges=${encodeURIComponent("articles!E:E")}`;
+  const path = `/v4/spreadsheets/${sheetsId}/values/${encodeURIComponent("articles!A:A")}`;
   const res = await httpsGet("sheets.googleapis.com", path, { Authorization: `Bearer ${token}` });
-  const ranges = res.valueRanges || [];
-  const titleRows = ranges[0]?.values || [];
-  const sourceRows = ranges[1]?.values || [];
-  const titles = new Set(titleRows.map((r) => (r[0] || "").toLowerCase().trim()).filter(Boolean));
-  const links = new Set(
-    sourceRows
-      .map((r) => (r[0] || "").split("|")[1]) // časť za "|"
-      .map((l) => normalizeLink(l))
-      .filter(Boolean)
-  );
-  return { titles, links };
+  if (!res || typeof res !== "object" || res.error) {
+    throw new Error(`čítanie hárku zlyhalo: ${JSON.stringify(res?.error ?? res).slice(0, 200)}`);
+  }
+  return new Set((res.values || []).map((r) => String(r[0] ?? "").trim()).filter(Boolean));
 }
 // Načíta vlastné SK články pre ZOBRAZENIE (publikovaný CSV stačí, robí to cron).
 // Stĺpce podľa pozície: id, title, perex, content, source, date, category
@@ -82,7 +64,7 @@ async function fetchSheetItems(opts = {}) {
   const maxAgeMs = MAX_AGE_HOURS * 60 * 60 * 1000;
   const now = Date.now();
   const seen = new Set();
-  const items = lines
+  const rows = lines
     .map((line) => {
       const c = parseCSVLine(line);
       const [id, title, perex, , , date, category, imageUrl, imageCredit] = c;
@@ -102,7 +84,10 @@ async function fetchSheetItems(opts = {}) {
         category: category || "krypto",
       };
     })
-    .filter(Boolean)
+    .filter(Boolean);
+  // Hárok bez jediného platného riadku je výpadok, nie prázdny web.
+  if (!rows.length) throw new Error("hárok nevrátil žiadny platný článok");
+  const items = rows
     .filter((it) => {
       // dedup podľa titulku V RÁMCI kategórie (ten istý evergreen smie byť aj na
       // hlavnej 'krypto' aj v sekcii 'krypto-skola' — rôzne kategórie, nevyhadzuj).
@@ -120,4 +105,4 @@ async function fetchSheetItems(opts = {}) {
     .reverse(); // najnovšie prvé
   return items;
 }
-module.exports = { getAccessToken, appendRow, readArticlesIndex, fetchSheetItems, normalizeLink };
+module.exports = { getAccessToken, appendRow, sheetRowIds, fetchSheetItems };

@@ -46,8 +46,9 @@ async function gatherRss(categoryFilter = "all") {
 // Ťaháme VŠETKY vlastné články (aj staršie než MAX_AGE_HOURS) a vek riešime až
 // pri skladaní kategórie — inak by sa staré zahodili tu a freshFirst by nemal
 // čím doplniť prázdnu sekciu.
-async function gatherSheet() {
-  try { return await fetchSheetItems({ all: true }); } catch { return []; }
+// Chyba sa NEprekladá na [] — cron by vyprázdnenú verziu uložil do cache.
+function gatherSheet() {
+  return fetchSheetItems({ all: true });
 }
 
 // Rozdelí vlastné články na čerstvé (do MAX_AGE_HOURS) a staršie. Zoznam chodí
@@ -109,7 +110,8 @@ function combineCategory(rss, own, category) {
 }
 
 async function buildPayload(category = "all") {
-  const [rss, own] = await Promise.all([gatherRss(category), gatherSheet()]);
+  // Núdzová cesta (prázdna cache): radšej samotné RSS než nič.
+  const [rss, own] = await Promise.all([gatherRss(category), gatherSheet().catch(() => [])]);
   let items;
   if (category === "all") {
     const perCat = CAT_ORDER.map((cat) => combineCategory(rss, own, cat));

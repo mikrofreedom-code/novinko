@@ -8,13 +8,15 @@
 // v novinko-redakcia. Bezpečnosť: Telegram posiela secret_token v hlavičke,
 // porovnávame s TELEGRAM_WEBHOOK_SECRET (site-level env, zdieľané oboma repo).
 
-const { getQueueItem, advanceQueueItem } = require("../lib/redakcia-queue");
+const { getQueueItem, advanceQueueItem, updateIfUnchanged } = require("../lib/redakcia-queue");
 const { callBotApi, sendArticle, esc } = require("../lib/telegram");
-const { appendRow } = require("../lib/sheets");
+const { appendRow, sheetRowIds } = require("../lib/sheets");
 const { articleToRow } = require("../lib/article-row");
 const { safeEqual } = require("../lib/guard");
 
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+// Prevzatie staršie než toto sa berie ako prerušené a smie sa zopakovať.
+const CLAIM_STALE_MS = 2 * 60 * 1000;
 
 async function markDecided(item, chatId, messageId, label) {
   const hasImg = typeof item.article?.image_url === "string" && item.article.image_url.startsWith("http");
@@ -26,6 +28,15 @@ async function markDecided(item, chatId, messageId, label) {
   } else {
     await callBotApi("editMessageText", { chat_id: chatId, message_id: messageId, text, parse_mode: "HTML", reply_markup: clearButtons });
   }
+}
+
+function answer(cq, text, show_alert = true) {
+  return callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text, show_alert });
+}
+
+async function isInSheet(rowId) {
+  const ids = await sheetRowIds(process.env.GOOGLE_SHEETS_ID, process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+  return ids.has(rowId);
 }
 
 exports.handler = async (event) => {
@@ -53,22 +64,31 @@ exports.handler = async (event) => {
   const [action, itemId] = cq.data.split(":");
   const chatId = cq.message?.chat?.id;
   const messageId = cq.message?.message_id;
+  let claimed = false;
 
   try {
     const item = await getQueueItem(itemId);
     if (!item) {
-      await callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text: "Položka sa nenašla (už spracovaná?)", show_alert: true });
+      await answer(cq, "Položka sa nenašla (už spracovaná?)");
       return { statusCode: 200, body: "ok" };
     }
 
     // POISTKA: konať smieme LEN nad položkou, ktorá stále čaká na rozhodnutie.
-    // Bez tejto kontroly by druhý klik na ✅ zapísal článok do hárku DRUHÝKRÁT
-    // a klik na starú správu by zverejnil aj to, čo medzitým niekto zamietol
+    // Klik na starú správu by inak zverejnil aj to, čo medzitým niekto zamietol
     // (napr. hromadné zrušenie cenových článkov 31.7.2026).
     if (item.status !== "imaged") {
       const popis = { published: "už je zverejnené", rejected: "medzitým zamietnuté", error: "skončilo s chybou" }[item.status] || `stav: ${item.status}`;
-      await callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text: `Nič sa nestalo — ${popis}.`, show_alert: true });
+      await answer(cq, `Nič sa nestalo — ${popis}.`);
       await markDecided(item, chatId, messageId, `⏸️ NEAKTUÁLNE (${popis})`);
+      return { statusCode: 200, body: "ok" };
+    }
+
+    // Kontrola stavu vyššie sama nestačí: dva súbežné kliky (alebo Telegram, ktorý
+    // pri pomalej odpovedi doručí udalosť znova) ju prejdú oba. Rozhoduje až
+    // podmienený zápis značky publish_claim — ten prejde len jednému.
+    const claim = item.raw_data?.publish_claim;
+    if (claim && Date.now() - Date.parse(claim.at) < CLAIM_STALE_MS) {
+      await answer(cq, "Práve sa publikuje — o chvíľu skontroluj web.");
       return { statusCode: 200, body: "ok" };
     }
 
@@ -77,20 +97,45 @@ exports.handler = async (event) => {
       if (!article || !article.headline || !article.body) throw new Error("item.article chýba headline/body");
       const category = article.section || item.facts?.section || "krypto";
       const row = articleToRow(article, category);
-      await appendRow(process.env.GOOGLE_SHEETS_ID, row, process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-      await sendArticle({ title: article.headline, perex: article.perex, imageUrl: article.image_url, sheetId: row[0] });
+      // Opakovanie po prerušení nesie rovnaké ID, podľa neho sa pozná, či už je riadok v hárku.
+      if (claim?.sheet_row_id) row[0] = claim.sheet_row_id;
+
+      claimed = await updateIfUnchanged(item, {
+        raw_data: { ...item.raw_data, publish_claim: { at: new Date().toISOString(), sheet_row_id: row[0] } },
+      });
+      if (!claimed) {
+        await answer(cq, "Nič sa nestalo — položku práve spracúva iný klik.");
+        return { statusCode: 200, body: "ok" };
+      }
+
+      if (!(claim && await isInSheet(row[0]))) {
+        await appendRow(process.env.GOOGLE_SHEETS_ID, row, process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+        await sendArticle({ title: article.headline, perex: article.perex, imageUrl: article.image_url, sheetId: row[0] });
+      }
       await advanceQueueItem(item.id, "published");
-      await callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text: "✅ Publikované" });
+      await answer(cq, "✅ Publikované", false);
       await markDecided(item, chatId, messageId, "✅ PUBLIKOVANÉ");
     } else if (action === "reject") {
-      await advanceQueueItem(item.id, "rejected", { error: "12-publisher: zamietnuté ručne cez Telegram" });
-      await callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text: "❌ Zamietnuté" });
+      // Prerušené publikovanie mohlo článok do hárku už zapísať — ten sa tu zamietnuť nedá.
+      if (claim?.sheet_row_id && await isInSheet(claim.sheet_row_id)) {
+        await advanceQueueItem(item.id, "published");
+        await answer(cq, "Článok už je na webe (prerušené publikovanie sa stihlo zapísať), zamietnuť ho tu nejde.");
+        await markDecided(item, chatId, messageId, "✅ PUBLIKOVANÉ");
+        return { statusCode: 200, body: "ok" };
+      }
+      const ok = await updateIfUnchanged(item, { status: "rejected", error: "12-publisher: zamietnuté ručne cez Telegram" });
+      if (!ok) {
+        await answer(cq, "Nič sa nestalo — položka sa medzitým zmenila.");
+        return { statusCode: 200, body: "ok" };
+      }
+      await answer(cq, "❌ Zamietnuté", false);
       await markDecided(item, chatId, messageId, "❌ ZAMIETNUTÉ");
     } else {
       await callBotApi("answerCallbackQuery", { callback_query_id: cq.id });
     }
   } catch (e) {
-    await callBotApi("answerCallbackQuery", { callback_query_id: cq.id, text: `Chyba: ${e.message}`.slice(0, 200), show_alert: true });
+    const rada = claimed ? " — skús ✅ znova o 2 min" : "";
+    await answer(cq, `Chyba: ${e.message}`.slice(0, 170) + rada);
   }
 
   return { statusCode: 200, body: "ok" };

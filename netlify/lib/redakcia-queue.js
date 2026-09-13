@@ -42,4 +42,15 @@ async function advanceQueueItem(id, status, patch = {}) {
   if (error) throw new Error(error.message);
 }
 
-module.exports = { getQueueItem, advanceQueueItem };
+// Zápis prejde, len ak sa riadok od prečítania nezmenil (porovnanie updated_at).
+// Z dvoch súbežných zápisov nad tým istým prečítaním teda uspeje najviac jeden.
+async function updateIfUnchanged(item, patch) {
+  const { data, error } = await db().from("queue")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", item.id).eq("updated_at", item.updated_at)
+    .select("id");
+  if (error) throw new Error(error.message);
+  return data.length === 1;
+}
+
+module.exports = { getQueueItem, advanceQueueItem, updateIfUnchanged };

@@ -783,7 +783,9 @@
   }
   function ownImg(i, cls) {
     if (!(i.image && i.source === 'tím Novinko')) return '';
-    const img = `<img src="${safeLink(i.image)}" alt="" class="${cls}" loading="lazy">`;
+    // Hlavný obrázok je v prvom zábere — lazy by ho zbytočne odložil.
+    const nacitanie = cls === 'story-featured-img' ? 'fetchpriority="high"' : 'loading="lazy"';
+    const img = `<img src="${safeLink(i.image)}" alt="" class="${cls}" ${nacitanie}>`;
     // Štítok „AI ilustrácia" len na väčšie obrázky (na drobné náhľady by bol stiesnený).
     const big = /mag-feature-img|story-featured-img|news-item-img|skola-card-img/.test(cls);
     return big ? `<span class="img-wrap">${img}<span class="ai-tag">AI ilustrácia</span></span>` : img;
@@ -793,26 +795,24 @@
   }
   function byDateDesc(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }
 
-  // POZOR (nájdené 6. 9.): fetch() nemá vlastný timeout. Keď jediná z 8
-  // súbežných kategórií zavesí na strane servera (naživo skladané dáta —
-  // Blob cache sa aktuálne netrafí ani raz, viď CLAUDE.md), Promise.all
-  // v loadAll() čaká navždy a CELÁ hlavná stránka zostane na "Načítavam
-  // správy…" bez ohľadu na to, že zvyšných 7 kategórií dorazilo v poriadku.
-  // AbortController s 10 s stropom zaručí, že jedna zaseknutá kategória
-  // stiahne len sama seba (vráti []), nie celú stránku.
+  // fetch() nemá vlastný timeout — bez 10 s stropu by jedna zaseknutá kategória
+  // držala celú stránku na „Načítavam správy…". Pri chybe vráti null a sekcia
+  // si ponechá posledné dobré dáta namiesto prázdneho zoznamu.
   async function fetchCat(cat) {
     const ac = new AbortController();
     const t = setTimeout(() => ac.abort(), 10000);
     try {
       const r = await fetch(`/.netlify/functions/fetch-rss?category=${cat}`, { signal: ac.signal });
+      if (!r.ok) return null;
       const d = await r.json();
-      return d.items || [];
-    } catch (e) { return []; }
+      return d.error ? null : (d.items || []);
+    } catch (e) { return null; }
     finally { clearTimeout(t); }
   }
-  async function loadAll() {
-    const ids = [...DOMOV.map(s => s.id), EDU.id, ZAHRADA.id, RECEPTY.id, HOROSKOP.id];
-    const res = await Promise.all(ids.map(fetchCat));
+  // Správy sa vykreslia hneď, ako dorazia — evergreen bloky nižšie na stránke ich nezdržujú.
+  let lastLoad = 0;
+  async function loadAll(onNews) {
+    lastLoad = Date.now();
     // Backend skladá "slovensko" (a ostatné čisto RSS sekcie) round-robinom
     // naprieč zdrojmi kvôli rozmanitosti, nie podľa času — vlastný obsah
     // (krypto/ai/ekonomika/svet) je zoradený už pri zápise, ale RSS sekcie
@@ -821,7 +821,18 @@
     // hneď po načítaní, vidí návštevník vždy najnovšiu správu prvú — vo
     // všetkých blokoch (hero, magazínové sekcie, zoznam sekcie), keďže tie
     // čítajú priamo z DATA[cat] bez vlastného triedenia.
-    ids.forEach((id, i) => { DATA[id] = res[i].slice().sort(byDateDesc); });
+    const nacitaj = async (ids) => {
+      const res = await Promise.all(ids.map(fetchCat));
+      let ok = 0;
+      ids.forEach((id, i) => { if (res[i]) { DATA[id] = res[i].slice().sort(byDateDesc); ok++; } });
+      return ok;
+    };
+    const doplnky = nacitaj([EDU.id, ZAHRADA.id, RECEPTY.id, HOROSKOP.id]);
+    if (await nacitaj(DOMOV.map(s => s.id))) stampUpdate();
+    onNews();
+    await doplnky;
+    if (currentView === 'all') renderDoplnky();
+    else if (!DOMOV.some(s => s.id === currentView)) showSection(currentView);
   }
 
   function allItems() {
@@ -1201,12 +1212,10 @@
     updateContext('all');
     document.getElementById('sectionList').innerHTML = '';
     renderMagSections(used);
-    renderSkola();
-    renderZahrada();
-    renderRecepty();
-    renderHoroskop();
+    renderDoplnky();
     renderTrending(recentDistinct(allItems(), 6));
   }
+  function renderDoplnky() { renderSkola(); renderZahrada(); renderRecepty(); renderHoroskop(); }
   function showSection(cat) {
     currentView = cat;
     const items = (DATA[cat] || []).slice();
@@ -1244,13 +1253,19 @@
     e.preventDefault();
     go(a.dataset.cat);
   });
+  function refreshView() { if (currentView === 'all') showHome(); else showSection(currentView); }
+  async function obnov() { await loadAll(refreshView); loadMiniHoroskop(); }
   document.getElementById('refreshBtn').addEventListener('click', async () => {
     const btn = document.getElementById('refreshBtn'); btn.classList.add('spinning');
-    await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate();
-    loadMiniHoroskop();
+    await obnov();
     btn.classList.remove('spinning');
   });
-  setInterval(async () => { await loadAll(); (currentView === 'all' ? showHome() : showSection(currentView)); stampUpdate(); loadMiniHoroskop(); }, 5 * 60 * 1000);
+  // Skrytá karta nesťahuje; po návrate sa dotiahne, ak sú dáta staršie než interval.
+  const OBNOVA_MS = 5 * 60 * 1000;
+  setInterval(() => { if (!document.hidden) obnov(); }, OBNOVA_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - lastLoad >= OBNOVA_MS) obnov();
+  });
 
   // ─── WORLD CLOCK ───
   const CLOCK_CITIES = [
@@ -1300,7 +1315,7 @@
   renderToday();
   loadWeather();
   loadMiniHoroskop();
-  (async () => { await loadAll(); go('all'); stampUpdate(); })();
+  loadAll(() => go('all'));
 </script>
 
 <!-- COOKIE BANNER -->
