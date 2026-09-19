@@ -13,6 +13,10 @@ const PRICING = {
   'claude-haiku-4-5-20251001': [1.00, 5.00],
   'claude-haiku-4-5': [1.00, 5.00],
   'claude-sonnet-4-6': [3.00, 15.00],
+  // Sonnet 5 (aktuálna generácia, doplnené 17. 9. 2026 — chýbal, prvý pokus
+  // naň spadol na hasPrice() gate). $2,00/$10,00 podľa Anthropic API
+  // dokumentácie, overené v ten istý deň.
+  'claude-sonnet-5': [2.00, 10.00],
   // Zavedená cena do 31.12.2026 (ai.google.dev, overené 3.9.2026); od 1.1.2027
   // $1.50 / $7.50 — vtedy preceniť. Over si presný reťazec model ID v Google
   // AI Studio pred nasadením, "gemini-3.8-flash" je najpravdepodobnejší tvar,

@@ -29,10 +29,28 @@ const openaiClient = () => (_openai ??= new OpenAI({
 // volajúci (05-verification, 07-writer, …) nemuseli vedieť vôbec nič.
 const CALLERS = {
   async anthropic(model, { system, prompt, maxTokens, temperature }) {
-    const res = await anthropicClient().messages.create({
+    const req = {
       model, max_tokens: maxTokens, temperature, system,
       messages: [{ role: 'user', content: prompt }],
-    });
+    };
+    let res;
+    try {
+      res = await anthropicClient().messages.create(req);
+    } catch (err) {
+      // NÁJDENÉ 17. 9.: `temperature` je na Sonnete 5 / Opuse 5 (a novších)
+      // úplne zrušený parameter — API ho odmietne 400-kou ("temperature` is
+      // deprecated for this model"). Staršie modely (Haiku 4.5, Sonnet/Opus
+      // 4.6) ho ešte prijímajú. Namiesto udržiavania zoznamu, ktoré modely
+      // ešte temperature majú, skús RAZ znova bez neho — samoopravné aj pre
+      // model, čo ešte nevyšiel. Iná chyba (napr. skutočný rate limit) sa
+      // prehodí ďalej nezmenená.
+      if (err?.status === 400 && /temperature.*deprecated/i.test(err?.message ?? '')) {
+        const { temperature: _drop, ...bezTeploty } = req;
+        res = await anthropicClient().messages.create(bezTeploty);
+      } else {
+        throw err;
+      }
+    }
     return {
       text: res.content.filter(b => b.type === 'text').map(b => b.text).join('\n'),
       stopReason: res.stop_reason,          // 'end_turn' | 'max_tokens' | 'stop_sequence' | …

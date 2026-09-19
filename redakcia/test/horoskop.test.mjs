@@ -40,8 +40,8 @@ test('nebezpečný alebo zle formátovaný AI výstup sa nesmie použiť', () =>
 });
 
 test('bez AI vznikne kompletný a dátumovo obmieňaný horoskop', async () => {
-  const povodne = process.env.AI_ENABLED;
-  process.env.AI_ENABLED = 'false';
+  const povodne = process.env.HOROSKOP_AI_ENABLED;
+  process.env.HOROSKOP_AI_ENABLED = 'false';
   try {
     const dnes = await napisHoroskop(new Date(2026, 8, 9, 12));
     const zajtra = await napisHoroskop(new Date(2026, 8, 10, 12));
@@ -50,7 +50,7 @@ test('bez AI vznikne kompletný a dátumovo obmieňaný horoskop', async () => {
     assert.match(dnes.image_url, /horoskop-zverokruh\.webp$/);
     assert.notEqual(dnes.body, zajtra.body);
   } finally {
-    if (povodne === undefined) delete process.env.AI_ENABLED;
-    else process.env.AI_ENABLED = povodne;
+    if (povodne === undefined) delete process.env.HOROSKOP_AI_ENABLED;
+    else process.env.HOROSKOP_AI_ENABLED = povodne;
   }
 });

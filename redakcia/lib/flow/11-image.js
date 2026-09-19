@@ -123,9 +123,22 @@ export async function run(item) {
 
 export async function runBatch(limit = 30) {
   // Obrázky sú produkčný náklad — v zberovom režime ich negeneruj.
+  // Výnimka: článok s vlastným obrázkom (horoskop) run() len posunie bez AI —
+  // bez nej by v zberovom režime navždy visel v legal_ok (nájdené 19. 9.).
   if (process.env.AI_ENABLED === 'false') {
     const waiting = await claim(STAGE.input, limit);
-    return { ok: 0, failed: 0, parked: waiting.length };
+    const hotove = waiting.filter((it) => it.article?.image_url);
+    const res = { ok: 0, failed: 0, parked: waiting.length - hotove.length };
+    for (const item of hotove) {
+      try {
+        await run(item);
+        res.ok++;
+      } catch (err) {
+        res.failed++;
+        await advance(item.id, 'error', { error: `${AGENT}: ${err.message}` });
+      }
+    }
+    return res;
   }
   const items = await claim(STAGE.input, limit);
   const res = { ok: 0, failed: 0 };

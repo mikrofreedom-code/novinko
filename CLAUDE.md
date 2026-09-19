@@ -575,6 +575,15 @@ na zajtra do atómovo zapisovanej lokálnej cache a o 6:00 sa iba aktivuje.
 Ak večerná príprava neprebehne, ráno sa vygeneruje priamo. Beží pred platenou
 spravodajskou pipeline, takže mu Writer/extrakcie neminú priebežný rozpočet.
 
+**Zmena 19. 9.: horoskop píše Sonnet 5 aj v zberovom režime.** Od 15. 9. je
+`AI_ENABLED=false` a horoskop vtedy potichu bral všetkých 12 znamení
+z núdzového zásobníka. `11-image` navyše v tomto režime odkladal všetko,
+takže horoskop visel v `legal_ok` a do Telegramu nešiel. Dnes horoskop
+`AI_ENABLED` ignoruje a má vlastný vypínač `HOROSKOP_AI_ENABLED`
+(predvolene zapnutý). `11-image` v zberovom režime posunie ďalej článok,
+ktorý už má `image_url`. Cena podľa merania: 3 volania Sonnet 5 = $0,041
+denne, ~$1,25 mesačne. Budget guard platí aj tu.
+
 **KRITICKÁ OPRAVA nájdená na živom článku (7. 9.):** `paragraphsToCell()`
 (`article-row.js`) delí telo LEN na `\n{2,}` a vnútri odseku každý
 jednoduchý `\n` mení na medzeru. Model píše znamenia s jednoduchým `\n`

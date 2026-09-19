@@ -11,7 +11,9 @@
 //                overovať proti zdroju, a 05/06 nemajú z čoho extrahovať
 //                udalosť. Celá reťaz 01-06 sa preto obchádza úplne.
 // STAV:          🟢 LIVE (večerná príprava + ranná aktivácia + fallback)
-// AI vrstva:     najviac 3 Haiku (po 4 znameniach), bez plateného retry
+// AI vrstva:     najviac 3 Sonnet 5 (po 4 znameniach), bez plateného retry.
+//                Bol Haiku do 17. 9. — prepnuté po porovnaní kvality, rozdiel
+//                v cene je ~$0,024/deň (~$0,56/mes. pri behu 1×/deň), zmerané.
 // ------------------------------------------------------------
 // PREČO VLASTNÝ SPÚŠŤAČ: rovnaká úvaha ako pri Záhrade (BIBLIA-ZAHRADA.md
 // kapitola 3) — horoskop nemá udalosti, nemá zdroje, nemá fakty. Je to čistá
@@ -170,9 +172,18 @@ function buildPrompt(datum, znameniaVDavke) {
 // model zopakuje verne, ale skladá sa kódom).
 const DISCLAIMER = 'Horoskop je určený na zábavné a lifestylové účely. Nemal by byť považovaný za odborné, zdravotné, právne ani finančné odporúčanie.';
 
+// Sonnet 5, nie globálny MODEL_CHEAP (rozhodnuté 17. 9. — porovnanie
+// s Haiku ukázalo citeľne plynulejší text za ~$0,024/deň navyše, ~$0,56/mesiac
+// pri behu raz denne — zmerané, nie odhad, viď ai_cost_log agent='16-horoskop'
+// z toho dňa). EXPLICITNÝ `model` tu, nie zmena MODEL_CHEAP v .env — ten by
+// zdvihol cenu aj 05-verification, 07-writer a ostatné kroky, čo horoskopu
+// nepatrí.
+const HOROSKOP_MODEL = 'claude-sonnet-5';
+
 async function zavolajDavku(datum, znameniaVDavke) {
   return askFull({
     tier: 'cheap',
+    model: HOROSKOP_MODEL,
     agent: AGENT,
     section: 'horoskop',
     system: HOROSKOP_SYSTEM,
@@ -181,7 +192,9 @@ async function zavolajDavku(datum, znameniaVDavke) {
     // rezervou, ale model neplatíme za pôvodné 2-4 vetné odseky.
     maxTokens: 1400,
     // Vyššia teplota než pri Záhrade (0.5) — cieľom je, aby boli znamenia
-    // skutočne odlišné, nie preformulovania tej istej vety.
+    // skutočne odlišné, nie preformulovania tej istej vety. Sonnet 5 aj tak
+    // temperature odmieta (400) — ai-gateway.js má na to retry bez neho,
+    // hodnota tu ostáva pre prípad návratu k modelu, čo ju ešte prijíma.
     temperature: 0.8,
   });
 }
@@ -288,9 +301,15 @@ export function jePlatnaPolozka(z) {
 // Presne JEDEN pokus na dávku. Platený retry poškodeného JSON-u 8. 9. zvýšil
 // cenu bez záruky opravy; teraz sa nepoužiteľné jednotlivé znamenia okamžite
 // doplnia bezpečným textom. Celý deň tak stojí najviac tri AI volania.
+// ZÁMERNE nekontroluje AI_ENABLED (rovnako ako scripts/digest.mjs). Zberový
+// režim od 15. 9. tichým spôsobom prepol každý horoskop na 12/12 fallback —
+// dohodnuté, že horoskop píše Sonnet aj vtedy. Vlastný vypínač, strop drží
+// budget guard v askFull() ako pri každom inom volaní.
+const horoskopAI = () => process.env.HOROSKOP_AI_ENABLED !== 'false';
+
 async function znameniaZDavky(datum, znameniaVDavke) {
   let znameniaOdAI = [];
-  if (process.env.AI_ENABLED !== 'false') {
+  if (horoskopAI()) {
     try {
       const raw = await zavolajDavku(datum, znameniaVDavke);
       const pokus = parseModelJson(raw.text);
@@ -343,9 +362,11 @@ export async function napisHoroskop(datum = new Date()) {
     fallbackCount += fallback;
   }
   const { headline, perex } = headlinePerex(datum);
+  // NÁJDENÉ 17. 9.: predtým tu bolo natvrdo 'haiku' — po prechode na Sonnet 5
+  // by to zavádzalo (metadáta by klamali, ktorý model text naozaj napísal).
   const model = fallbackCount === ZNAMENIA.length
     ? 'fallback'
-    : fallbackCount > 0 ? 'haiku+fallback' : 'haiku';
+    : fallbackCount > 0 ? `${HOROSKOP_MODEL}+fallback` : HOROSKOP_MODEL;
 
   return {
     headline,
