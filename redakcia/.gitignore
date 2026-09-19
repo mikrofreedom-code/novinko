@@ -5,7 +5,9 @@ node_modules/
 .netlify/
 logs/
 .pipeline.lock
+.digest.lock
 drafts/horoskop-cache/
+drafts/prehlad-spravy/
 prehlad.html
 web/
 zaloha/
