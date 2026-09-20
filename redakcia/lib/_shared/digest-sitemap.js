@@ -13,7 +13,7 @@
 // LEN pre položky, čo naozaj prejdú výberom (SECTION_CAP), rovnaký princíp
 // ako preklad „až teraz, nie za všetkých kandidátov".
 
-const UA = process.env.FEED_USER_AGENT ?? 'NovinkoRedakcia/0.1 mikrofreedom@gmail.com';
+const UA = process.env.FEED_USER_AGENT ?? 'NovinkoRedakcia/0.1 redakcia@novinko.sk';
 const FETCH_TIMEOUT_MS = 12000;
 const MAX_SITEMAPS = 12; // koľko jednotlivých sitemap súborov najviac prečítať na zdroj
 

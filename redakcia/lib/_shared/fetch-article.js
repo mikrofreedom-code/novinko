@@ -8,7 +8,7 @@
 //   - Zlyhanie (blok, timeout, paywall) je nefatálne — volajúci padne späť
 //     na krátky RSS text, nič sa nerozbije.
 
-const UA = process.env.FEED_USER_AGENT ?? 'NovinkoRedakcia/0.1 mikrofreedom@gmail.com';
+const UA = process.env.FEED_USER_AGENT ?? 'NovinkoRedakcia/0.1 redakcia@novinko.sk';
 const FETCH_TIMEOUT_MS = 8000;
 const MAX_CHARS = 6000; // strop na dĺžku (náklady na AI + rozumná veľkosť vstupu)
 

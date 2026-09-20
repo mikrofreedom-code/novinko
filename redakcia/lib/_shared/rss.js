@@ -4,7 +4,7 @@ import Parser from 'rss-parser';
 const parser = new Parser({
   timeout: 15000,
   // SEC a niektoré inštitúcie vyžadujú User-Agent s kontaktom.
-  headers: { 'user-agent': process.env.FEED_USER_AGENT ?? 'NovinkoRedakcia/0.1 mikrofreedom@gmail.com' },
+  headers: { 'user-agent': process.env.FEED_USER_AGENT ?? 'NovinkoRedakcia/0.1 redakcia@novinko.sk' },
 });
 
 // Vyčisti HTML značky z textu (feedy niekedy dávajú HTML obsah).
