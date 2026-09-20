@@ -190,41 +190,24 @@ const RECEPTY_THEME_CSS = `<style>
 const THEME_CSS = { zahrada: ZAHRADA_THEME_CSS, recepty: RECEPTY_THEME_CSS };
 
 // ---------- REKLAMA (vlastný eshop senvoria.sk, Powerlink s. r. o.) ----------
-// Štítok "Reklama" je viditeľný zámerne: komerčné oznámenie musí byť pre
-// čitateľa odlíšiteľné od redakčného obsahu (DSA čl. 26). rel="sponsored"
-// hovorí Googlu, že to nie je redakčné odporúčanie.
+// Zoznam bannerov aj skladanie značky je v netlify/lib/promo.js — JEDINOM
+// mieste pre celý web. Ten istý súbor build kopíruje do _site/promo.js, takže
+// ho načítava aj prehliadač na index/zahrada/horoskop; tu ho načíta Node. Kým boli zoznamy dva, výmena banneru znamenala štyri zásahy
+// a hrozilo, že sa obe cesty rozídu (CLAUDE.md: „dve cesty k tomu istému").
 //
 // ŽIADNY INLINE SKRIPT: túto stránku skladá funkcia za behu, gen-csp.mjs vidí
 // len _site/*.html pri builde — hash by nevznikol a CSP by skript zablokovala
-// (rovnaký dôvod, prečo je share.js externý súbor). Striedanie bannerov preto
+// (ten istý dôvod, prečo je share.js externý súbor). Striedanie bannerov preto
 // robí server: náhodný výber pri každej požiadavke.
-//
-// Obrázky sú lokálne v assets/reklama/ — CSP img-src pustí len 'self'
-// a Supabase, externý banner by prehliadač ticho zahodil.
-const BANNERY = [
-  { subor: "senvoria-knihy-hned", kampan: "knihy-hned", alt: "Senvoria.sk — slovenské e-knihy, ktoré máte hneď" },
-  { subor: "senvoria-pribeh-na-klik", kampan: "pribeh-na-klik", alt: "Senvoria.sk — príbeh na jeden klik, e-knihy pre chvíle, ktoré patria vám" },
-  { subor: "senvoria-bez-cakania", kampan: "bez-cakania", alt: "Senvoria.sk — e-kniha bez čakania, po zaplatení ju máte v e-maile" },
-];
+const promo = require("./promo.js");
 
 function reklama(theme) {
   // Záhrada a Recepty majú vlastný svetlý dizajn ("web vo webe") — béžový
   // banner s knihami k nemu farebne sadne, modrý technický by doň buchol.
-  const b = theme
-    ? BANNERY[0]
-    : BANNERY[Math.floor(Math.random() * BANNERY.length)];
-  const utm = `utm_source=novinko.sk&utm_medium=banner&utm_campaign=${b.kampan}&utm_content=${theme || "clanok"}`;
+  const b = promo.vyber(theme ? "senvoria-knihy-hned" : null);
+  // 780 px je šírka stĺpca článku (.article-wrap v clanok.css).
   return `  <aside class="promo-slot" aria-label="Reklama">
-    <span class="promo-label">Reklama</span>
-    <a class="promo-banner" href="https://senvoria.sk/?${utm.replace(/&/g, "&amp;")}" target="_blank" rel="sponsored noopener">
-      <picture>
-        <source media="(max-width: 600px)" srcset="/assets/reklama/${b.subor}-mobil.webp">
-        <img src="/assets/reklama/${b.subor}-1000.webp"
-             srcset="/assets/reklama/${b.subor}-1000.webp 1000w, /assets/reklama/${b.subor}-2000.webp 2000w"
-             sizes="(max-width: 860px) 100vw, 780px" width="2000" height="667"
-             alt="${esc(b.alt)}" loading="lazy" decoding="async">
-      </picture>
-    </a>
+    ${promo.markup(b, theme || "clanok", 780)}
   </aside>`;
 }
 

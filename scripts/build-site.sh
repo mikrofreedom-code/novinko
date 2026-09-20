@@ -38,6 +38,12 @@ for f in "${VOLITELNE[@]}"; do
   [ -f "$f" ] && cp -- "$f" "$OUT"/
 done
 
+# Zoznam reklamných bannerov. Býva v netlify/lib/, lebo ho cez require načítava
+# aj funkcia clanok.js — tam je načítanie súseda overené. Prehliadač ho dostane
+# ako /promo.js, takže index/zahrada/horoskop aj stránka článku čerpajú z toho
+# istého zoznamu a nemôžu sa rozísť.
+cp -- netlify/lib/promo.js "$OUT"/promo.js
+
 # Trvalé lokálne vizuály (napr. jeden zverokruhový obrázok pre všetky denné
 # horoskopy). Generované článkové obrázky naďalej žijú v Supabase Storage.
 if [ -d assets ]; then

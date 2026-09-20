@@ -98,20 +98,6 @@
   .arch-date { font-size: .72rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 
   .empty-note, .loading-note { color: var(--muted); font-style: italic; font-size: .88rem; padding: 20px 0; }
-  /* REKLAMA — vlastný eshop senvoria.sk. Obrázok je lokálny (assets/reklama/),
-     CSP inde než 'self' a Supabase obrázky nepustí. Pomer 3:1 drží width/height,
-     takže sa obsah pod ním počas načítania nehýbe. */
-  .promo-slot { margin: 36px 0 8px; }
-  .promo-label { display: block; font-size: .64rem; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .promo-banner { display: block; border: 1px solid var(--border); transition: border-color .15s; }
-  .promo-banner img { display: block; width: 100%; height: auto; }
-  /* Na telefóne je 3:1 banner taký nízky, že podnadpis v ňom nikto neprečíta
-     (overené v šírke 382 px). Pod 600 px sa preto načíta orezaná verzia
-     8:5, sústredená na text a tlačidlo — aspect-ratio drží miesto, kým
-     sa obrázok načíta, inak by obsah pod ním poskočil. */
-  @media (max-width: 600px) {
-    .promo-banner img { aspect-ratio: 1158 / 724; }
-  }
   .foot-note { text-align: center; padding: 34px 0 46px; font-size: .72rem; color: var(--muted); }
   .foot-note a { color: var(--cat-horoskop); }
 </style>
@@ -143,22 +129,9 @@
   <div id="signGrid" class="loading-note">Načítavam…</div>
   <div id="disclaimerBox"></div>
 
-  <!-- REKLAMA — vlastná propagácia eshopu senvoria.sk (Powerlink s. r. o.).
-       Štítok "Reklama" je viditeľný zámerne: komerčné oznámenie musí byť
-       odlíšiteľné od redakčného obsahu (DSA čl. 26). rel="sponsored" hovorí
-       Googlu, že nejde o redakčné odporúčanie. -->
-  <aside class="promo-slot" aria-label="Reklama">
-    <span class="promo-label">Reklama</span>
-    <a class="promo-banner" href="https://senvoria.sk/?utm_source=novinko.sk&amp;utm_medium=banner&amp;utm_campaign=pribeh-na-klik&amp;utm_content=horoskop" target="_blank" rel="sponsored noopener">
-      <picture>
-        <source media="(max-width: 600px)" srcset="/assets/reklama/senvoria-pribeh-na-klik-mobil.webp">
-        <img src="/assets/reklama/senvoria-pribeh-na-klik-1000.webp"
-           srcset="/assets/reklama/senvoria-pribeh-na-klik-1000.webp 1000w, /assets/reklama/senvoria-pribeh-na-klik-2000.webp 2000w"
-           sizes="(max-width: 1100px) 100vw, 1000px" width="2000" height="667"
-           alt="Senvoria.sk — príbeh na jeden klik, slovenské e-knihy" loading="lazy" decoding="async">
-      </picture>
-    </a>
-  </aside>
+
+  <!-- Reklama: jediný zoznam bannerov je v /promo.js, ten toto miesto vyplní. -->
+  <aside class="promo-slot" data-promo="horoskop" data-banner="senvoria-pribeh-na-klik"></aside>
 
   <div class="sec-head">
     <span class="sec-title"><span class="sec-dot">✦</span> Staršie dni</span>
@@ -338,5 +311,6 @@
     .catch(showError);
 </script>
 
+<script src="/promo.js" defer></script>
 </body>
 </html>
