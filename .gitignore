@@ -26,3 +26,9 @@ redakcia/web/
 
 # Výstup buildu webu (skladá ho scripts/build-site.sh)
 _site/
+
+# Pôvodné bannery od používateľa (3× ~1,9 MB PNG). Do gitu idú len zmenšené
+# WebP verzie v assets/reklama/, ktoré build zverejňuje — rovnaký prístup ako
+# pri zaloha-fotiek/ v redakcii. Lomka na začiatku je dôležitá: bez nej by
+# pravidlo vylúčilo aj assets/reklama/, teda práve tie súbory, čo idú na web.
+/reklama/

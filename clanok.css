@@ -165,3 +165,23 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* REKLAMA — vlastný eshop senvoria.sk. Obrázok je lokálny (assets/reklama/),
+   CSP img-src pustí len 'self' a Supabase. Platí pre obe cesty k článku:
+   serverovú (netlify/functions/clanok.js) aj clanok.html — súbor zdieľajú. */
+.promo-slot { margin: 36px 0 0; }
+.promo-label {
+  display: block; font-size: 0.64rem; font-weight: 700; letter-spacing: 1.3px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+.promo-banner { display: block; border: 1px solid var(--border); transition: border-color 0.15s; }
+.promo-banner:hover { border-color: var(--accent); }
+.promo-banner img { display: block; width: 100%; height: auto; }
+
+/* Na telefóne je 3:1 banner taký nízky, že podnadpis v ňom nikto neprečíta
+   (overené v šírke 382 px). Pod 600 px sa preto načíta orezaná verzia 8:5,
+   sústredená na text a tlačidlo — aspect-ratio drží miesto, kým sa obrázok
+   načíta, inak by obsah pod ním poskočil. */
+@media (max-width: 600px) {
+  .promo-banner img { aspect-ratio: 1158 / 724; }
+}

@@ -243,6 +243,22 @@
     @media (max-width: 480px) { .zahrada-card.lead { grid-column: span 1; } }
 
     /* ─── HOROSKOP (1 položka/deň → jedna teaser karta, nie mriežka) ─── */
+    /* REKLAMA — vlastný eshop senvoria.sk. Obrázky sú lokálne v assets/reklama/,
+       lebo CSP povoľuje img-src len 'self' a Supabase; externý banner by
+       prehliadač ticho zablokoval. Rozmery drží pomer 3:1 (2000×667), takže
+       počas načítania neposkakuje obsah pod ním. */
+    .promo-slot { margin: 34px 0 8px; }
+    .promo-label { display: block; font-size: 0.64rem; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .promo-banner { display: block; border: 1px solid var(--border); transition: border-color 0.15s; }
+    .promo-banner:hover { border-color: var(--accent); }
+    .promo-banner img { display: block; width: 100%; height: auto; }
+    /* Na telefóne je 3:1 banner taký nízky, že podnadpis v ňom nikto neprečíta
+       (overené v šírke 382 px). Pod 600 px sa preto načíta orezaná verzia
+       8:5, sústredená na text a tlačidlo — aspect-ratio drží miesto, kým
+       sa obrázok načíta, inak by obsah pod ním poskočil. */
+    @media (max-width: 600px) {
+      .promo-banner img { aspect-ratio: 1158 / 724; }
+    }
     .horoskop-section { margin: 34px 0 8px; }
     .horoskop-teaser { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); text-decoration: none; padding: 18px 20px; transition: border-color 0.15s; }
     .horoskop-teaser:hover { border-color: var(--cat-horoskop); }
@@ -606,6 +622,47 @@
 
     <!-- MAGAZÍNOVÉ SEKČNÉ BLOKY (domov) -->
     <div id="magSections"></div>
+
+    <!-- REKLAMA — vlastná propagácia eshopu senvoria.sk (Powerlink s. r. o.).
+         Štítok "Reklama" je viditeľný zámerne: komerčné oznámenie musí byť na
+         prvý pohľad odlíšiteľné od redakčného obsahu (DSA čl. 26 aj tlačový
+         zákon). Odkaz má rel="sponsored", aby ho Google nepočítal ako redakčné
+         odporúčanie. Banner v HTML je východiskový, skript nižšie ho pri každom
+         načítaní vymení za náhodný z troch — bez JS ostane tento. -->
+    <aside class="promo-slot" aria-label="Reklama">
+      <span class="promo-label">Reklama</span>
+      <a class="promo-banner" id="promoLink" href="https://senvoria.sk/?utm_source=novinko.sk&amp;utm_medium=banner&amp;utm_campaign=knihy-hned&amp;utm_content=hlavna" target="_blank" rel="sponsored noopener">
+        <picture>
+          <source id="promoMobil" media="(max-width: 600px)" srcset="/assets/reklama/senvoria-knihy-hned-mobil.webp">
+          <img id="promoImg" src="/assets/reklama/senvoria-knihy-hned-1000.webp"
+             srcset="/assets/reklama/senvoria-knihy-hned-1000.webp 1000w, /assets/reklama/senvoria-knihy-hned-2000.webp 2000w"
+             sizes="(max-width: 1100px) 100vw, 900px" width="2000" height="667"
+             alt="Senvoria.sk — slovenské e-knihy, ktoré máte hneď" loading="lazy" decoding="async">
+        </picture>
+      </a>
+    </aside>
+    <script>
+      // Striedanie troch bannerov — náhodne pri každom načítaní stránky, aby
+      // stály návštevník nevidel stále ten istý. Beží hneď, nie až po dátach
+      // z funkcie: banner nezávisí od obsahu a nemá čakať na sieť.
+      (function () {
+        var BANNERY = [
+          ['senvoria-knihy-hned', 'knihy-hned', 'Senvoria.sk — slovenské e-knihy, ktoré máte hneď'],
+          ['senvoria-pribeh-na-klik', 'pribeh-na-klik', 'Senvoria.sk — príbeh na jeden klik, e-knihy pre chvíle, ktoré patria vám'],
+          ['senvoria-bez-cakania', 'bez-cakania', 'Senvoria.sk — e-kniha bez čakania, po zaplatení ju máte v e-maile'],
+        ];
+        var v = BANNERY[Math.floor(Math.random() * BANNERY.length)];
+        var img = document.getElementById('promoImg');
+        var link = document.getElementById('promoLink');
+        if (!img || !link) return;
+        var zdroj = document.getElementById('promoMobil');
+        if (zdroj) zdroj.srcset = '/assets/reklama/' + v[0] + '-mobil.webp';
+        img.src = '/assets/reklama/' + v[0] + '-1000.webp';
+        img.srcset = '/assets/reklama/' + v[0] + '-1000.webp 1000w, /assets/reklama/' + v[0] + '-2000.webp 2000w';
+        img.alt = v[2];
+        link.href = 'https://senvoria.sk/?utm_source=novinko.sk&utm_medium=banner&utm_campaign=' + v[1] + '&utm_content=hlavna';
+      })();
+    </script>
 
     <!-- SEKČNÝ ZOZNAM (pohľad na jednu sekciu) -->
     <div id="sectionList"></div>
