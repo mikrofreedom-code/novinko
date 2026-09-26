@@ -101,6 +101,12 @@ header {
 }
 .article-img {
   border-radius:0;
+  width:auto;
+  max-width:100%;
+  height:auto;
+  max-height:560px;
+  margin-inline:auto;
+  object-fit:contain;
 }
 .dalsie-clanky {
   border-color:var(--border);
