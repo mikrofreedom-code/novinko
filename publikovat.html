@@ -71,7 +71,6 @@
       <option value="recepty">Recepty</option>
       <option value="zahady">Záhady a fenomény</option>
     </select>
-    <small>Zoznam musí sedieť s POVOLENE_KATEGORIE v manual-publish.js — čokoľvek mimo neho skončí v Krypte.</small>
   </label>
 
   <!-- Recept má vlastnú štruktúru (suroviny/postup/časy), nie voľný text —
@@ -125,59 +124,30 @@
     <legend>Záhady a fenomény</legend>
     <label>Podkategória
       <select name="subcategory">
-        <option value="zahady">Záhady sveta</option><option value="miesta">Tajomné miesta</option>
-        <option value="historia">História a archeológia</option><option value="javy">Nevysvetlené javy</option>
-        <option value="vesmir">Vesmír a neznámo</option><option value="uap">UFO a UAP</option>
-        <option value="legendy">Legendy a folklór</option><option value="povery">Povery a tradície</option>
-        <option value="magia">Mágia</option><option value="ezoterika">Ezoterika</option>
-        <option value="sny">Sny a symbolika</option><option value="astrologia">Astrológia</option>
-        <option value="tarot">Tarot</option><option value="numerologia">Numerológia</option>
+        <option value="zahady">Záhady sveta</option>
+        <option value="historia">História</option>
+        <option value="vesmir">Vesmír</option>
+        <option value="legendy">Legendy</option>
+        <option value="ezoterika">Ezoterika</option>
       </select>
     </label>
-    <label>Typ obsahu
-      <select name="contentType">
-        <option value="F">Faktografický článok</option><option value="M">Záhada</option>
-        <option value="H">Hypotéza</option><option value="L">Legenda alebo tradícia</option>
-        <option value="E">Ezoterický výklad</option><option value="N">Nový objav</option>
-      </select>
-    </label>
-    <label>Séria
-      <select name="series">
-        <option value="">Bez série</option><option value="slovensko">Tajomné Slovensko</option>
-        <option value="europa">Záhady Európy</option><option value="svet">Záhady sveta</option>
-        <option value="tyzden">Záhada týždňa</option>
-      </select>
-    </label>
-    <label>Kanonický názov témy
-      <input name="canonicalTopic" maxlength="180" placeholder="napr. Loď Mary Celeste">
-      <small>Rovnaký prípad patrí pod jeden názov, aj keď článok dostane iný titulok.</small>
-    </label>
-    <label>Ďalšie názvy témy
-      <input name="topicAliases" placeholder="Mary Celeste, zmiznutie posádky Mary Celeste">
-      <small>Oddeľ čiarkou. Pomáha kontrole duplicít.</small>
-    </label>
-    <label>Dôvod samostatného článku o existujúcej téme <small>(vyplň iba výnimočne)</small>
-      <textarea name="newAngleReason" maxlength="500" style="min-height:80px" placeholder="Nové dokumenty, nová štúdia alebo výrazne odlišný redakčný uhol..."></textarea>
-      <small>Bežnú aktualizáciu urob načítaním pôvodného článku podľa ID.</small>
-    </label>
-    <label>Krajina <small>(voliteľné)</small><input name="country" placeholder="Slovensko"></label>
-    <label>Miesto <small>(voliteľné)</small><input name="location" placeholder="obec, hrad alebo oblasť"></label>
-    <label>Historické obdobie <small>(voliteľné)</small><input name="historicalPeriod" placeholder="napr. 19. storočie"></label>
-    <label>Osoby <small>(voliteľné, oddeľ čiarkou)</small><input name="persons"></label>
-    <label>Hlavné entity <small>(voliteľné, oddeľ čiarkou)</small><input name="mainEntities"></label>
-    <label>Zdroje
-      <textarea name="sourcesText" style="min-height:100px" placeholder="Názov zdroja | https://example.org/zdroj"></textarea>
-      <small>Každý zdroj na vlastný riadok vo formáte Názov | https://odkaz. Pri faktografickom článku použi primárne zdroje, ak sú dostupné.</small>
-    </label>
-    <label>Pôvod titulného obrázka
-      <select name="imageKind"><option value="photo">Fotografia</option><option value="archive">Archívny materiál</option>
-        <option value="illustration">Ilustrácia</option><option value="ai">AI ilustrácia</option></select>
-    </label>
-    <label>SEO titulok <small>(voliteľné)</small><input name="seoTitle" maxlength="100"></label>
-    <label>Meta popis <small>(voliteľné)</small><textarea name="metaDescription" maxlength="200" style="min-height:70px"></textarea></label>
-    <label>Hlavné kľúčové slovo <small>(voliteľné)</small><input name="focusKeyword"></label>
-    <label>Ďalšie kľúčové slová <small>(oddeľ čiarkou)</small><input name="secondaryKeywords"></label>
-    <label>Tagy <small>(oddeľ čiarkou)</small><input name="tags"></label>
+    <input type="hidden" name="contentType" value="F">
+    <input type="hidden" name="series" value="">
+    <input type="hidden" name="canonicalTopic" value="">
+    <input type="hidden" name="topicAliases" value="">
+    <input type="hidden" name="newAngleReason" value="">
+    <input type="hidden" name="country" value="">
+    <input type="hidden" name="location" value="">
+    <input type="hidden" name="historicalPeriod" value="">
+    <input type="hidden" name="persons" value="">
+    <input type="hidden" name="mainEntities" value="">
+    <input type="hidden" name="sourcesText" value="">
+    <input type="hidden" name="imageKind" value="photo">
+    <input type="hidden" name="seoTitle" value="">
+    <input type="hidden" name="metaDescription" value="">
+    <input type="hidden" name="focusKeyword" value="">
+    <input type="hidden" name="secondaryKeywords" value="">
+    <input type="hidden" name="tags" value="">
   </fieldset>
 
   <label class="standardSource">Zdroj (meno)
@@ -274,11 +244,8 @@ function toggleReceptFields() {
   const suZahady = categorySelect.value === 'zahady';
   receptFields.style.display = jeRecept ? 'block' : 'none';
   zahadyFields.style.display = suZahady ? 'block' : 'none';
-  document.querySelectorAll('.standardSource').forEach((el) => { el.style.display = suZahady ? 'none' : 'block'; });
   textField.closest('label').style.display = jeRecept ? 'none' : 'block';
   textField.required = !jeRecept;
-  zahadyFields.querySelector('[name="canonicalTopic"]').required = suZahady;
-  zahadyFields.querySelector('[name="sourcesText"]').required = suZahady;
 }
 categorySelect.addEventListener('change', toggleReceptFields);
 toggleReceptFields();
@@ -302,6 +269,10 @@ document.getElementById('loadArticleBtn').addEventListener('click', async () => 
     f.elements.topicAliases.value = (article.aliases || []).join(', ');
     for (const key of ['persons','mainEntities','secondaryKeywords','tags']) f.elements[key].value = (article[key] || []).join(', ');
     f.elements.sourcesText.value = (article.sources || []).map((s) => `${s.name} | ${s.url}`).join('\n');
+    if (article.sources?.[0]) {
+      f.elements.source.value = article.sources[0].name || '';
+      f.elements.sourceUrl.value = article.sources[0].url || '';
+    }
     toggleReceptFields();
     status.className = 'ok'; status.textContent = 'Článok načítaný. Po úprave tlačidlo Publikovať aktualizuje tú istú adresu.';
   } catch (e) { status.className = 'err'; status.textContent = e.message; }
@@ -354,6 +325,46 @@ function poskladajReceptText(data) {
   ].join('\n\n');
 }
 
+function nazovZdrojaZUrl(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
+function doplnZahadyMetadata(data) {
+  data.canonicalTopic = String(data.canonicalTopic || data.headline || '').trim();
+  data.contentType = data.contentType || {
+    zahady: 'M', miesta: 'M', legendy: 'L', povery: 'L',
+    magia: 'E', ezoterika: 'E', sny: 'E', astrologia: 'E',
+    tarot: 'E', numerologia: 'E',
+  }[data.subcategory] || 'F';
+
+  if (data.generateAiImage || String(data.imagePrompt || '').trim()) {
+    data.imageKind = 'ai';
+  } else {
+    data.imageKind = data.imageKind || 'photo';
+  }
+
+  const zdrojeZKonceptu = String(data.sourcesText || '').split('\n').map((line) => {
+    const cut = line.indexOf('|');
+    if (cut < 1) return null;
+    return { name: line.slice(0, cut).trim(), url: line.slice(cut + 1).trim() };
+  }).filter(Boolean);
+  if (zdrojeZKonceptu.length) {
+    data.sources = zdrojeZKonceptu;
+    return;
+  }
+
+  const url = String(data.sourceUrl || '').trim();
+  if (!url) throw new Error('Pri Záhadách zadaj aj odkaz na zdroj.');
+  data.sources = [{
+    name: String(data.source || '').trim() || nazovZdrojaZUrl(url) || 'Zdroj',
+    url,
+  }];
+}
+
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btn');
@@ -373,12 +384,7 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       data.text = poskladajReceptText(data);
     }
     if (data.category === 'zahady') {
-      data.sources = String(data.sourcesText || '').split('\n').map((line) => {
-        const cut = line.indexOf('|');
-        if (cut < 1) return null;
-        return { name: line.slice(0, cut).trim(), url: line.slice(cut + 1).trim() };
-      }).filter(Boolean);
-      if (!data.sources.length) throw new Error('Zadaj aspoň jeden zdroj vo formáte Názov | https://odkaz.');
+      doplnZahadyMetadata(data);
     }
     delete data.sourcesText;
     // Pomocné polia manual-publish.js nepozná — nemá zmysel ich posielať

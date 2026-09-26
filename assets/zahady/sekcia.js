@@ -4,6 +4,12 @@
   const labels = Object.fromEntries([...$('tema').options].map((o) => [o.value, o.textContent]));
   const seriesLabels = Object.fromEntries([...$('seria').options].map((o) => [o.value, o.textContent]));
   const types = { F: 'Faktografický článok', M: 'Záhada', H: 'Hypotéza', L: 'Legenda alebo tradícia', E: 'Ezoterický výklad', N: 'Nový objav' };
+  const topicMap = {
+    miesta: 'zahady', javy: 'zahady', uap: 'zahady',
+    povery: 'legendy',
+    magia: 'ezoterika', sny: 'ezoterika', astrologia: 'ezoterika', tarot: 'ezoterika', numerologia: 'ezoterika',
+  };
+  const mainTopic = (value) => topicMap[value] || (Object.hasOwn(labels, value) ? value : '');
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const normalize = (v) => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const articleLink = (url) => /^\/clanok\/[a-z0-9-]+$/.test(String(url || '')) ? url : null;
@@ -18,7 +24,7 @@
   let topic = '', series = '', query = '';
   function readLocation() {
     const p = new URLSearchParams(location.search);
-    topic = Object.hasOwn(labels, p.get('tema')) ? p.get('tema') : '';
+    topic = mainTopic(p.get('tema'));
     series = Object.hasOwn(seriesLabels, p.get('series')) ? p.get('series') : '';
     query = (p.get('q') || '').slice(0, 200);
     $('tema').value = topic; $('seria').value = series; $('hladat').value = query;
@@ -39,7 +45,8 @@
     const image = imageLink(item.image);
     const date = new Date(item.pubDate);
     const dateHTML = Number.isNaN(date.getTime()) ? '' : `<time datetime="${date.toISOString()}">${date.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' })}</time>`;
-    return `<article class="story"><a href="${esc(articleLink(item.link))}"><span class="story-media">${image ? `<img src="${esc(image)}" alt="" width="640" height="400" loading="lazy">${imageCaption(item) ? '<span class="image-credit">AI ilustrácia</span>' : ''}` : '<span class="story-media story-placeholder" aria-hidden="true">N.</span>'}</span><div class="story-body"><div class="story-meta"><span class="story-category">${esc(labels[m.subcategory] || 'Záhady a fenomény')}</span>${types[m.contentType] ? `<span class="story-type">${esc(types[m.contentType])}</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || '')}</p>${dateHTML}</div></a></article>`;
+    const label = labels[mainTopic(m.subcategory)] || 'Záhady a fenomény';
+    return `<article class="story"><a href="${esc(articleLink(item.link))}"><span class="story-media">${image ? `<img src="${esc(image)}" alt="" width="640" height="400" loading="lazy">${imageCaption(item) ? '<span class="image-credit">AI ilustrácia</span>' : ''}` : '<span class="story-media story-placeholder" aria-hidden="true">N.</span>'}</span><div class="story-body"><div class="story-meta"><span class="story-category">${esc(label)}</span>${types[m.contentType] ? `<span class="story-type">${esc(types[m.contentType])}</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || '')}</p>${dateHTML}</div></a></article>`;
   }
   function show() {
     const active = Boolean(topic || series || query);
@@ -58,8 +65,9 @@
     const words = normalize(query).trim().split(/\s+/).filter(Boolean);
     const visible = items.filter((item) => {
       const m = item.mystery || {};
-      const haystack = normalize([item.title, item.description, m.canonicalTopic, m.location, labels[m.subcategory], ...(Array.isArray(m.tags) ? m.tags : [])].join(' '));
-      return (!topic || m.subcategory === topic) && (!series || m.series === series) && words.every((word) => haystack.includes(word));
+      const itemTopic = mainTopic(m.subcategory);
+      const haystack = normalize([item.title, item.description, m.canonicalTopic, m.location, labels[itemTopic], ...(Array.isArray(m.tags) ? m.tags : [])].join(' '));
+      return (!topic || itemTopic === topic) && (!series || m.series === series) && words.every((word) => haystack.includes(word));
     });
     const n = visible.length;
     $('count').textContent = `${n} ${n === 1 ? 'článok' : n > 1 && n < 5 ? 'články' : 'článkov'}`;

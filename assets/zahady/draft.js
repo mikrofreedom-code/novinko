@@ -3,6 +3,11 @@
   const input = document.getElementById('draftFile');
   const form = document.getElementById('f');
   const fields = ['headline','perex','text','category','subcategory','contentType','series','canonicalTopic','topicAliases','newAngleReason','country','location','historicalPeriod','persons','mainEntities','imageKind','seoTitle','metaDescription','focusKeyword','secondaryKeywords','tags','imageUrl','imageCredit'];
+  const subcategoryFallback = {
+    miesta: 'zahady', javy: 'zahady', uap: 'zahady',
+    povery: 'legendy', magia: 'ezoterika', sny: 'ezoterika',
+    astrologia: 'ezoterika', tarot: 'ezoterika', numerologia: 'ezoterika',
+  };
   input.addEventListener('change', async () => {
     const file = input.files?.[0];
     if (!file) return;
@@ -14,6 +19,9 @@
       for (const key of fields) {
         if (draft[key] != null && typeof draft[key] !== 'string') throw new Error(`Neplatné pole konceptu: ${key}`);
         const control = form.elements[key];
+        if (key === 'subcategory' && draft[key] && control instanceof HTMLSelectElement && ![...control.options].some((o) => o.value === draft[key])) {
+          draft[key] = subcategoryFallback[draft[key]] || 'zahady';
+        }
         if (control instanceof HTMLSelectElement && draft[key] && ![...control.options].some((o) => o.value === draft[key])) throw new Error(`Neplatná hodnota: ${key}`);
       }
       if (!draft.headline?.trim() || !draft.text?.trim() || !draft.perex?.trim()) throw new Error('Koncept potrebuje titulok, perex a text.');
@@ -23,6 +31,8 @@
       form.reset();
       for (const key of fields) if (form.elements[key]) form.elements[key].value = draft[key] || '';
       form.elements.sourcesText.value = draft.sources.map((s) => `${s.name} | ${s.url}`).join('\n');
+      form.elements.source.value = draft.sources[0]?.name || '';
+      form.elements.sourceUrl.value = draft.sources[0]?.url || '';
       form.elements.category.dispatchEvent(new Event('change', { bubbles: true }));
       document.getElementById('preview').style.display = 'none';
       status.className = 'ok';

@@ -644,7 +644,7 @@ select {
 }
 .topic-grid {
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(5,1fr);
   border-block:1px solid var(--line);
 }
 .topic-card {
@@ -889,6 +889,9 @@ select {
   }
   .topic-card h3 {
     font-size:22px;
+  }
+  .topic-grid {
+    grid-template-columns:repeat(3,1fr);
   }
   .footer-inner {
     flex-wrap:wrap;
