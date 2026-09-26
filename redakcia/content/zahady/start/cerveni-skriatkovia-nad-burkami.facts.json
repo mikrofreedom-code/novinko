@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-09-26",
+  "article": "cerveni-skriatkovia-nad-burkami",
+  "claims": [
+    {
+      "claim": "Prvý kamerový dôkaz v roku 1989 pri teste kamery tímom University of Minnesota.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Spojenie s bleskami a elektrickým poľom; červená farba súvisí s dusíkom.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Fotografia: Matthew Dominick, ISS, 3. júna 2024.",
+      "sources": [
+        3
+      ],
+      "kind": "fact"
+    }
+  ],
+  "notes": "Bez priamej citácie. Redakčné zhrnutie a metodické komentáre oddelené od historických a vedeckých tvrdení."
+}

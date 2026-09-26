@@ -1,9 +1,9 @@
-// Zostavenie riadku pre hárok "articles" (stĺpce A:I). Zdieľané medzi
+// Zostavenie riadku pre hárok "articles" (stĺpce A:J). Zdieľané medzi
 // telegram-webhook.js (schválené články z novinko-redakcia) a
 // manual-publish.js (ručne pridané články cez formulár).
 // Rovnaký formát ako novinko-redakcia/lib/_shared/sheets.js articleToRow
 // (A:id, B:titulok, C:perex, D:telo, E:zdroj|link, F:dátum, G:kategória,
-//  H:obrázok, I:zdroj obrázka).
+//  H:obrázok, I:zdroj obrázka, J:metadáta Záhad).
 const PARAGRAPH_DELIM = "¶¶";
 
 // Text sa v hárku ukladá s ¶¶ medzi odsekmi — skutočný nový riadok by rozbil
@@ -46,6 +46,7 @@ function articleToRow(article, category, publishAt) {
     article.category || category || "krypto",
     article.image_url || "",
     article.image_credit || "",   // I: zdroj obrázka (len pri vlastnej fotke)
+    article.category === "zahady" ? JSON.stringify(article.mystery || {}) : "", // J: metadáta rubriky
   ];
 }
 

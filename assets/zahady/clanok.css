@@ -1,0 +1,148 @@
+/* Rubrika Záhady a fenomény: rovnaká paleta a typografická hierarchia ako magazín. */
+:root {
+  --bg:#f7f5ef;
+  --surface:#fffef9;
+  --border:#d7d9cf;
+  --accent:#49614f;
+  --gold:#856735;
+  --text:#202e29;
+  --text2:#435147;
+  --muted:#606b63;
+  --header-bg:#111b17;
+}
+header {
+  border-bottom:0;
+}
+.header-inner {
+  max-width:1120px;
+  height:76px;
+}
+.logo span {
+  color:#c8a76b;
+}
+.logo-tagline {
+  color:#d8c59f;
+  letter-spacing:1.2px;
+}
+.article-wrap {
+  max-width:880px;
+  padding-top:50px;
+}
+.article-meta {
+  font-size:12px;
+}
+.cat-badge {
+  border-radius:0;
+  border:0;
+  background:transparent;
+  padding:3px 0;
+  letter-spacing:1.4px;
+}
+.article-title {
+  font-size:clamp(2rem,4.2vw,3rem);
+  line-height:1.25;
+  letter-spacing:-1.2px;
+  font-weight:400;
+}
+.mystery-context {
+  gap:14px;
+  margin:6px 0 28px;
+}
+.mystery-context span {
+  border:0;
+  border-radius:0;
+  border-left:2px solid #9a8259;
+  padding:0 0 0 10px;
+  font-size:12px;
+}
+.article-perex {
+  border-left:2px solid var(--gold);
+  font-size:1.18rem;
+  line-height:1.75;
+  padding-left:22px;
+}
+.article-content {
+  font-size:1.08rem;
+  line-height:1.85;
+}
+.article-content p {
+  margin-bottom:1.6em;
+}
+.mystery-note {
+  background:#eaece1;
+  border-left:2px solid var(--gold);
+  font-size:14px;
+  padding:18px 22px;
+}
+.mystery-sources {
+  padding:25px;
+  background:#eaece1;
+}
+.mystery-sources h2 {
+  margin-bottom:15px;
+  font-weight:400;
+  font-size:20px;
+}
+.mystery-sources ul {
+  font-size:14px;
+  line-height:1.9;
+}
+.mystery-tags span {
+  border-color:var(--border);
+  border-radius:0;
+  background:transparent;
+  padding:5px 10px;
+}
+.back-link {
+  border-radius:0;
+}
+.article-figure {
+  margin-block:26px;
+}
+.article-img {
+  border-radius:0;
+}
+.dalsie-clanky {
+  border-color:var(--border);
+}
+a:focus-visible {
+  outline:3px solid #a57b38;
+  outline-offset:4px;
+}
+@media(max-width:560px) {
+  .header-inner {
+    height:65px;
+  }
+  .article-wrap {
+    padding-top:30px;
+  }
+  .article-title {
+    font-size:2rem;
+    letter-spacing:-.7px;
+  }
+  .article-content {
+    font-size:1rem;
+  }
+  .article-perex {
+    font-size:1.05rem;
+  }
+  .article-date {
+    margin-left:0;
+  }
+  .mystery-sources {
+    padding:18px;
+  }
+}
+.article-content h2 {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 1.8em 0 .75em;
+  line-height: 1.4;
+}
+.mystery-sources ol {
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}

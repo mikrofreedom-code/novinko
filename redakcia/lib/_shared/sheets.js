@@ -1,5 +1,5 @@
 // GOOGLE SHEETS — zápis článku do existujúceho Novinko (živá stránka).
-// Rovnaký formát ako netlify/lib/article-row.js: hárok "articles", stĺpce A:I.
+// Rovnaký formát ako netlify/lib/article-row.js: hárok "articles", stĺpce A:J.
 // Zámerne ŽIADNE čítanie/miešanie s pipeline Supabase — len zápis riadku.
 import jwt from 'jsonwebtoken';
 
@@ -58,6 +58,7 @@ export function articleToRow(article, category = 'krypto') {
     article.category || category,                 // G: kategória
     article.image_url || '',                      // H: obrázok
     article.image_credit || '',                   // I: zdroj obrázka (autor/agentúra)
+    article.category === 'zahady' ? JSON.stringify(article.mystery || {}) : '', // J: metadáta rubriky
   ];
 }
 
@@ -66,7 +67,7 @@ export async function appendArticleRow(row) {
   const id = process.env.GOOGLE_SHEETS_ID;
   if (!id) throw new Error('chýba GOOGLE_SHEETS_ID');
   const token = await getAccessToken();
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/articles!A:I:append`
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/articles!A:J:append`
             + `?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
   const res = await fetch(url, {
     method: 'POST',

@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-09-26",
+  "article": "historia-tarotu",
+  "claims": [
+    {
+      "claim": "Raný tarot bol kartovou hrou v Taliansku 15. storočia.",
+      "sources": [
+        1,
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Morgan uchováva 35 kariet súboru Visconti-Sforza.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Veštecké použitie sa rozvíjalo v závere 18. storočia; egyptský pôvod je nepreukázaná predstava.",
+      "sources": [
+        3
+      ],
+      "kind": "fact"
+    }
+  ],
+  "notes": "Bez priamej citácie. Redakčné zhrnutie a metodické komentáre oddelené od historických a vedeckých tvrdení."
+}

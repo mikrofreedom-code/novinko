@@ -31,7 +31,7 @@ const AGENT = '02-event-gateway';
 const MIN_MOVE_PCT = Number(process.env.MIN_MOVE_PCT ?? 5);        // prah hrubého šumu (Layer A)
 const TVL_MIN_PCT = Number(process.env.TVL_MIN_PCT ?? 15);        // prah zmeny TVL (menej volatilné než cena)
 const DEDUP_WINDOW_H = Number(process.env.DEDUP_WINDOW_H ?? 6);    // okno proti opakovaniu (Layer A)
-const FEED_MAX_AGE_DAYS = Number(process.env.FEED_MAX_AGE_DAYS ?? 7); // text: ako staré ešte berieme
+const FEED_MAX_AGE_DAYS = Number(process.env.FEED_MAX_AGE_DAYS ?? 4); // text: ako staré ešte berieme
 
 // Už bol tento dedup_key vpustený ďalej (status mimo raw/rejected/error) v okne?
 // Okno sa líši podľa zdroja: feedy re-listujú položky dni → dlhé okno (= max vek),

@@ -1,0 +1,39 @@
+{
+  "format": "novinko-manual-draft-v1",
+  "category": "zahady",
+  "headline": "Červení škriatkovia nad búrkami: krátky záblesk, ktorý má prirodzené vysvetlenie",
+  "perex": "Nad búrkovými oblakmi sa niekedy objavia červené svetelné útvary pripomínajúce stĺpy alebo medúzy. Takzvané sprites sú zdokumentované elektrické javy vo vysokej atmosfére. Poznáme ich spojenie s bleskami, no výskumníci ďalej skúmajú podmienky ich vzniku aj ich účinky.",
+  "subcategory": "javy",
+  "contentType": "F",
+  "series": "svet",
+  "canonicalTopic": "Červení škriatkovia – sprites",
+  "topicAliases": "Red sprites, červené nadoblačné výboje",
+  "country": "",
+  "location": "Horná atmosféra Zeme",
+  "historicalPeriod": "",
+  "persons": "",
+  "mainEntities": "Sprites, NASA, Spritacular",
+  "imageKind": "photo",
+  "imageUrl": "https://novinko.sk/assets/zahady/clanky/sprites.webp",
+  "imageCredit": "NASA / Matthew Dominick; snímka z ISS z 3. júna 2024, prevod na WebP.",
+  "seoTitle": "Červení škriatkovia nad búrkami: čo sú sprites",
+  "metaDescription": "Červené záblesky nad búrkami sú skutočný atmosférický jav. Ako vznikajú sprites, prečo ich ťažko vidíme a čo o nich skúma NASA?",
+  "focusKeyword": "červení škriatkovia",
+  "secondaryKeywords": "sprites, nadoblačné výboje, atmosférické javy",
+  "tags": "atmosféra, búrky, sprites, NASA",
+  "sources": [
+    {
+      "name": "NASA: Spritacular — vznik projektu a vysvetlenie javu (2022)",
+      "url": "https://www.nasa.gov/general/spritacular-nasas-new-citizen-science-project-to-capture-elusive-upper-atmospheric-electrical-phenomena-on-camera/"
+    },
+    {
+      "name": "NASA Science: The Great Sprites Chase (2022)",
+      "url": "https://science.nasa.gov/blogs/the-sun-spot/2022/10/27/the-great-sprites-chase/"
+    },
+    {
+      "name": "NASA: A Midsummer Red Sprite Seen from Space (2024); obrazový zdroj",
+      "url": "https://www.nasa.gov/image-article/a-midsummer-red-sprite-seen-from-space/"
+    }
+  ],
+  "text": "## Svetlo nad vrcholmi oblakov\n\nFotografia búrky nemusí zachytiť iba blesk smerujúci k zemi. Vysoko nad oblakmi môžu na kratučký okamih vzniknúť rozvetvené červené útvary. V angličtine sa nazývajú sprites; slovenské pomenovanie červení škriatkovia vystihuje ich nepolapiteľnosť, nie nadprirodzený pôvod.\n\nNASA ich zaraďuje medzi prechodné svetelné javy, označované skratkou TLE. Objavujú sa v hornej atmosfére, ďaleko nad bežnými búrkovými oblakmi. Sprites pritom tvoria iba jednu časť širšej rodiny svetelných úkazov spojených s elektrickou aktivitou búrok. [1]\n\n## Prečo na dôkaz čakala kamera\n\nSprávy o zvláštnych svetlách nad búrkami existovali dávno pred spoľahlivými obrazovými záznamami. Zlom podľa NASA nastal v roku 1989. Vedci z Minnesotskej univerzity vtedy skúšali citlivú televíznu kameru pre pripravovanú raketovú misiu a jav zachytili náhodou. [1]\n\nDôležité je, čo tento dátum znamená. Nie je to rok, keď škriatkovia začali v atmosfére vznikať. Je to míľnik v ich dokumentovaní: krátky úkaz dostal záznam, ktorý bolo možné opakovane skúmať.\n\n## Čo vytvára červený záblesk\n\nZákladné fyzikálne vysvetlenie vychádza zo spojenia búrky s elektrickým poľom vysoko nad ňou. Silný bleskový výboj môže zmeniť toto pole natoľko, že v riedkom vzduchu vznikne ďalší elektrický výboj. Interakcie s dusíkom súvisia s charakteristickou červenou farbou. NASA opisuje sprites najmä v spojení s kladnými bleskami medzi oblakom a zemou; neplatí však, že každý taký blesk musí vytvoriť škriatka. [2]\n\nNa snímkach sa môžu objaviť stĺpcové útvary aj rozvetvené tvary pripomínajúce medúzy. Tieto obrazné pomenovania opisujú vzhľad záznamu. Nepredstavujú samostatné bytosti ani dôkaz neznámeho návštevníka v atmosfére.\n\n## Fotografia ukáže viac než letmý pohľad\n\nPri pohľade voľným okom môže byť jav iba krátkym bliknutím. Citlivá kamera umožní zachytiť detaily, ktoré človek počas takej krátkej udalosti nerozozná. Pozorovanie zároveň komplikuje svetelné znečistenie a oblačnosť; búrka priamo nad pozorovateľom zakryje výhľad na priestor nad oblakmi. [2]\n\nTitulný obrázok tohto článku pochádza z Medzinárodnej vesmírnej stanice. Astronaut Matthew Dominick ho podľa NASA vyfotografoval 3. júna 2024. Na snímke sú svetelné udalosti nad búrkami pri pobreží Južnej Afriky. Ide o reálny pozorovací záznam, nie o vizualizáciu vytvorenú umelou inteligenciou. [3]\n\n## Čo je predmetom ďalšieho skúmania\n\nVysvetlenie základného mechanizmu ešte neznamená, že vedci poznajú každý detail. NASA pri predstavení projektu Spritacular uvádzala otázky týkajúce sa frekvencie javov, ich rozmanitých tvarov a súvislostí s podmienkami v atmosfére. Zmyslom projektu je zhromažďovať pozorovania, ku ktorým možno priradiť miesto a čas. [1]\n\nČervení škriatkovia sú preto dobrým príkladom javu, ktorý dokáže zostať vizuálne neobyčajný aj po nájdení prirodzeného vysvetlenia. Otvorené výskumné otázky nenahrádzajú to, čo už bolo pozorovaním a fyzikou doložené."
+}

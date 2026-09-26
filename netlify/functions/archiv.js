@@ -23,6 +23,7 @@
 const { SHEET_CSV_URL, CATS } = require("../lib/config");
 const { parseCSVLine } = require("../lib/csv");
 const { renderArchiv, renderNenajdene } = require("../lib/clanok-render");
+const { parseMeta } = require("../lib/zahady");
 
 const HTML = { "Content-Type": "text/html; charset=utf-8" };
 // Rovnaké hodnoty ako clanok.js. Kratší čas na CDN by nič nepriniesol, dlhší
@@ -42,9 +43,10 @@ exports.handler = async () => {
   }
 
   const clanky = riadky.map((line) => {
-    const [id, title, perex, content, source, date, category] = parseCSVLine(line);
+    const [id, title, perex, content, source, date, category, , , metaCell] = parseCSVLine(line);
     if (!id || !title) return null;
-    return { id, title, perex, content, source, date, category };
+    return { id, title, perex, content, source, date, category,
+      mystery: category === 'zahady' ? parseMeta(metaCell) : {} };
   }).filter(Boolean);
 
   if (!clanky.length) {

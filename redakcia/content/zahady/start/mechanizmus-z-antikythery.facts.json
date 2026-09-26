@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-09-26",
+  "article": "mechanizmus-z-antikythery",
+  "claims": [
+    {
+      "claim": "Datovanie približne 150–100 pred n. l. je uvádzané ako pravdepodobné.",
+      "sources": [
+        1,
+        4
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Vrak a vyzdvihovanie 1900–1901; rozpoznanie mechanizmu 1902.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "82 fragmentov, 30 zachovaných kolies a približne tretina pôvodného zariadenia podľa štúdie 2021.",
+      "sources": [
+        3
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Model prednej časti z roku 2021 nie je kompletný zachovaný originál.",
+      "sources": [
+        3
+      ],
+      "kind": "hypothesis"
+    }
+  ],
+  "notes": "Bez priamej citácie. Redakčné zhrnutie a metodické komentáre oddelené od historických a vedeckých tvrdení."
+}

@@ -11,6 +11,7 @@
 const { appendRow, sheetRowIds } = require("../lib/sheets");
 const { sendArticle } = require("../lib/telegram");
 const { loadScheduled, saveScheduled, connect } = require("../lib/store");
+const { syncMysteryTopic } = require("../lib/topics");
 
 exports.handler = async (event) => {
   connect(event);
@@ -32,6 +33,10 @@ exports.handler = async (event) => {
       if (!vHarku.has(id)) {
         await appendRow(process.env.GOOGLE_SHEETS_ID, item.row, process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
         await sendArticle({ title: item.headline, perex: item.perex, imageUrl: item.imageUrl, sheetId: id });
+      }
+      if (item.row?.[6] === 'zahady') {
+        try { await syncMysteryTopic(item.row); }
+        catch (e) { console.error(`[publish-scheduled] evidencia témy ${id}: ${e.message}`); }
       }
       hotove.add(id);
     } catch (e) {

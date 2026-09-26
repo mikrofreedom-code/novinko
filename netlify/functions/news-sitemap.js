@@ -15,6 +15,7 @@
 const { SHEET_CSV_URL } = require("../lib/config");
 const { parseCSVLine } = require("../lib/csv");
 const { clanokUrl, esc, SITE } = require("../lib/clanok-render");
+const { parseMeta } = require("../lib/zahady");
 
 const XML = { "Content-Type": "application/xml; charset=utf-8" };
 const OKNO_H = 48;
@@ -32,11 +33,11 @@ exports.handler = async () => {
 
   const hranica = Date.now() - OKNO_H * 60 * 60 * 1000;
   const clanky = riadky.map((line) => {
-    const [id, title, , , , date] = parseCSVLine(line);
+    const [id, title, , , , date, category, , , metaCell] = parseCSVLine(line);
     if (!id || !title || !date) return null;
     const t = new Date(date).getTime();
     if (isNaN(t) || t < hranica) return null;
-    return { id, title, date };
+    return { id, title, date, mystery: category === 'zahady' ? parseMeta(metaCell) : {} };
   }).filter(Boolean)
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 

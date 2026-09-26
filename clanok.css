@@ -63,6 +63,15 @@ header {
   border: 1px solid rgba(167,120,24,0.35);
 }
 
+.mystery-context { display: flex; gap: 8px; flex-wrap: wrap; margin: -4px 0 20px; }
+.mystery-context span { border: 1px solid var(--gold); color: var(--text2); border-radius: 20px; padding: 3px 10px; font-size: .78rem; }
+.mystery-sources { margin: 20px 0; }
+.mystery-sources h2 { font-family: 'Libre Baskerville', serif; font-size: 1rem; margin-bottom: 8px; }
+.mystery-sources ul { margin: 0; padding-left: 20px; line-height: 1.7; overflow-wrap: anywhere; }
+.mystery-note { background: rgba(167,120,24,.08); border-left: 3px solid var(--gold); padding: 12px 15px; margin: 0 0 22px; line-height: 1.55; }
+.mystery-tags { display:flex; flex-wrap:wrap; gap:7px; margin:24px 0; }
+.mystery-tags span { border:1px solid var(--gold); border-radius:18px; padding:3px 10px; font-size:.78rem; color:var(--text2); }
+
 .article-source {
   font-size: 0.8rem; color: var(--muted);
 }

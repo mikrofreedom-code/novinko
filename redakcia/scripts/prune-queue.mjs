@@ -17,15 +17,15 @@
 // ohľadu na stav — teda aj proti zamietnutým riadkom. Keby sme zmazali riadok
 // položky, ktorú feed stále ponúka, scout ju vloží znova.
 // Poistkou je 02-gateway: položky staršie než FEED_MAX_AGE_DAYS zamietne ako
-// staré. Retencia preto MUSÍ byť dlhšia než FEED_MAX_AGE_DAYS — odvodzuje sa
-// od nej automaticky, nech sa väzba nerozíde, keď niekto zmení jednu z hodnôt.
+// staré. Retencia preto MUSÍ byť dlhšia než FEED_MAX_AGE_DAYS. Kontrola nižšie
+// zastaví čistenie, ak niekto zmení jednu z hodnôt bez úpravy druhej.
 
 import { db } from '../lib/_shared/queue.js';
 
-const FEED_MAX_AGE_DAYS = Number(process.env.FEED_MAX_AGE_DAYS ?? 14);
-// +7 dní rezerva nad prahom brány; minimum 21 dní. Dá sa prebiť explicitne.
+const FEED_MAX_AGE_DAYS = Number(process.env.FEED_MAX_AGE_DAYS ?? 4);
+// Jeden deň rezerva nad prahom brány; produkčné nastavenie je 5 dní.
 const RETENTION_DAYS = Number(
-  process.env.QUEUE_RETENTION_DAYS ?? Math.max(FEED_MAX_AGE_DAYS + 7, 21),
+  process.env.QUEUE_RETENTION_DAYS ?? 5,
 );
 const PRUNE_STATUSES = ['rejected', 'merged', 'error'];
 // 200, nie viac: id-čka idú do URL ako ?id=in.(...) a PostgREST má strop na
@@ -44,19 +44,22 @@ export async function pruneQueue({ apply = false } = {}) {
   const res = { retentionDays: RETENTION_DAYS, hranica: hranica.slice(0, 10), zmazane: {}, spolu: 0 };
 
   for (const status of PRUNE_STATUSES) {
-    const { count } = await db.from('queue')
+    const { count, error: countError } = await db.from('queue')
       .select('*', { count: 'exact', head: true })
       .eq('status', status).lt('created_at', hranica);
-    res.zmazane[status] = count ?? 0;
-    res.spolu += count ?? 0;
+    if (countError) throw new Error(`počet ${status}: ${countError.message}`);
+    if (count == null) throw new Error(`počet ${status}: databáza nevrátila počet`);
+    res.zmazane[status] = count;
+    res.spolu += count;
 
     if (!apply || !count) continue;
 
     // Po dávkach — jeden veľký DELETE by narazil na timeout.
     let zostava = count;
     while (zostava > 0) {
-      const { data: davka } = await db.from('queue')
+      const { data: davka, error: batchError } = await db.from('queue')
         .select('id').eq('status', status).lt('created_at', hranica).limit(BATCH);
+      if (batchError) throw new Error(`výber ${status}: ${batchError.message}`);
       if (!davka?.length) break;
       const ids = davka.map((r) => r.id);
 
@@ -85,7 +88,7 @@ export async function pruneQueue({ apply = false } = {}) {
 //
 // Zamietnutá položka si drží celý text zdroja, hoci ho už nikto nikdy
 // nepoužije — a to je ~99 % jej objemu. Mažeme teda obsah hneď, nie až po
-// 21 dňoch retencie.
+// 5 dňoch retencie.
 //
 // NEMAŽEME CELÝ RIADOK a nemažeme ani `dedup_key`: insertFeedRows() ho
 // kontroluje proti celej tabuľke bez ohľadu na stav (viď varovanie hore).
@@ -130,13 +133,15 @@ export async function stripRejectedPayload({ apply = false } = {}) {
 // Spustené priamo z terminálu (nie importom z pipeline).
 if (import.meta.url === `file://${process.argv[1]}`) {
   const apply = process.argv.includes('--apply');
-  const { count: pred } = await db.from('queue').select('*', { count: 'exact', head: true });
+  const { count: pred, error: predError } = await db.from('queue').select('*', { count: 'exact', head: true });
+  if (predError) throw new Error(`počet pred čistením: ${predError.message}`);
   const r = await pruneQueue({ apply });
   console.log(`\nretencia: ${r.retentionDays} dní (mazané staršie než ${r.hranica})`);
   for (const [s, n] of Object.entries(r.zmazane)) console.log(`  ${s.padEnd(10)} ${String(n).padStart(7)}`);
   console.log(`  ${'SPOLU'.padEnd(10)} ${String(r.spolu).padStart(7)}`);
   if (apply) {
-    const { count: po } = await db.from('queue').select('*', { count: 'exact', head: true });
+    const { count: po, error: poError } = await db.from('queue').select('*', { count: 'exact', head: true });
+    if (poError) throw new Error(`počet po čistení: ${poError.message}`);
     console.log(`\ntabuľka queue: ${pred} → ${po} riadkov`);
   } else {
     console.log('\n(len náhľad — spusti s --apply, ak to má naozaj zmazať)');

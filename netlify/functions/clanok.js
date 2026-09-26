@@ -8,6 +8,7 @@
 const { SHEET_CSV_URL } = require("../lib/config");
 const { parseCSVLine } = require("../lib/csv");
 const { renderClanok, renderNenajdene, clanokUrl } = require("../lib/clanok-render");
+const { parseMeta } = require("../lib/zahady");
 
 const HTML = { "Content-Type": "text/html; charset=utf-8" };
 // 5 min v prehliadači, 10 min na CDN, hodinu smie servírovať starú kópiu počas
@@ -42,9 +43,10 @@ exports.handler = async (event) => {
   }
 
   const clanky = riadky.map((line) => {
-    const [cid, title, perex, content, source, date, category, imageUrl, imageCredit] = parseCSVLine(line);
+    const [cid, title, perex, content, source, date, category, imageUrl, imageCredit, metaCell] = parseCSVLine(line);
     if (!cid || !title) return null;
-    return { id: cid, title, perex, content, source, date, category, imageUrl, imageCredit };
+    return { id: cid, title, perex, content, source, date, category, imageUrl, imageCredit,
+      mystery: category === 'zahady' ? parseMeta(metaCell) : {} };
   }).filter(Boolean);
 
   const clanok = clanky.find((c) => c.id === id);
@@ -59,12 +61,16 @@ exports.handler = async (event) => {
   // — čitateľ, ktorý prišiel zo zahrada.html, nemá pod záhradným článkom
   // vidieť odkazy na krypto/AI. Ostatné kategórie zámerne miešajú naprieč
   // celým webom (viac krížového prelinkovania = lepší crawl).
-  const rovnakaKategoria = clanok.category === "zahrada"
-    ? clanky.filter((c) => c.category === "zahrada")
+  const rovnakaKategoria = ["zahrada", "zahady"].includes(clanok.category)
+    ? clanky.filter((c) => c.category === clanok.category)
     : clanky;
   const dalsie = rovnakaKategoria
     .filter((c) => c.id !== id)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => {
+      const categoryPriority = Number(b.mystery?.subcategory === clanok.mystery?.subcategory)
+        - Number(a.mystery?.subcategory === clanok.mystery?.subcategory);
+      return categoryPriority || new Date(b.date) - new Date(a.date);
+    })
     .slice(0, 6)
     .map((c) => ({ title: c.title, url: clanokUrl(c) }));
 

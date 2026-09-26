@@ -113,7 +113,9 @@ async function buildPayload(category = "all") {
   // Núdzová cesta (prázdna cache): radšej samotné RSS než nič.
   const [rss, own] = await Promise.all([gatherRss(category), gatherSheet().catch(() => [])]);
   let items;
-  if (category === "all") {
+  if (category === 'zahady') {
+    items = own.filter((item) => item.category === 'zahady').slice(0, MAX_ITEMS);
+  } else if (category === "all") {
     const perCat = CAT_ORDER.map((cat) => combineCategory(rss, own, cat));
     items = roundRobin(perCat);
   } else {
@@ -164,6 +166,9 @@ async function buildAll() {
   // MAX_AGE_HOURS/rotácia by starší, stále platný recept zhodili dole).
   const recepty = ownAll.filter((i) => i.category === "recepty");
   out["recepty"] = { items: recepty.slice(0, MAX_ITEMS), count: Math.min(recepty.length, MAX_ITEMS), fetched: now };
+
+  const zahady = ownAll.filter((i) => i.category === "zahady");
+  out["zahady"] = { items: zahady.slice(0, MAX_ITEMS), count: Math.min(zahady.length, MAX_ITEMS), fetched: now };
 
   return out;
 }

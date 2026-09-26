@@ -17,6 +17,7 @@
 // verzie nemohli vzhľadovo rozísť.
 
 const { PARAGRAPH_DELIM } = require("./config");
+const { SUBCATEGORIES, CONTENT_TYPES, SERIES } = require("./zahady");
 
 const SITE = "https://novinko.sk";
 
@@ -34,22 +35,25 @@ function slugify(s) {
     .slice(0, 70) || "clanok";
 }
 
-function clanokUrl({ title, id }) {
-  return `${SITE}/clanok/${slugify(title)}-${id}`;
+function clanokUrl({ title, id, mystery }) {
+  return `${SITE}/clanok/${mystery?.slug || slugify(title)}-${id}`;
 }
 
-function odseky(content) {
+function odseky(content, headings = false) {
   return String(content ?? "")
     .split(new RegExp(`\\s*${PARAGRAPH_DELIM}\\s*|\\n\\n`))
     .map((p) => p.trim()).filter(Boolean)
-    .map((p) => `<p>${esc(p)}</p>`).join("\n        ");
+    .map((p) => headings && /^## [^\n]{1,120}$/.test(p)
+      ? `<h2>${esc(p.slice(3))}</h2>` : `<p>${esc(p)}</p>`).join("\n        ");
 }
 
 // Rovnaká logika ako v clanok.html: priečinok v ceste nesie pôvod obrázka.
 // manual/ = fotka od človeka, krypto|ai|evergreen = AI. Popisok o AI sa preto
 // zobrazí len pri ilustrácii; pod skutočnou fotkou by bol nepravdivý. Zadaný
 // zdroj má prednosť — atribúcia je právna povinnosť, popisok o AI informatívny.
-function popisObrazka(imageUrl, imageCredit) {
+function popisObrazka(imageUrl, imageCredit, imageKind) {
+  if (imageKind === 'ai') return '<figcaption class="img-credit">AI ilustrácia — nezobrazuje skutočnú udalosť</figcaption>';
+  if (imageKind === 'illustration') return `<figcaption class="img-credit">Ilustrácia${imageCredit ? `: ${esc(imageCredit)}` : ''}</figcaption>`;
   if (imageCredit) return `<figcaption class="img-credit">Foto: ${esc(imageCredit)}</figcaption>`;
   if (/\/manual\//.test(imageUrl)) return "";
   return `<figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption>`;
@@ -128,14 +132,14 @@ function shareBar(title, url) {
 // `theme: 'zahrada'`/`'recepty'` posiela čitateľa naspäť na vlastnú stránku
 // rubriky, nie na hlavnú — súčasť "web vo webe" zámeru (2026-09-06/10): kto
 // prišiel zo Záhrady/Receptov, nemá sa pri návrate ocitnúť na bežnej hlavnej.
-const THEME_HOME = { zahrada: "/zahrada.html", recepty: "/recepty.html" };
+const THEME_HOME = { zahrada: "/zahrada.html", recepty: "/recepty.html", zahady: "/zahady.html" };
 function hlavicka(theme) {
   const domov = THEME_HOME[theme] ?? "/";
   return `<header>
   <div class="header-inner">
     <a href="${domov}" class="back-btn">← Späť</a>
     <a href="${domov}" class="logo">novinko<span>.</span></a>
-    <span class="logo-tagline">Píše AI. Človek kontroluje.</span>
+    <span class="logo-tagline">${theme === 'zahady' ? 'Záhady a fenomény' : 'Píše AI. Človek kontroluje.'}</span>
   </div>
 </header>`;
 }
@@ -187,7 +191,8 @@ const RECEPTY_THEME_CSS = `<style>
   .recept-steps li { margin-bottom: 12px; }
 </style>`;
 
-const THEME_CSS = { zahrada: ZAHRADA_THEME_CSS, recepty: RECEPTY_THEME_CSS };
+const THEME_CSS = { zahrada: ZAHRADA_THEME_CSS, recepty: RECEPTY_THEME_CSS,
+  zahady: '<link rel="stylesheet" href="/assets/zahady/clanok.css">' };
 
 // ---------- REKLAMA (vlastný eshop senvoria.sk, Powerlink s. r. o.) ----------
 // Zoznam bannerov aj skladanie značky je v netlify/lib/promo.js — JEDINOM
@@ -247,16 +252,33 @@ ${telo}
 // article: { id, title, perex, content, source, date, category, imageUrl, imageCredit }
 // dalsie:  pole { title, url } na vnútorné prelinkovanie (crawl cesta pre Google)
 const THEME_LABEL = { zahrada: { home: "/zahrada.html", back: "← Celá rubrika Záhrada", dalsie: "Ďalšie zo Záhrady" },
-                       recepty: { home: "/recepty.html", back: "← Celá rubrika Recepty", dalsie: "Ďalšie recepty" } };
+                       recepty: { home: "/recepty.html", back: "← Celá rubrika Recepty", dalsie: "Ďalšie recepty" },
+                       zahady: { home: "/zahady.html", back: "← Záhady a fenomény", dalsie: "Súvisiace príbehy" } };
 
 function renderClanok(article, dalsie = []) {
   const { title, perex, content, source, date, category, imageUrl, imageCredit } = article;
+  const mystery = category === 'zahady' ? (article.mystery || {}) : {};
   const theme = THEME_CSS[category] ? category : null;
-  const label = THEME_LABEL[theme] ?? { home: "/", back: "← Všetky správy", dalsie: "Ďalšie správy" };
+  const label = THEME_LABEL[category] ?? { home: "/", back: "← Všetky správy", dalsie: "Ďalšie správy" };
   const sourceParts = String(source || "").split("|");
   const sourceName = (sourceParts[0] || "").trim();
   const sourceLink = (sourceParts[1] || "").trim();
-  const popis = (perex || String(content || "").slice(0, 200)).replace(/\s+/g, " ").trim().slice(0, 300);
+  const popis = (mystery.metaDescription || perex || String(content || "").slice(0, 200)).replace(/\s+/g, " ").trim().slice(0, 300);
+  const mysterySources = Array.isArray(mystery.sources) ? mystery.sources : [];
+  const mysteryLabel = SUBCATEGORIES[mystery.subcategory] || 'Záhady a fenomény';
+  const mysteryContext = category === 'zahady'
+    ? `<div class="mystery-context"><span>${esc(CONTENT_TYPES[mystery.contentType] || 'Magazínový článok')}</span>${mystery.series && SERIES[mystery.series] ? `<span>${esc(SERIES[mystery.series])}</span>` : ''}</div>`
+    : '';
+  const interpretationNote = mystery.contentType === 'E'
+    ? '<p class="mystery-note">Tento článok opisuje ezoterický výklad alebo tradíciu. Nejde o vedecky potvrdenú predpoveď ani zdravotné odporúčanie.</p>'
+    : mystery.contentType === 'L'
+      ? '<p class="mystery-note">Príbeh je súčasťou legendy alebo tradície; historicky doložené skutočnosti uvádzame osobitne.</p>'
+      : '';
+  const sourcesHtml = category === 'zahady' && mysterySources.length
+    ? `<div class="mystery-sources"><h2>Pramene a zdroje</h2><ol>${mysterySources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(s.name)}</a></li>`).join('')}</ol></div>`
+    : `<div class="source-link">${sourceLink ? `Zdroj: <a href="${esc(sourceLink)}" target="_blank" rel="noopener nofollow">${esc(sourceName)}</a>` : `Zdroj: ${esc(sourceName || 'Novinko')}`}</div>`;
+  const tagsHtml = category === 'zahady' && Array.isArray(mystery.tags) && mystery.tags.length
+    ? `<div class="mystery-tags">${mystery.tags.map((tag) => `<span>${esc(tag)}</span>`).join('')}</div>` : '';
   // Recept má vlastnú, štruktúrovanú prezentáciu (suroviny/postup) — generický
   // odsekový render (odseky()) by ich ukázal ako plochý zoznam jednovetových
   // odsekov, čitateľné, ale zbytočne horšie než to, na čo dáta stačia.
@@ -264,24 +286,24 @@ function renderClanok(article, dalsie = []) {
 
   const telo = `<div class="article-wrap">
   <div class="article-meta">
-    <span class="cat-badge">${esc((recept && recept.kategoria) || category || "správy")}</span>
+    <span class="cat-badge">${esc((recept && recept.kategoria) || (category === 'zahady' && mysteryLabel) || category || "správy")}</span>
     <span class="article-source">tím Novinko</span>
     <span class="article-date"><time datetime="${esc(date)}">${esc(datumSk(date))}</time></span>
+    ${mystery.updatedAt ? `<span class="article-date">Aktualizované <time datetime="${esc(mystery.updatedAt)}">${esc(datumSk(mystery.updatedAt))}</time></span>` : ''}
   </div>
   <h1 class="article-title">${esc(title)}</h1>
-  ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">${popisObrazka(imageUrl, imageCredit)}</figure>` : ""}
+  ${mysteryContext}
+  ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">${popisObrazka(imageUrl, imageCredit, mystery.imageKind)}</figure>` : ""}
   ${!recept && perex ? `<div class="article-perex">${esc(perex)}</div>` : ""}
+  ${interpretationNote}
   <div class="article-content">
-        ${recept ? receptTelo(recept) : odseky(content)}
+        ${recept ? receptTelo(recept) : odseky(content, category === 'zahady')}
   </div>
+  ${tagsHtml}
   ${shareBar(title, clanokUrl(article))}
 ${reklama(theme)}
   <div class="article-footer">
-    <div class="source-link">${
-      sourceLink
-        ? `Zdroj: <a href="${esc(sourceLink)}" target="_blank" rel="noopener nofollow">${esc(sourceName)}</a>`
-        : `Zdroj: ${esc(sourceName || "Novinko")}`
-    }</div>
+    ${sourcesHtml}
     <a href="${label.home}" class="back-link">${label.back}</a>
   </div>
 ${dalsie.length ? `  <nav class="dalsie-clanky">
@@ -293,7 +315,7 @@ ${dalsie.length ? `  <nav class="dalsie-clanky">
 </div>`;
 
   return obal({
-    title: `${title} — Novinko`,
+    title: `${mystery.seoTitle || title} — Novinko`,
     description: popis,
     canonical: clanokUrl(article),
     image: imageUrl,
@@ -317,13 +339,13 @@ function newsArticleJsonLd(article, popis) {
   const { title, date, imageUrl } = article;
   const data = {
     "@context": "https://schema.org",
-    "@type": "NewsArticle",
+    "@type": article.category === 'zahady' ? 'Article' : 'NewsArticle',
     // Google pri Top stories odporúča titulok do 110 znakov. Skracuje sa LEN
     // tu, <h1> a <title> zostávajú celé.
     headline: String(title).slice(0, 110),
     description: popis,
     datePublished: date,
-    dateModified: date,
+    dateModified: article.mystery?.updatedAt || date,
     mainEntityOfPage: { "@type": "WebPage", "@id": clanokUrl(article) },
     author: { "@type": "Organization", name: "Novinko", url: SITE },
     publisher: { "@type": "Organization", name: "Novinko", url: SITE },

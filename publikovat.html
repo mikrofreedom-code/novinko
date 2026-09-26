@@ -17,15 +17,34 @@
   #status { margin-top: 16px; padding: 10px; border-radius: 4px; display: none; }
   #status.ok { display: block; background: #e6f7e6; color: #1a5c1a; }
   #status.err { display: block; background: #fbe6e6; color: #8a1a1a; }
+  #zahadyFields { display: none; border: 1px solid #d8d0c1; border-radius: 6px; padding: 4px 14px 18px; margin-top: 16px; }
+  #zahadyFields legend { padding: 0 6px; font-weight: 700; }
+  #preview { display: none; margin: 24px 0; padding: 18px; background: #f8f6f1; border: 1px solid #d8d0c1; line-height: 1.6; }
+  #preview h2 { font-family: Georgia, serif; font-size: 1.5rem; margin: 8px 0; }
+  .secondary { background: #eee; color: #111; margin-right: 8px; }
 </style>
 </head>
 <body>
 <h1>Publikovať článok ručne</h1>
 
+<details>
+  <summary>Načítať pripravený koncept Záhad a fenoménov</summary>
+  <label>Koncept článku (.json)
+    <input type="file" id="draftFile" accept="application/json,.json">
+  </label>
+  <p><small>Koncept vyplní formulár vrátane zdrojov a SEO. Načítanie nič nepublikuje. Text si skontroluj cez Náhľad; heslo zadaj až pri publikovaní.</small></p>
+</details>
+
 <form id="f">
   <label>Heslo
     <input type="password" name="password" required>
   </label>
+
+  <label>Aktualizovať existujúci článok <small>(voliteľné, iba Záhady a fenomény)</small>
+    <input type="text" name="articleId" inputmode="numeric" placeholder="ID článku">
+    <small>Ak je téma už publikovaná, načítaj ju podľa ID a uprav pôvodný článok. Jeho adresa zostane rovnaká.</small>
+  </label>
+  <button type="button" id="loadArticleBtn" class="secondary">Načítať článok na úpravu</button>
 
   <label>Titulok
     <input type="text" name="headline" required>
@@ -50,6 +69,7 @@
       <option value="sport">Šport</option>
       <option value="zahrada">Záhrada</option>
       <option value="recepty">Recepty</option>
+      <option value="zahady">Záhady a fenomény</option>
     </select>
     <small>Zoznam musí sedieť s POVOLENE_KATEGORIE v manual-publish.js — čokoľvek mimo neho skončí v Krypte.</small>
   </label>
@@ -101,11 +121,70 @@
     </label>
   </fieldset>
 
-  <label>Zdroj (meno)
+  <fieldset id="zahadyFields">
+    <legend>Záhady a fenomény</legend>
+    <label>Podkategória
+      <select name="subcategory">
+        <option value="zahady">Záhady sveta</option><option value="miesta">Tajomné miesta</option>
+        <option value="historia">História a archeológia</option><option value="javy">Nevysvetlené javy</option>
+        <option value="vesmir">Vesmír a neznámo</option><option value="uap">UFO a UAP</option>
+        <option value="legendy">Legendy a folklór</option><option value="povery">Povery a tradície</option>
+        <option value="magia">Mágia</option><option value="ezoterika">Ezoterika</option>
+        <option value="sny">Sny a symbolika</option><option value="astrologia">Astrológia</option>
+        <option value="tarot">Tarot</option><option value="numerologia">Numerológia</option>
+      </select>
+    </label>
+    <label>Typ obsahu
+      <select name="contentType">
+        <option value="F">Faktografický článok</option><option value="M">Záhada</option>
+        <option value="H">Hypotéza</option><option value="L">Legenda alebo tradícia</option>
+        <option value="E">Ezoterický výklad</option><option value="N">Nový objav</option>
+      </select>
+    </label>
+    <label>Séria
+      <select name="series">
+        <option value="">Bez série</option><option value="slovensko">Tajomné Slovensko</option>
+        <option value="europa">Záhady Európy</option><option value="svet">Záhady sveta</option>
+        <option value="tyzden">Záhada týždňa</option>
+      </select>
+    </label>
+    <label>Kanonický názov témy
+      <input name="canonicalTopic" maxlength="180" placeholder="napr. Loď Mary Celeste">
+      <small>Rovnaký prípad patrí pod jeden názov, aj keď článok dostane iný titulok.</small>
+    </label>
+    <label>Ďalšie názvy témy
+      <input name="topicAliases" placeholder="Mary Celeste, zmiznutie posádky Mary Celeste">
+      <small>Oddeľ čiarkou. Pomáha kontrole duplicít.</small>
+    </label>
+    <label>Dôvod samostatného článku o existujúcej téme <small>(vyplň iba výnimočne)</small>
+      <textarea name="newAngleReason" maxlength="500" style="min-height:80px" placeholder="Nové dokumenty, nová štúdia alebo výrazne odlišný redakčný uhol..."></textarea>
+      <small>Bežnú aktualizáciu urob načítaním pôvodného článku podľa ID.</small>
+    </label>
+    <label>Krajina <small>(voliteľné)</small><input name="country" placeholder="Slovensko"></label>
+    <label>Miesto <small>(voliteľné)</small><input name="location" placeholder="obec, hrad alebo oblasť"></label>
+    <label>Historické obdobie <small>(voliteľné)</small><input name="historicalPeriod" placeholder="napr. 19. storočie"></label>
+    <label>Osoby <small>(voliteľné, oddeľ čiarkou)</small><input name="persons"></label>
+    <label>Hlavné entity <small>(voliteľné, oddeľ čiarkou)</small><input name="mainEntities"></label>
+    <label>Zdroje
+      <textarea name="sourcesText" style="min-height:100px" placeholder="Názov zdroja | https://example.org/zdroj"></textarea>
+      <small>Každý zdroj na vlastný riadok vo formáte Názov | https://odkaz. Pri faktografickom článku použi primárne zdroje, ak sú dostupné.</small>
+    </label>
+    <label>Pôvod titulného obrázka
+      <select name="imageKind"><option value="photo">Fotografia</option><option value="archive">Archívny materiál</option>
+        <option value="illustration">Ilustrácia</option><option value="ai">AI ilustrácia</option></select>
+    </label>
+    <label>SEO titulok <small>(voliteľné)</small><input name="seoTitle" maxlength="100"></label>
+    <label>Meta popis <small>(voliteľné)</small><textarea name="metaDescription" maxlength="200" style="min-height:70px"></textarea></label>
+    <label>Hlavné kľúčové slovo <small>(voliteľné)</small><input name="focusKeyword"></label>
+    <label>Ďalšie kľúčové slová <small>(oddeľ čiarkou)</small><input name="secondaryKeywords"></label>
+    <label>Tagy <small>(oddeľ čiarkou)</small><input name="tags"></label>
+  </fieldset>
+
+  <label class="standardSource">Zdroj (meno)
     <input type="text" name="source" placeholder="napr. Polícia SR">
   </label>
 
-  <label>Zdroj (odkaz)
+  <label class="standardSource">Zdroj (odkaz)
     <input type="url" name="sourceUrl" placeholder="https://...">
   </label>
 
@@ -139,9 +218,11 @@
     <small>Nechaj prázdne pre okamžité publikovanie. Naplánovaný čas je orientačný — kontroluje sa každých 5 minút, nie na sekundu presne. Zadávaj vo svojom miestnom (bratislavskom) čase.</small>
   </label>
 
+  <button type="button" id="previewBtn" class="secondary">Náhľad</button>
   <button type="submit" id="btn">Publikovať</button>
 </form>
 
+<div id="preview" aria-live="polite"></div>
 <div id="status"></div>
 
 <script>
@@ -187,14 +268,57 @@ async function zmensiFotku(subor) {
 const categorySelect = document.getElementById('categorySelect');
 const textField = document.getElementById('textField');
 const receptFields = document.getElementById('receptFields');
+const zahadyFields = document.getElementById('zahadyFields');
 function toggleReceptFields() {
   const jeRecept = categorySelect.value === 'recepty';
+  const suZahady = categorySelect.value === 'zahady';
   receptFields.style.display = jeRecept ? 'block' : 'none';
+  zahadyFields.style.display = suZahady ? 'block' : 'none';
+  document.querySelectorAll('.standardSource').forEach((el) => { el.style.display = suZahady ? 'none' : 'block'; });
   textField.closest('label').style.display = jeRecept ? 'none' : 'block';
   textField.required = !jeRecept;
+  zahadyFields.querySelector('[name="canonicalTopic"]').required = suZahady;
+  zahadyFields.querySelector('[name="sourcesText"]').required = suZahady;
 }
 categorySelect.addEventListener('change', toggleReceptFields);
 toggleReceptFields();
+
+document.getElementById('loadArticleBtn').addEventListener('click', async () => {
+  const f = document.getElementById('f');
+  const id = f.elements.articleId.value.trim();
+  const status = document.getElementById('status');
+  if (!id) { status.className = 'err'; status.textContent = 'Zadaj ID článku.'; return; }
+  try {
+    const res = await fetch('/.netlify/functions/manual-publish', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'load', password: f.elements.password.value, articleId: id }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Článok sa nepodarilo načítať.');
+    const article = data.article;
+    for (const key of ['headline','perex','text','category','subcategory','contentType','series','canonicalTopic','newAngleReason','country','location','historicalPeriod','imageKind','seoTitle','metaDescription','focusKeyword','imageUrl','imageCredit']) {
+      if (f.elements[key]) f.elements[key].value = article[key] || '';
+    }
+    f.elements.topicAliases.value = (article.aliases || []).join(', ');
+    for (const key of ['persons','mainEntities','secondaryKeywords','tags']) f.elements[key].value = (article[key] || []).join(', ');
+    f.elements.sourcesText.value = (article.sources || []).map((s) => `${s.name} | ${s.url}`).join('\n');
+    toggleReceptFields();
+    status.className = 'ok'; status.textContent = 'Článok načítaný. Po úprave tlačidlo Publikovať aktualizuje tú istú adresu.';
+  } catch (e) { status.className = 'err'; status.textContent = e.message; }
+});
+
+function esc(s) { return String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+document.getElementById('previewBtn').addEventListener('click', () => {
+  const f = document.getElementById('f');
+  const d = Object.fromEntries(new FormData(f));
+  const box = document.getElementById('preview');
+  const body = d.category === 'recepty' ? poskladajReceptText(d) : d.text;
+  box.innerHTML = `<small>${esc(d.category === 'zahady' ? d.subcategory + ' · ' + d.contentType : d.category)}</small>`
+    + `<h2>${esc(d.headline)}</h2><p><strong>${esc(d.perex)}</strong></p>`
+    + String(body || '').split(/\n+/).filter(Boolean).map((p) => d.category === 'zahady' && /^## [^\n]{1,120}$/.test(p) ? `<h3>${esc(p.slice(3))}</h3>` : `<p>${esc(p)}</p>`).join('');
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior: 'smooth' });
+});
 
 // Poskladá text articleu z recept-polí presne tak, ako to kódom robí
 // formatRecept() v redakcia/lib/flow/17-recepty.js — rovnaké poradie
@@ -248,6 +372,15 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     if (data.category === 'recepty') {
       data.text = poskladajReceptText(data);
     }
+    if (data.category === 'zahady') {
+      data.sources = String(data.sourcesText || '').split('\n').map((line) => {
+        const cut = line.indexOf('|');
+        if (cut < 1) return null;
+        return { name: line.slice(0, cut).trim(), url: line.slice(cut + 1).trim() };
+      }).filter(Boolean);
+      if (!data.sources.length) throw new Error('Zadaj aspoň jeden zdroj vo formáte Názov | https://odkaz.');
+    }
+    delete data.sourcesText;
     // Pomocné polia manual-publish.js nepozná — nemá zmysel ich posielať
     // (a keby náhodou nemal server whitelist tvrdý, len by to bola zbytočná
     // dátová záťaž navyše).
@@ -302,10 +435,16 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       if (j.scheduled) {
         const cas = new Date(j.publishAt).toLocaleString('sk-SK', { dateStyle: 'medium', timeStyle: 'short' });
         status.textContent = '🕒 Naplánované na ' + cas + ' (id: ' + j.id + '). Zverejní sa automaticky, keď príde čas (kontrola každých 5 minút).';
+      } else if (j.updated) {
+        status.textContent = '✅ Článok aktualizovaný (id: ' + j.id + ').'
+          + (j.registry && !j.registry.synced ? ' Evidenciu témy treba dosynchronizovať.' : '');
       } else {
-        status.textContent = '✅ Publikované (id: ' + j.id + '). Telegram: ' + j.telegram;
+        status.textContent = '✅ Publikované (id: ' + j.id + '). Telegram: ' + j.telegram
+          + (data.category === 'zahady' && j.registry && !j.registry.synced ? ' Evidenciu témy treba dosynchronizovať.' : '');
       }
       e.target.reset();
+      toggleReceptFields();
+      document.getElementById('preview').style.display = 'none';
     } else {
       status.className = 'err';
       status.textContent = '❌ ' + (j.error || 'neznáma chyba') + ' (HTTP ' + res.status + ')';
@@ -321,5 +460,6 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   }
 });
 </script>
+<script src="/assets/zahady/draft.js"></script>
 </body>
 </html>
