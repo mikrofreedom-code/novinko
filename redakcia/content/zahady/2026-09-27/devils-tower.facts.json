@@ -1,0 +1,64 @@
+{
+  "checked_at": "2026-09-27",
+  "article": "devils-tower",
+  "duplicate_check": "Google Sheet articles: skontrolované 2026-09-27; v archíve sú Antikythéra, sprites a tarot, bez zhody.",
+  "claims": [
+    {
+      "claim": "Príbeh Kiowa o siedmich dievčatách, medveďoch a Plejádach.",
+      "sources": [
+        1
+      ],
+      "kind": "tradition"
+    },
+    {
+      "claim": "NPS datuje konkrétny záznam tradície Kiowa do roku 1897; nie je to dátum vzniku tradície.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Stĺpce sú spojené so zmršťovaním chladnúcej horniny; detaily vzniku celého telesa zostávajú predmetom hypotéz.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Duchovné väzby a obrady pri veži pokračujú aj dnes.",
+      "sources": [
+        3
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Na mnohých mapách 1857–1901 bolo označenie Bear Lodge; vysvetlenie premenovania zostáva neisté.",
+      "sources": [
+        4
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Vežu tvorí fonolitový porfýr; erózia odstránila časť dôkazov o jej vzniku.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Pri úpätí ležia veľké úlomky; mráz, korene a teplotné zmeny prispievajú k zvetrávaniu.",
+      "sources": [
+        5
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Národná pamiatka bola vyhlásená 24. septembra 1906.",
+      "sources": [
+        6
+      ],
+      "kind": "fact"
+    }
+  ],
+  "notes": "Konkrétna tradícia je pripísaná národu Kiowa. Posvätné príbehy neprezentujeme ako geologické pozorovanie. Príbehy rôznych národov nezlučujeme. Rozšírená príbehová verzia: bez vymyslených dialógov, citácií a pocitov historických postáv. Nové zdroje overené 27. 9. 2026."
+}

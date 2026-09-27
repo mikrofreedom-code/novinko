@@ -1,0 +1,50 @@
+{
+  "checked_at": "2026-09-27",
+  "article": "voynichov-rukopis",
+  "duplicate_check": "Google Sheet articles: skontrolované 2026-09-27; v archíve sú Antikythéra, sprites a tarot, bez zhody.",
+  "claims": [
+    {
+      "claim": "Voynich kúpil rukopis v roku 1912; Kraus ho daroval Yale v roku 1969.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Neznámy autor a neidentifikované písmo; text Yale naďalej opisuje ako nerozlúštený.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Pergamen, rozmery približne 225 × 160 mm, rozkladacie a chýbajúce listy.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Materiálové skúšky podľa Yale zodpovedajú rukopisom 15. storočia.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Štatistická analýza z roku 2013 podporila hypotézu zmysluplného posolstva, neposkytla preklad.",
+      "sources": [
+        4
+      ],
+      "kind": "hypothesis"
+    },
+    {
+      "claim": "Spojenie rukopisu s Rogerom Baconom označuje Yale za špekuláciu.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    }
+  ],
+  "notes": "Starší katalóg používame na fyzický opis, nie na jeho prekonané domnienky o datovaní a vlastníkoch. Presný rok vzniku neuvádzame. Metodické hodnotenie údajného rozlúštenia je redakčné vysvetlenie. Rozšírená príbehová verzia: bez vymyslených dialógov, citácií a pocitov historických postáv. Nové zdroje overené 27. 9. 2026."
+}

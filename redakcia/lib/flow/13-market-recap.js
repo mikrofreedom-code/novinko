@@ -316,6 +316,11 @@ async function recapExistsToday() {
 // ---------- Vstupný bod pre pipeline ----------
 // Vyrobí MAX 1 recap za deň, a to až od RECAP_HOUR ráno. Inak no-op.
 export async function run({ force = false, dryRun = false } = {}) {
+  // Disabled at the editor's request on 2026-09-27. Even force must respect
+  // the switch so manual pipeline retries cannot restart daily market news.
+  if (process.env.MARKET_RECAP_ENABLED !== 'true') {
+    return { skipped: 'denný prehľad kryptotrhu je vypnutý' };
+  }
   if (dryRun) return buildAndInsert({ dryRun: true });
   const hour = new Date().getHours();
   if (!force && hour < RECAP_HOUR) return { skipped: `pred ${RECAP_HOUR}:00` };

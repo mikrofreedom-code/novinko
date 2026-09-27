@@ -16,6 +16,7 @@ node_modules
 # Behové súbory pipeline
 logs/
 .pipeline.lock
+redakcia/drafts/backups/
 
 # Generované stránky (vznikajú pri každom behu pipeline)
 prehlad.html

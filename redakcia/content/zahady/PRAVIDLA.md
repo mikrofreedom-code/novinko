@@ -24,6 +24,30 @@ a numerológiu. Slovenské témy majú vlastnú sériu Tajomné Slovensko.
    k rovnakej téme spravidla patrí do aktualizácie existujúceho článku. Ak
    vznikne samostatný článok, zapíš konkrétny dôvod nového redakčného uhla.
 
+## Rozprávanie a rozsah
+
+Redakčná preferencia potvrdená 27. 9. 2026: články píš ako rozsiahlejšie,
+pútavé magazínové príbehy. Bežný text má orientačne 700–1 200 slov podľa
+bohatosti overených podkladov; rozsah nenapĺňaj opakovaním ani výplňou.
+
+- Začni konkrétnou doloženou situáciou, nezvyčajnou stopou alebo jasne
+  označeným tradičným príbehom, ktorý čitateľa vtiahne do témy.
+- Postupne rozvíjaj udalosti, pátranie, stopy, vysvetlenia a otvorené otázky.
+  Odseky majú nadväzovať; podnadpisy pomáhajú sledovať príbeh.
+- Text vizuálne zhusťuj: súvisiace myšlienky spájaj do súvislých odsekov,
+  spravidla približne 70–130 slov. Pri článku okolo 700 slov obyčajne stačia
+  3 medzititulky a 6–9 odsekov. Jednovetové odseky a osamotené otázky
+  nepoužívaj ako pravidelný spôsob vytvárania napätia. Toto je preferencia
+  redakcie potvrdená 27. 9. 2026; zoskupenie prispôsob významu textu.
+- Napätie čerpaj z doložených rozporov a skutočných neistôt. Nevymýšľaj
+  dialógy, citácie, pocity historických postáv ani dramatické detaily.
+- Známe vysvetlenie uveď férovo. Nenechávaj dojem nevyriešenej záhady tam,
+  kde existuje presvedčivá odpoveď. Legendu označ už pri jej rozprávaní.
+- Záver sa má vrátiť k ústrednej otázke alebo úvodnému obrazu a pomenovať,
+  čo sa podarilo objasniť a čo zostáva otvorené.
+- Pri úprave konceptu zosúlaď text `.md`, publikačný `.json` a kontrolu
+  tvrdení `.facts.json`, aby sa nepublikovala stará stručná verzia.
+
 ## Dátový kontrakt
 
 Publikovaný text je v Google Sheete `articles` (A:J). Stĺpec J obsahuje JSON

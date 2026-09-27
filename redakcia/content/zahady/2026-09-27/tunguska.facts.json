@@ -1,0 +1,65 @@
+{
+  "checked_at": "2026-09-27",
+  "article": "tunguska",
+  "duplicate_check": "Google Sheet articles: skontrolované 2026-09-27; v archíve sú Antikythéra, sprites a tarot, bez zhody.",
+  "claims": [
+    {
+      "claim": "Udalosť sa odohrala 30. júna 1908; Kulik dosiahol oblasť v roku 1927.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Základné vysvetlenie je rozpad kozmického telesa v atmosfére.",
+      "sources": [
+        1,
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Modely predstavené NASA v roku 2019 zahŕňajú kamenné teleso približne 50–80 m a výšku 10–15 km.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Čeľabinsk 2013 pomohol preverovať výpočtové modely.",
+      "sources": [
+        2
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "Hypotéza o impaktnom pôvode jazera Čeko je sporná.",
+      "sources": [
+        4
+      ],
+      "kind": "hypothesis"
+    },
+    {
+      "claim": "Snímka Landsat z 6. júla 2024 neukazuje zjavnú jazvu po výbuchu.",
+      "sources": [
+        4
+      ],
+      "kind": "fact"
+    },
+    {
+      "claim": "JPL uvádza svedectvo muža približne 60 km od epicentra: teplo, svetlo a zhodenie zo stoličky.",
+      "sources": [
+        5
+      ],
+      "kind": "reported_testimony"
+    },
+    {
+      "claim": "Kulik sa o cestu do oblasti pokúsil už v roku 1921.",
+      "sources": [
+        1
+      ],
+      "kind": "fact"
+    }
+  ],
+  "notes": "Rozmery a výšky označené ako výsledky modelov, nie priame meranie. Článok neuvádza neistý počet obetí ani špekulatívne príčiny. Rozšírená príbehová verzia: bez vymyslených dialógov, citácií a pocitov historických postáv. Nové zdroje overené 27. 9. 2026."
+}
