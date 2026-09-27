@@ -2,7 +2,7 @@
 // (vždy čerstvé dáta), nie cez publikovaný CSV (ten má oneskorenie a spôsoboval duplicity).
 const jwt = require("jsonwebtoken");
 const { httpsPost, httpsGet, fetchUrl } = require("./net");
-const { parseCSVLine } = require("./csv");
+const { parseCSVLine, splitCSVRecords } = require("./csv");
 const { SHEET_CSV_URL, MAX_AGE_HOURS } = require("./config");
 const { slugify } = require("./clanok-render");
 const { parseMeta, sameTopic } = require("./zahady");
@@ -103,7 +103,7 @@ async function updateSheetArticle(sheetsId, serviceAccountKey, rowNumber, row) {
 // opts.all = true  -> vráti všetky (pre archív), inak len mladšie ako MAX_AGE_HOURS
 async function fetchSheetItems(opts = {}) {
   const csv = await fetchUrl(SHEET_CSV_URL, { timeout: 8000 });
-  const lines = csv.trim().split("\n").slice(1).filter((l) => l.trim()); // bez hlavičky
+  const lines = splitCSVRecords(csv).slice(1); // bez hlavičky
   const maxAgeMs = MAX_AGE_HOURS * 60 * 60 * 1000;
   const now = Date.now();
   const seen = new Set();
@@ -121,7 +121,8 @@ async function fetchSheetItems(opts = {}) {
         // takže tu nehrozí 404 ako pri statických súboroch generovaných buildom.
         link: `/clanok/${mystery.slug || slugify(title)}-${encodeURIComponent(id)}`,
         description: perex || "",
-        pubDate: date || new Date().toISOString(),
+        // Neznámy dátum sa nesmie pri obnove zmeniť na čas publikovania.
+        pubDate: date && Number.isFinite(Date.parse(date)) ? date : "",
         image: imageUrl || "",
         imageCredit: imageCredit || "",
         source: "tím Novinko",

@@ -1,4 +1,5 @@
 // Robustný CSV parser (zvláda úvodzovky aj zdvojené "" vnútri poľa).
+const { splitCSVRecords } = require('../../assets/csv-records');
 
 // Rozparsuje jeden riadok na stĺpce.
 function parseCSVLine(line) {
@@ -22,7 +23,7 @@ function parseCSVLine(line) {
 
 // Celé CSV -> pole objektov podľa hlavičky.
 function parseCSV(csv) {
-  const lines = csv.trim().split("\n").filter((l) => l.trim());
+  const lines = splitCSVRecords(csv);
   if (lines.length <= 1) return [];
   const headers = parseCSVLine(lines[0]);
   return lines.slice(1).map((line) => {
@@ -33,4 +34,4 @@ function parseCSV(csv) {
   });
 }
 
-module.exports = { parseCSV, parseCSVLine };
+module.exports = { parseCSV, parseCSVLine, splitCSVRecords };

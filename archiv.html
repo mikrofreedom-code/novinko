@@ -121,6 +121,7 @@
   </div>
 </footer>
 
+<script src="/assets/csv-records.js"></script>
 <script>
   const SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
   const PAGE_SIZE = 50;
@@ -220,7 +221,7 @@
     try {
       const res = await fetch(SHEET_CSV);
       const csv = await res.text();
-      const lines = csv.trim().split("\n").filter(l => l.trim());
+      const lines = splitCSVRecords(csv);
       const articles = lines.slice(1).map(line => {
         const c = parseCSVLine(line);
         const [id, title, perex, , , date, category, imageUrl] = c;

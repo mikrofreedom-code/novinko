@@ -21,7 +21,7 @@
 // slúži už rozposlaným odkazom a ponúka filtrovanie v prehliadači.
 
 const { SHEET_CSV_URL, CATS } = require("../lib/config");
-const { parseCSVLine } = require("../lib/csv");
+const { parseCSVLine, splitCSVRecords } = require("../lib/csv");
 const { renderArchiv, renderNenajdene } = require("../lib/clanok-render");
 const { parseMeta } = require("../lib/zahady");
 
@@ -35,7 +35,7 @@ exports.handler = async () => {
   try {
     const res = await fetch(SHEET_CSV_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    riadky = (await res.text()).trim().split("\n").slice(1).filter((l) => l.trim());
+    riadky = splitCSVRecords(await res.text()).slice(1);
   } catch (e) {
     console.error("[archiv] hárok sa nedá načítať:", e.message);
     // 503 a nie 404 — pri 404 Google adresu z indexu vyhodí, pri 503 sa vráti.

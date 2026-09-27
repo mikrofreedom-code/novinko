@@ -8,7 +8,7 @@
 // a vzápätí mu povedať „neindexuj" je rozporuplný signál a míňa crawl budget.
 
 const { SHEET_CSV_URL } = require("../lib/config");
-const { parseCSVLine } = require("../lib/csv");
+const { parseCSVLine, splitCSVRecords } = require("../lib/csv");
 const { clanokUrl, esc, SITE } = require("../lib/clanok-render");
 const { parseMeta } = require("../lib/zahady");
 
@@ -19,7 +19,7 @@ exports.handler = async () => {
   try {
     const res = await fetch(SHEET_CSV_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    riadky = (await res.text()).trim().split("\n").slice(1).filter((l) => l.trim());
+    riadky = splitCSVRecords(await res.text()).slice(1);
   } catch (e) {
     console.error("[sitemap] hárok sa nedá načítať:", e.message);
     // Aj tak vrátime platnú sitemap s hlavnou stránkou — prázdna odpoveď alebo

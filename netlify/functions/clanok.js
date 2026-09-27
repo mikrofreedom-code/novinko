@@ -6,7 +6,7 @@
 // generovanie stránok pri builde. Podrobnosti v netlify/lib/clanok-render.js.
 
 const { SHEET_CSV_URL } = require("../lib/config");
-const { parseCSVLine } = require("../lib/csv");
+const { parseCSVLine, splitCSVRecords } = require("../lib/csv");
 const { renderClanok, renderNenajdene, clanokUrl } = require("../lib/clanok-render");
 const { parseMeta } = require("../lib/zahady");
 
@@ -35,7 +35,7 @@ exports.handler = async (event) => {
   try {
     const res = await fetch(SHEET_CSV_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    riadky = (await res.text()).trim().split("\n").slice(1).filter((l) => l.trim());
+    riadky = splitCSVRecords(await res.text()).slice(1);
   } catch (e) {
     console.error("[clanok] hárok sa nedá načítať:", e.message);
     // 503 a nie 404 — Google pri 404 adresu z indexu vyhodí, pri 503 sa vráti.
