@@ -141,6 +141,7 @@ function hlavicka(theme) {
     <a href="${domov}" class="logo">novinko<span>.</span></a>
     <span class="logo-tagline">${theme === 'zahady' ? 'Záhady a fenomény' : 'Píše AI. Človek kontroluje.'}</span>
   </div>
+${THEME_HOME[theme] ? '' : '<nav class="article-nav" aria-label="Rubriky Novinka"><a href="/">Úvod</a><a href="/?rubrika=slovensko">Slovensko</a><a href="/?rubrika=svet">Svet</a><a href="/?rubrika=ekonomika">Ekonomika</a><a href="/?rubrika=krypto">Krypto</a><a href="/?rubrika=ai">Umelá inteligencia</a><a href="/zahady.html">Záhady a fenomény</a><a href="/archiv">Archív</a></nav>'}
 </header>`;
 }
 

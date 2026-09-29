@@ -5,39 +5,39 @@
    nemohli vzhľadovo rozísť a CSS sa neopakovalo v každej stránke. */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #faf9f7;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --border: #d8d3c8;
-  --accent: #9a2f25;
-  --gold: #a77818;
-  --text: #111111;
-  --text2: #333333;
-  --muted: #6f695f;
-  --header-bg: #0d0d0d;
+  --border: #d9dcdf;
+  --accent: #c32632;
+  --gold: #a8232e;
+  --text: #171c23;
+  --text2: #484e56;
+  --muted: #69717a;
+  --header-bg: #ffffff;
 }
 body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; }
 
 header {
   background: var(--header-bg);
-  border-bottom: 3px solid var(--gold);
+  border-bottom: 1px solid var(--border);
   padding: 0 clamp(16px, 4vw, 48px);
 }
 .header-inner {
-  max-width: 900px; margin: 0 auto;
-  display: flex; align-items: center; height: 64px; gap: 16px;
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; height: 90px; gap: 24px;
 }
 .back-btn {
-  color: #aaa; text-decoration: none; font-size: 0.85rem;
+  color: var(--muted); text-decoration: none; font-size: 0.85rem;
   display: flex; align-items: center; gap: 6px;
   transition: color 0.2s;
 }
 .back-btn:hover { color: var(--gold); }
-.logo { font-family: 'Libre Baskerville', serif; font-size: 1.55rem; font-weight: 700; color: #fff; text-decoration: none; letter-spacing: -.4px; }
+.logo { font-family: 'Libre Baskerville', serif; font-size: 2.2rem; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -.4px; }
 .logo span { color: var(--gold); }
 /* Oznámenie o AI (Článok 50 AI Act) — na stránke článku, kde AI text reálne
    je. Nesmie sa skrývať na mobile, preto sa len zmenšuje. */
 .logo-tagline {
-  font-size: 0.66rem; color: rgba(255,255,255,0.66); letter-spacing: 1.15px;
+  font-size: 0.66rem; color: var(--muted); letter-spacing: 1.15px;
   text-transform: uppercase; font-weight: 600; white-space: nowrap;
 }
 @media (max-width: 600px) {
@@ -47,7 +47,7 @@ header {
 }
 
 .article-wrap {
-  max-width: 780px; margin: 0 auto;
+  max-width: 860px; margin: 0 auto;
   padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px);
 }
 
@@ -83,15 +83,15 @@ header {
 
 .article-title {
   font-family: 'Libre Baskerville', serif;
-  font-size: clamp(1.75rem, 4vw, 2.55rem);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
   font-weight: 700; line-height: 1.17;
   color: var(--text); margin-bottom: 20px;
 }
 
 .article-perex {
   font-size: 1.12rem; font-weight: 400; line-height: 1.7;
-  color: var(--text2); border-left: 3px solid var(--gold);
-  padding-left: 20px; margin-bottom: 32px;
+  color: var(--text2);
+  padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px;
 }
 
 /* AD SLOT */
@@ -194,3 +194,10 @@ footer {
 @media (max-width: 600px) {
   .promo-banner img { aspect-ratio: 1158 / 724; }
 }
+
+/* Navigácia nad článkom používa rovnaké rubriky ako titulná stránka. */
+.article-nav { max-width:1200px; margin:auto; display:flex; align-items:center; gap:26px; overflow-x:auto; min-height:45px; font-size:.82rem; font-weight:600; white-space:nowrap; scrollbar-width:thin; }
+.article-nav a { color:var(--text2); text-decoration:none; padding-block:12px; }
+.article-nav a:hover { color:var(--accent); }
+:where(a,button):focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+@media(max-width:600px) { .article-nav { gap:22px; font-size:.76rem; } .logo { font-size:1.8rem; } .article-wrap { padding-top:28px; } }

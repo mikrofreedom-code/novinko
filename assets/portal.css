@@ -1,0 +1,1538 @@
+/* Novinko: spoločný rytmus titulnej stránky a spravodajských rubrík. */
+:root {
+  --bg:#fff;
+  --surface:#fff;
+  --soft:#f5f5f3;
+  --border:#d9dcdf;
+  --border-light:#eceeef;
+  --accent:#c32632;
+  --gold:#a8232e;
+  --text:#171c23;
+  --text2:#484e56;
+  --muted:#69717a;
+  --header-bg:#171c23;
+  --cat-sk:#a8232e;
+  --cat-svet:#285b86;
+  --cat-eko:#35624d;
+  --cat-sport:#936121;
+  --cat-krypto:#866219;
+  --cat-krypto-skola:#35624d;
+  --cat-ai:#67518b;
+  --cat-zahrada:#426449;
+  --cat-horoskop:#67518b;
+  --cat-recepty:#a15239;
+  --serif:'Libre Baskerville',Georgia,serif;
+  --sans:'Source Sans 3',Arial,sans-serif;
+}
+
+html[data-theme=dark] {
+  --bg:#15181c;
+  --surface:#1b2025;
+  --soft:#20262c;
+  --border:#3b424a;
+  --border-light:#30363d;
+  --accent:#ff7b83;
+  --gold:#ff7b83;
+  --text:#f0f0ed;
+  --text2:#bdc3c9;
+  --muted:#a2abb5;
+  --header-bg:#101316;
+  --cat-sk:#ff7b83;
+  --cat-svet:#9fc5e5;
+  --cat-eko:#91c7a7;
+  --cat-sport:#e7b56f;
+  --cat-krypto:#e0c175;
+  --cat-krypto-skola:#91c7a7;
+  --cat-ai:#c4b2e8;
+  --cat-zahrada:#a3c899;
+  --cat-horoskop:#c4b2e8;
+  --cat-recepty:#e8aa90;
+}
+
+*,*::before,*::after {
+  box-sizing:border-box;
+}
+
+body,h1,h2,h3,p {
+  margin:0;
+}
+
+html {
+  scroll-behavior:smooth;
+}
+
+body {
+  background:var(--bg);
+  color:var(--text);
+  font:16px/1.5 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+
+a {
+  color:inherit;
+  text-decoration:none;
+}
+
+button,input {
+  font:inherit;
+}
+
+button,a,input {
+  -webkit-tap-highlight-color:transparent;
+}
+
+button {
+  cursor:pointer;
+}
+
+img {
+  max-width:100%;
+}
+
+svg {
+  width:20px;
+  height:20px;
+  flex-shrink:0;
+}
+
+button {
+  touch-action:manipulation;
+}
+
+:where(a,button,input,summary):focus-visible {
+  outline:3px solid var(--accent);
+  outline-offset:4px;
+}
+
+.sr-only {
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
+.skip-link {
+  position:absolute;
+  top:-100px;
+  left:16px;
+  z-index:1000;
+  background:var(--surface);
+  padding:12px 20px;
+}
+
+.skip-link:focus {
+  top:8px;
+}
+
+.portal-width,.page-layout,.footer-inner {
+  width:min(1320px,calc(100% - 80px));
+  margin-inline:auto;
+}
+
+
+/* Hlavička: značka, hľadanie a samostatná navigácia. */
+.utility-bar {
+  border-bottom:1px solid var(--border-light);
+  background:var(--soft);
+}
+
+.utility-inner {
+  min-height:34px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  color:var(--muted);
+  font-size:.76rem;
+}
+
+.sk-now {
+  text-transform:capitalize;
+  font-variant-numeric:tabular-nums;
+}
+
+.utility-links {
+  display:flex;
+  gap:24px;
+}
+
+.utility-links a:hover {
+  color:var(--accent);
+}
+
+.masthead {
+  background:var(--surface);
+}
+
+.masthead-inner {
+  display:flex;
+  align-items:center;
+  gap:32px;
+  min-height:116px;
+}
+
+.logo-wrap {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  flex-shrink:0;
+}
+
+.logo {
+  font:700 3.65rem/1.08 var(--serif);
+  letter-spacing:-3px;
+}
+
+.logo-dot {
+  color:var(--accent);
+}
+
+.logo-tagline {
+  margin-top:8px;
+  font-size:.65rem;
+  font-weight:600;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.masthead-promise {
+  border-left:1px solid var(--border);
+  padding-left:28px;
+  line-height:1.55;
+  font-size:.93rem;
+  color:var(--muted);
+}
+
+.masthead-promise strong {
+  font-weight:600;
+  color:var(--text);
+}
+
+.masthead-right {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+}
+
+.portal-search {
+  display:flex;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+  margin-right:12px;
+  width:224px;
+}
+
+.portal-search input {
+  min-width:0;
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  font-size:.86rem;
+  padding:10px 0;
+}
+
+.portal-search input::placeholder {
+  color:var(--muted);
+}
+
+.portal-search button,.theme-btn,.refresh-btn {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border:0;
+  background:transparent;
+  color:var(--text);
+}
+
+.theme-btn:hover,.refresh-btn:hover,.portal-search button:hover {
+  background:var(--soft);
+  color:var(--accent);
+}
+
+.theme-icon-sun {
+  display:none;
+}
+
+html[data-theme=dark] .theme-icon-moon {
+  display:none;
+}
+
+html[data-theme=dark] .theme-icon-sun {
+  display:block;
+}
+
+.navigation-shell {
+  background:var(--header-bg);
+  color:#fff;
+}
+
+.nav-filters {
+  display:flex;
+  align-items:stretch;
+  gap:5px;
+  overflow-x:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#666 transparent;
+}
+
+.filter-btn {
+  position:relative;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:51px;
+  padding:0 17px;
+  font-size:.87rem;
+  font-weight:600;
+  white-space:nowrap;
+  border:0;
+  background:transparent;
+  color:#dce0e5;
+  text-decoration:none;
+}
+
+.filter-btn:first-child {
+  padding-left:22px;
+  padding-right:22px;
+}
+
+.filter-btn:hover {
+  background:#2b3038;
+  color:#fff;
+}
+
+.filter-btn.active {
+  color:#fff;
+  background:#2b3038;
+}
+
+.filter-btn.active::after {
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:17px;
+  right:17px;
+  height:3px;
+  background:#ec4653;
+}
+
+.nav-magazine {
+  margin-left:auto;
+}
+
+.edition-bar {
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+  min-height:47px;
+  border-bottom:1px solid var(--border-light);
+  font-size:.76rem;
+  color:var(--muted);
+}
+
+.edition-label {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-weight:600;
+  color:var(--text2);
+}
+
+.status-dot {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--accent);
+}
+
+
+/* Hlavné správy majú najviac priestoru, doplnky zostávajú v pravom stĺpci. */
+.page-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 282px;
+  gap:36px;
+  align-items:start;
+}
+
+main {
+  min-width:0;
+  padding-top:26px;
+}
+
+.hero-section {
+  padding-bottom:30px;
+  border-bottom:1px solid var(--border);
+}
+
+.hero-eyebrow {
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-bottom:24px;
+}
+
+.hero-eyebrow-text {
+  font:700 1.5rem/1.25 var(--serif);
+  letter-spacing:-.5px;
+}
+
+.hero-eyebrow-line {
+  height:1px;
+  background:var(--border-light);
+  flex:1;
+}
+
+.story-featured {
+  display:grid;
+  grid-template-columns:minmax(0,1.85fr) minmax(0,1fr);
+  gap:25px;
+}
+
+.story-featured-left {
+  min-width:0;
+}
+
+.story-featured-right {
+  border-left:1px solid var(--border-light);
+  padding-left:24px;
+}
+
+.img-wrap {
+  position:relative;
+  display:block;
+  overflow:hidden;
+  background:var(--soft);
+  line-height:0;
+}
+
+.ai-tag {
+  position:absolute;
+  bottom:8px;
+  left:8px;
+  padding:4px 6px;
+  background:rgba(16,21,28,.8);
+  color:#fff;
+  font:600 .56rem/1 var(--sans);
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+
+.story-featured-img {
+  display:block;
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+}
+
+.story-featured-left>.story-label {
+  margin-top:17px;
+}
+
+.story-label {
+  display:block;
+  font-size:.68rem;
+  line-height:1.3;
+  font-weight:700;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  margin-bottom:9px;
+}
+
+.label-slovensko {
+  color:var(--cat-sk);
+}
+
+.label-svet {
+  color:var(--cat-svet);
+}
+
+.label-ekonomika {
+  color:var(--cat-eko);
+}
+
+.label-sport {
+  color:var(--cat-sport);
+}
+
+.label-krypto {
+  color:var(--cat-krypto);
+}
+
+.label-ai {
+  color:var(--cat-ai);
+}
+
+.label-krypto-skola {
+  color:var(--cat-krypto-skola);
+}
+
+.label-zahrada {
+  color:var(--cat-zahrada);
+}
+
+.label-horoskop {
+  color:var(--cat-horoskop);
+}
+
+.label-recepty {
+  color:var(--cat-recepty);
+}
+
+.story-headline-xl {
+  font:700 clamp(1.5rem,2.15vw,2.12rem)/1.24 var(--serif);
+  letter-spacing:-.75px;
+  display:block;
+  margin-bottom:14px;
+  text-wrap:pretty;
+}
+
+.story-headline-xl:hover,.story-secondary:hover .story-headline-md {
+  color:var(--accent);
+}
+
+.story-summary {
+  font-size:.96rem;
+  color:var(--text2);
+  line-height:1.65;
+  margin-bottom:16px;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.story-byline,.news-meta {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+  font-size:.72rem;
+  line-height:1.4;
+  color:var(--muted);
+}
+
+.story-byline-source,.news-source {
+  font-weight:600;
+  color:var(--text2);
+}
+
+.story-secondary {
+  display:block;
+  padding-bottom:23px;
+  margin-bottom:23px;
+  border-bottom:1px solid var(--border-light);
+}
+
+.story-secondary:last-child {
+  border:0;
+  margin:0;
+  padding:0;
+}
+
+.story-secondary .img-wrap {
+  margin-bottom:13px;
+}
+
+.story-secondary-img {
+  width:100%;
+  aspect-ratio:2/1;
+  object-fit:cover;
+  display:block;
+}
+
+.story-headline-md {
+  font:700 1.03rem/1.45 var(--serif);
+  letter-spacing:-.25px;
+  margin-bottom:10px;
+  text-wrap:pretty;
+}
+
+.story-featured-right .story-secondary:not(:first-child) .img-wrap {
+  display:none;
+}
+
+
+/* Spravodajské bloky. */
+.mag-sec,.skola-section,.zahrada-section,.recepty-section,.horoskop-section {
+  margin:36px 0 0;
+}
+
+.mag-sec:empty,.skola-section:empty,.zahrada-section:empty,.recepty-section:empty,.horoskop-section:empty {
+  display:none;
+}
+
+.mag-head,.section-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:14px;
+  border-top:2px solid var(--text);
+  padding-top:13px;
+  margin-bottom:22px;
+}
+
+.section-head {
+  margin-top:32px;
+}
+
+.mag-sec-title,.section-head-title {
+  font:700 1.22rem/1.3 var(--serif);
+  letter-spacing:-.4px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.mag-dot {
+  width:5px;
+  height:17px;
+  background:currentColor;
+  display:inline-block;
+}
+
+.mag-more,.section-head-count {
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+.mag-more:hover {
+  color:var(--accent);
+}
+
+.mag-tier1 {
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  gap:30px;
+}
+
+.mag-feature .img-wrap {
+  margin-bottom:16px;
+}
+
+.mag-feature-img {
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  display:block;
+}
+
+.mag-feature-title {
+  font:700 1.36rem/1.35 var(--serif);
+  letter-spacing:-.4px;
+  margin-bottom:10px;
+  text-wrap:pretty;
+}
+
+.mag-feature-perex {
+  font-size:.91rem;
+  line-height:1.6;
+  color:var(--text2);
+  margin-bottom:13px;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.mag-side-item {
+  display:block;
+  padding-bottom:18px;
+  margin-bottom:18px;
+  border-bottom:1px solid var(--border-light);
+}
+
+.mag-side-item:last-child {
+  border:0;
+  margin:0;
+}
+
+.mag-side-title,.mag-cell-title {
+  font:700 1.02rem/1.45 var(--serif);
+  margin-bottom:9px;
+  letter-spacing:-.2px;
+}
+
+.mag-feature:hover h3,.mag-side-item:hover h3,.mag-cell:hover h3,.news-item:hover .news-title {
+  color:var(--accent);
+}
+
+.mag-grid2 {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 28px;
+}
+
+.mag-cell {
+  display:block;
+  padding:16px 0;
+  border-bottom:1px solid var(--border-light);
+}
+
+.news-row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  border-bottom:1px solid var(--border-light);
+}
+
+.news-item {
+  min-width:0;
+  padding:20px 0;
+}
+
+.news-item .img-wrap {
+  margin-bottom:16px;
+}
+
+.news-item-img {
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  display:block;
+}
+
+.news-title {
+  font:700 1.05rem/1.45 var(--serif);
+  margin-bottom:12px;
+}
+
+.digest-grid {
+  display:grid;
+  gap:24px;
+}
+
+.digest-item {
+  display:block;
+  padding:12px 0;
+  border-bottom:1px solid var(--border-light);
+}
+
+.digest-col-title {
+  font-weight:700;
+}
+
+.digest-item-title {
+  font-weight:600;
+}
+
+.digest-item-time {
+  font-size:.72rem;
+  color:var(--muted);
+}
+
+
+/* Magazín nie je ďalší zoznam denných správ. */
+.discovery-section {
+  margin-top:32px;
+  padding:26px;
+  background:#203b35;
+  color:#f4f4ed;
+}
+
+.discovery-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:20px;
+}
+
+.discovery-eyebrow {
+  font-size:.62rem;
+  font-weight:600;
+  letter-spacing:1.6px;
+  text-transform:uppercase;
+  color:#c0d3c9;
+  display:block;
+  margin-bottom:7px;
+}
+
+.discovery-head h2 {
+  font:400 1.55rem/1.3 var(--serif);
+  letter-spacing:-.5px;
+}
+
+.discovery-head>a {
+  font-size:.75rem;
+  color:#d9e5dc;
+  white-space:nowrap;
+}
+
+.discovery-head>a:hover {
+  text-decoration:underline;
+}
+
+.discovery-intro {
+  font-size:.8rem;
+  margin:9px 0 22px;
+  color:#c0d3c9;
+}
+
+.discovery-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
+}
+
+.discovery-img {
+  width:100%;
+  aspect-ratio:16/10;
+  object-fit:cover;
+  display:block;
+}
+
+.discovery-card h3 {
+  font:400 .92rem/1.5 var(--serif);
+  margin-top:12px;
+}
+
+.discovery-card:hover h3 {
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
+
+.skola-grid,.zahrada-grid,.recepty-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(185px,1fr));
+  gap:20px;
+}
+
+.skola-card,.zahrada-card,.recepty-card {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  border-bottom:1px solid var(--border);
+}
+
+.skola-card-img,.zahrada-card-img,.recepty-card-img {
+  display:block;
+  aspect-ratio:16/10;
+  object-fit:cover;
+  width:100%;
+}
+
+.skola-card-body,.zahrada-card-body,.recepty-card-body {
+  padding:15px 0;
+}
+
+.skola-card-title,.zahrada-card-title,.recepty-card-title {
+  font:700 .95rem/1.45 var(--serif);
+  margin:7px 0;
+}
+
+.skola-card:hover .skola-card-title,.zahrada-card:hover .zahrada-card-title,.recepty-card:hover .recepty-card-title {
+  color:var(--accent);
+}
+
+.skola-card-perex,.zahrada-card-perex,.recepty-card-perex {
+  font-size:.84rem;
+  color:var(--muted);
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.horoskop-teaser {
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:24px;
+  background:var(--soft);
+}
+
+.horoskop-teaser-icon {
+  font-size:2rem;
+}
+
+.horoskop-teaser-body {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.horoskop-teaser-title {
+  font:700 1.05rem/1.5 var(--serif);
+}
+
+.horoskop-teaser-perex {
+  font-size:.9rem;
+  color:var(--text2);
+}
+
+.horoskop-teaser-cta {
+  font-size:.8rem;
+  color:var(--cat-horoskop);
+}
+
+
+/* Pravý stĺpec: skutočne najnovšie správy, nie vymyslené poradie čítanosti. */
+.sidebar {
+  padding-top:30px;
+  border-left:1px solid var(--border-light);
+  padding-left:25px;
+  min-width:0;
+}
+
+.sidebar-block {
+  margin-bottom:30px;
+}
+
+.sidebar-head {
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding-bottom:13px;
+  border-bottom:2px solid var(--text);
+  margin-bottom:5px;
+}
+
+.latest-block .sidebar-head {
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+
+.trending-item {
+  display:flex;
+  align-items:start;
+  gap:12px;
+  padding:16px 0;
+  border-bottom:1px solid var(--border-light);
+}
+
+.trending-num {
+  font-size:.74rem;
+  color:var(--accent);
+  font-weight:700;
+  flex-shrink:0;
+  line-height:1.6;
+  font-variant-numeric:tabular-nums;
+}
+
+.trending-text {
+  font-size:.87rem;
+  font-weight:600;
+  line-height:1.4;
+}
+
+.trending-item:hover .trending-text {
+  color:var(--accent);
+}
+
+.trending-source {
+  color:var(--muted);
+  font-size:.65rem;
+  margin-top:6px;
+}
+
+.today-date {
+  font-size:.79rem;
+  margin:15px 0 10px;
+  color:var(--muted);
+  text-transform:capitalize;
+}
+
+.today-meniny {
+  font:400 1.04rem/1.5 var(--serif);
+}
+
+.today-meniny strong {
+  color:var(--accent);
+}
+
+.today-tomorrow {
+  font-size:.77rem;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+.mini-horo {
+  margin-top:16px;
+  padding:15px;
+  background:var(--soft);
+}
+
+.mini-horo-head {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.mini-horo-label {
+  font-size:.64rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--cat-horoskop);
+}
+
+.mini-horo-link {
+  font-size:.68rem;
+}
+
+.mini-horo-body {
+  display:flex;
+  gap:10px;
+  min-height:80px;
+}
+
+.mini-horo-icon {
+  font-size:1.2rem;
+}
+
+.mini-horo-sign {
+  font-weight:700;
+  font-size:.9rem;
+}
+
+.mini-horo-line {
+  font-size:.8rem;
+  line-height:1.5;
+  color:var(--text2);
+}
+
+.wx-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:9px 0;
+  border-bottom:1px solid var(--border-light);
+  font-size:.85rem;
+}
+
+.wx-city {
+  flex:1;
+}
+
+.wx-temp {
+  font-weight:700;
+}
+
+.wx-credit {
+  font-size:.65rem;
+  color:var(--muted);
+  margin-top:8px;
+}
+
+.tv-chart-wrap {
+  height:460px;
+}
+
+.tv-overview-wrap {
+  height:400px;
+}
+
+.tv-mini-symbol {
+  height:220px;
+}
+
+.tv-chart-wrap,.tv-overview-wrap,.tv-mini-symbol {
+  border:1px solid var(--border);
+  background:var(--surface);
+}
+
+.tv-ticker-wrap {
+  background:var(--header-bg);
+}
+
+.market-section {
+  margin:28px 0;
+}
+
+.loading {
+  min-height:220px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  color:var(--muted);
+  font-size:.9rem;
+}
+
+.loader {
+  width:28px;
+  height:28px;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+.spinning {
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform:rotate(360deg);
+  }
+}
+
+footer {
+  border-top:3px solid var(--text);
+  margin-top:64px;
+  background:var(--soft);
+  padding:36px 0;
+}
+
+.footer-inner {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:20px;
+}
+
+.footer-logo {
+  font:700 2rem var(--serif);
+  letter-spacing:-1px;
+}
+
+.footer-logo span {
+  color:var(--accent);
+}
+
+.footer-ev {
+  font-size:.72rem;
+  color:var(--muted);
+  margin-left:auto;
+}
+
+.footer-inner>span[style] {
+  width:100%;
+  padding-top:20px;
+  border-top:1px solid var(--border);
+}
+
+.footer-text {
+  color:var(--muted);
+}
+
+.cookie-banner {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  z-index:9999;
+  width:min(620px,calc(100% - 40px));
+  background:var(--surface);
+  color:var(--text);
+  padding:22px;
+  border:1px solid var(--border);
+  box-shadow:0 8px 40px #0002;
+  transform:translateY(calc(100% + 40px));
+  transition:transform .25s;
+  max-height:85vh;
+  overflow:auto;
+}
+
+.cookie-banner.show {
+  transform:translateY(0);
+}
+
+.cookie-inner {
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+}
+
+.cookie-text {
+  font-size:.83rem;
+  color:var(--text2);
+  line-height:1.55;
+}
+
+.cookie-text a {
+  text-decoration:underline;
+}
+
+.cookie-actions {
+  display:flex;
+  gap:10px;
+}
+
+.cookie-btn {
+  min-height:42px;
+  padding:8px 17px;
+  font-size:.8rem;
+  font-weight:600;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+}
+
+.cookie-btn-accept {
+  background:var(--text);
+  color:var(--bg);
+  border-color:var(--text);
+}
+
+@media(min-width:1600px) {
+  .story-headline-xl {
+    font-size:2.25rem;
+  }
+}
+
+@media(max-width:1200px) {
+  .portal-width,.page-layout,.footer-inner {
+    width:calc(100% - 48px);
+  }
+  .page-layout {
+    grid-template-columns:minmax(0,1fr) 245px;
+    gap:24px;
+  }
+  .sidebar {
+    padding-left:20px;
+  }
+  .filter-btn {
+    padding-inline:13px;
+    font-size:.82rem;
+  }
+  .story-featured {
+    grid-template-columns:1.7fr 1fr;
+    gap:20px;
+  }
+  .story-featured-right {
+    padding-left:19px;
+  }
+  .masthead-promise {
+    display:none;
+  }
+  .story-headline-md {
+    font-size:.95rem;
+  }
+  .mag-tier1 {
+    gap:22px;
+  }
+}
+
+@media(max-width:1000px) {
+  .page-layout {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .sidebar {
+    position:static;
+    border-left:0;
+    padding-left:0;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:24px;
+    border-top:1px solid var(--border);
+  }
+  .story-featured {
+    grid-template-columns:1.8fr 1fr;
+    gap:28px;
+  }
+  .story-headline-xl {
+    font-size:2rem;
+  }
+  .story-headline-md {
+    font-size:1.1rem;
+  }
+  .nav-magazine {
+    margin-left:0;
+  }
+  .story-featured-right {
+    padding-left:27px;
+  }
+  .masthead-inner {
+    min-height:106px;
+  }
+  .discovery-grid {
+    gap:24px;
+  }
+  .latest-block {
+    grid-row:span 2;
+  }
+  .sidebar-block {
+    min-width:0;
+  }
+  .mag-tier1 {
+    grid-template-columns:1.3fr 1fr;
+  }
+}
+
+@media(max-width:640px) {
+  .portal-width,.page-layout,.footer-inner {
+    width:calc(100% - 36px);
+  }
+  .utility-inner {
+    font-size:.67rem;
+    min-height:30px;
+  }
+  .utility-links {
+    gap:12px;
+  }
+  .utility-links a:last-child {
+    display:none;
+  }
+  .masthead-inner {
+    min-height:103px;
+    gap:12px;
+    flex-wrap:wrap;
+    padding-block:14px;
+  }
+  .logo {
+    font-size:2.55rem;
+    letter-spacing:-2px;
+  }
+  .logo-tagline {
+    font-size:.53rem;
+    letter-spacing:.65px;
+    margin-top:5px;
+  }
+  .masthead-right {
+    gap:0;
+  }
+  .portal-search {
+    width:42px;
+    margin:0;
+    border:0;
+    position:relative;
+  }
+  .portal-search input {
+    width:0;
+    padding:0;
+    opacity:0;
+  }
+  .portal-search:focus-within {
+    position:absolute;
+    left:18px;
+    right:110px;
+    width:auto;
+    background:var(--surface);
+    z-index:5;
+    border:1px solid var(--border);
+    padding-left:10px;
+  }
+  .portal-search:focus-within input {
+    opacity:1;
+    width:100%;
+    padding-block:8px;
+  }
+  .refresh-btn {
+    display:none;
+  }
+  .nav-filters {
+    width:100%;
+    padding-inline:8px;
+    gap:0;
+  }
+  .filter-btn,.filter-btn:first-child {
+    min-height:47px;
+    font-size:.83rem;
+    padding-inline:13px;
+  }
+  .edition-bar {
+    min-height:43px;
+    font-size:.68rem;
+  }
+  .last-update {
+    font-size:.64rem;
+  }
+  .hero-eyebrow {
+    margin-bottom:20px;
+  }
+  .hero-eyebrow-text {
+    font-size:1.24rem;
+  }
+  main {
+    padding-top:23px;
+  }
+  .story-featured {
+    grid-template-columns:1fr;
+    gap:24px;
+  }
+  .story-headline-xl {
+    font-size:1.72rem;
+    line-height:1.28;
+    letter-spacing:-.6px;
+  }
+  .story-summary {
+    font-size:.94rem;
+  }
+  .story-featured-right {
+    border-left:0;
+    padding-left:0;
+    border-top:1px solid var(--border);
+  }
+  .story-secondary {
+    padding:18px 0;
+    margin:0;
+    display:flex;
+    flex-direction:row-reverse;
+    gap:15px;
+    align-items:start;
+  }
+  .story-secondary:last-child {
+    padding-top:18px;
+  }
+  .story-secondary .img-wrap {
+    width:98px;
+    flex-shrink:0;
+    margin:0;
+  }
+  .story-secondary-img {
+    aspect-ratio:1.25;
+  }
+  .story-secondary-text {
+    flex:1;
+  }
+  .story-headline-md {
+    font-size:1rem;
+    line-height:1.4;
+    margin-bottom:8px;
+  }
+  .story-secondary .story-label {
+    font-size:.61rem;
+    margin-bottom:6px;
+  }
+  .story-featured-right .story-secondary:not(:first-child) .img-wrap {
+    display:block;
+  }
+  .hero-section {
+    padding-bottom:24px;
+  }
+  .mag-tier1 {
+    grid-template-columns:1fr;
+    gap:22px;
+  }
+  .mag-head,.section-head {
+    margin-bottom:20px;
+  }
+  .mag-sec-title,.section-head-title {
+    font-size:1.14rem;
+  }
+  .section-head-count {
+    font-size:.66rem;
+  }
+  .mag-feature-title {
+    font-size:1.3rem;
+  }
+  .mag-side {
+    border-top:1px solid var(--border-light);
+    padding-top:20px;
+  }
+  .mag-side-title {
+    font-size:1rem;
+  }
+  .mag-grid2,.news-row {
+    grid-template-columns:1fr;
+  }
+  .mag-more {
+    font-size:.7rem;
+  }
+  .discovery-section {
+    padding:22px 18px;
+    margin-inline:-18px;
+  }
+  .discovery-head {
+    align-items:start;
+    gap:12px;
+  }
+  .discovery-head h2 {
+    font-size:1.3rem;
+  }
+  .discovery-head>a {
+    font-size:.68rem;
+    white-space:normal;
+    max-width:78px;
+    text-align:right;
+  }
+  .discovery-intro {
+    font-size:.72rem;
+  }
+  .discovery-grid {
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  .discovery-card {
+    display:grid;
+    grid-template-columns:108px minmax(0,1fr);
+    gap:15px;
+    align-items:start;
+  }
+  .discovery-card h3 {
+    font-size:.91rem;
+    margin:0;
+    line-height:1.5;
+  }
+  .discovery-img {
+    aspect-ratio:1.15;
+  }
+  .discovery-card .ai-tag {
+    font-size:.43rem;
+    left:4px;
+    bottom:4px;
+    padding:3px;
+  }
+  .skola-grid,.zahrada-grid,.recepty-grid {
+    grid-template-columns:1fr 1fr;
+    gap:20px 16px;
+  }
+  .skola-card-title,.zahrada-card-title,.recepty-card-title {
+    font-size:.9rem;
+  }
+  .skola-card-perex,.zahrada-card-perex,.recepty-card-perex {
+    font-size:.8rem;
+  }
+  .sidebar {
+    grid-template-columns:1fr;
+    gap:0;
+  }
+  .latest-block {
+    grid-row:auto;
+  }
+  .sidebar-block {
+    margin-bottom:28px;
+  }
+  .mini-horo-body {
+    min-height:0;
+  }
+  .cookie-banner {
+    bottom:12px;
+    right:12px;
+    width:calc(100% - 24px);
+    padding:18px;
+  }
+  .cookie-actions {
+    width:100%;
+  }
+  .cookie-btn {
+    flex:1;
+  }
+  .footer-inner {
+    gap:14px;
+  }
+  .footer-logo {
+    font-size:1.7rem;
+  }
+  footer {
+    margin-top:40px;
+  }
+  .digest-grid {
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  html {
+    scroll-behavior:auto;
+  }
+  *,*::before,*::after {
+    animation:none!important;
+    transition:none!important;
+  }
+}

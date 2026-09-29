@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Novinko — krypto, AI a slovenské spravodajstvo z primárnych zdrojov</title>
+  <title>Novinko — správy, ktoré vás udržia v obraze</title>
   <meta name="description" content="Neutrálne spravodajstvo z primárnych zdrojov — krypto, umelá inteligencia, Slovensko, svet, ekonomika a šport." />
   <!-- Bez max-image-preview:large dáva Google vo výsledkoch len malý štvorcový
        náhľad a stránka nie je spôsobilá pre Discover. -->
@@ -18,7 +18,7 @@
 
   <!-- Open Graph -->
   <meta property="og:title" content="Novinko — spravodajstvo z primárnych zdrojov" />
-  <meta property="og:description" content="Krypto, AI a slovenské správy — neutrálne, z primárnych zdrojov." />
+  <meta property="og:description" content="Slovensko, svet, ekonomika a technológie. Správy v súvislostiach aj príbehy, ktoré stoja za objavenie." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://novinko.sk/" />
 
@@ -26,462 +26,28 @@
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #faf9f7;
-      --surface: #ffffff;
-      --border: #d8d3c8;
-      --border-light: #ece9e2;
-      --accent: #c0392b;
-      --gold: #c89b3c;
-      --text: #111111;
-      --text2: #333333;
-      --muted: #7a7468;
-      --header-bg: #0d0d0d;
-      --green: #16a34a;
-      --red: #dc2626;
-      --cat-sk: #1a3a5c;
-      --cat-svet: #4a235a;
-      --cat-eko: #1a4a2a;
-      --cat-sport: #7a2a00;
-      --cat-krypto: #b8860b;
-      --cat-krypto-skola: #0f7a5a;
-      --cat-ai: #6d28d9;
-      --cat-zahrada: #4a6b1f;
-      --cat-horoskop: #6b3fa0;
-      --cat-recepty: #b5502e;
-      --hairline: var(--text);
-    }
-
-    html[data-theme="dark"] {
-      --bg: #0d0d0f;
-      --surface: #161619;
-      --border: #2a2a30;
-      --border-light: #222226;
-      --accent: #ff6b5b;
-      --gold: #e0b34d;
-      --text: #f0ede6;
-      --text2: #b8b4ac;
-      --muted: #7d7870;
-      --header-bg: #000000;
-      --cat-sk: #6a9fd4;
-      --cat-svet: #b388d4;
-      --cat-eko: #6abf7f;
-      --cat-sport: #d98c5f;
-      --cat-krypto: #e0b34d;
-      --cat-krypto-skola: #4fd1a5;
-      --cat-ai: #a78bfa;
-      --cat-zahrada: #a3c85c;
-      --cat-horoskop: #b98aff;
-      --cat-recepty: #e2916a;
-      --hairline: #3a3a42;
-    }
-
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; min-height: 100vh; overflow-x: hidden; transition: background 0.25s, color 0.25s; }
-
-    /* ─── WORLD CLOCK ─── */
-    .world-clock { display: flex; align-items: center; gap: 14px; }
-    .clock-item { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; }
-    .clock-city { font-size: 0.52rem; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
-    .clock-time { font-size: 0.78rem; color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .clock-item.market-open .clock-city { color: var(--green); }
-    .clock-item.market-open .clock-city::after { content: ' ●'; color: var(--green); }
-
-    /* ─── THEME TOGGLE ─── */
-    .theme-btn { background: transparent; border: 1px solid #3a3a3a; color: #b7b7b7; width: 40px; height: 40px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .theme-btn:hover { border-color: #666; color: #fff; }
-    .theme-btn svg, .refresh-btn svg { width: 18px; height: 18px; }
-    .theme-icon-sun { display: none; }
-    html[data-theme="dark"] .theme-icon-moon { display: none; }
-    html[data-theme="dark"] .theme-icon-sun { display: block; }
-
-    /* ─── MASTHEAD ─── */
-    .masthead { background: var(--header-bg); border-bottom: 1px solid #222; padding: 0 clamp(16px, 4vw, 48px); }
-    .masthead-inner { max-width: 1300px; margin: 0 auto; display: flex; align-items: center; height: 64px; }
-    .logo-wrap { text-decoration: none; display: flex; align-items: baseline; gap: 6px; }
-    .logo { font-family: 'Libre Baskerville', serif; font-size: 1.75rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-    .logo-dot { color: var(--gold); }
-    .logo-tagline { font-size: 0.66rem; color: rgba(255,255,255,0.66); letter-spacing: 1.25px; text-transform: uppercase; font-weight: 600; border-left: 1px solid #3a3a3a; padding-left: 10px; margin-left: 4px; }
-
-    .nav-filters { display: flex; align-items: stretch; align-self: stretch; gap: 0; border-left: 1px solid #222; margin-left: 20px; }
-    .filter-btn { background: transparent; border: none; border-right: 1px solid #222; color: #aaa; padding: 0 15px; min-height: 44px; height: 64px; font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.45px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; justify-content: center; }
-    .filter-btn:hover { color: #fff; background: #1a1a1a; }
-    .filter-btn.active { color: #0d0d0d; background: var(--gold); border-color: var(--gold); }
-
-    .nav-more { position: relative; }
-    .nav-more summary { list-style: none; }
-    .nav-more summary::-webkit-details-marker { display: none; }
-    .nav-more summary::after { content: ''; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg) translateY(-2px); margin-left: 8px; }
-    .nav-more-menu { position: absolute; z-index: 500; top: calc(100% + 8px); right: 0; width: 190px; padding: 6px; background: #151515; border: 1px solid #333; border-radius: 6px; box-shadow: 0 14px 36px rgba(0,0,0,.28); }
-    .nav-more-menu .filter-btn { width: 100%; height: 44px; justify-content: flex-start; border: 0; border-radius: 3px; padding: 0 12px; }
-    .mobile-only { display: none !important; }
-    .masthead-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-    .live-badge { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #aaa; letter-spacing: 0.9px; text-transform: uppercase; }
-    .live-badge::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .refresh-btn { background: transparent; border: 1px solid #3a3a3a; color: #b7b7b7; width: 40px; height: 40px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .refresh-btn:hover { border-color: #666; color: #fff; }
-    .refresh-btn.spinning { animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ─── TRADINGVIEW TICKER TAPE ─── */
-    .tv-ticker-wrap { background: var(--header-bg); border-bottom: 2px solid var(--gold); }
-
-    /* ─── SECTION NAV ─── */
-    .section-nav { background: var(--surface); border-bottom: 3px solid var(--text); padding: 0 clamp(16px, 4vw, 48px); }
-    .section-nav-inner { max-width: 1300px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 36px; }
-    .edition-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.5px; font-style: italic; font-family: 'Libre Baskerville', serif; }
-    .last-update { font-size: 0.75rem; color: var(--muted); }
-    .section-nav-right { display: flex; align-items: center; gap: 14px; }
-    .sk-now { font-size: 0.78rem; color: var(--text2); font-weight: 600; text-transform: capitalize; font-variant-numeric: tabular-nums; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
-    .sk-now::before { content: ''; width: 11px; height: 11px; border: 1.5px solid var(--gold); border-radius: 50%; box-shadow: inset 3px 0 0 -2px var(--gold); }
-    @media (max-width: 560px) { .edition-label { display: none; } .last-update { display: none; } }
-
-    /* ─── PAGE LAYOUT ─── */
-    .page-layout { max-width: 1300px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 1fr 320px; gap: 40px; align-items: start; }
-    main { min-width: 0; padding-top: 28px; }
-
-    /* ─── CATEGORY LABELS ─── */
-    .story-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 10px; display: block; }
-    .label-slovensko { color: var(--cat-sk); }
-    .label-svet { color: var(--cat-svet); }
-    .label-ekonomika { color: var(--cat-eko); }
-    .label-sport { color: var(--cat-sport); }
-    .label-krypto { color: var(--cat-krypto); }
-    .label-krypto-skola { color: var(--cat-krypto-skola); }
-    .label-ai { color: var(--cat-ai); }
-    .label-zahrada { color: var(--cat-zahrada); }
-    .label-horoskop { color: var(--cat-horoskop); }
-    .label-recepty { color: var(--cat-recepty); }
-
-    /* ─── HERO / LEAD ─── */
-    .hero-section { border-bottom: 3px solid var(--text); padding-bottom: 28px; margin-bottom: 8px; }
-    .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-    .hero-eyebrow-line { flex: 1; height: 1px; background: var(--border); }
-    .hero-eyebrow-text { font-size: 0.7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
-
-    .story-featured { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: start; }
-    .story-headline-main { margin: 0; }
-    .story-headline-xl { font-family: 'Libre Baskerville', serif; font-size: clamp(2.15rem, 3vw, 2.4rem); font-weight: 700; line-height: 1.12; color: var(--text); margin-bottom: 14px; letter-spacing: -0.5px; text-decoration: none; display: block; }
-    .story-headline-xl:hover { color: var(--accent); }
-    .story-summary { font-size: 1rem; color: var(--text2); line-height: 1.65; font-weight: 400; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-    .story-byline { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-    .story-byline-source { font-weight: 600; color: var(--text2); }
-    .story-byline-sep { color: var(--border); }
-    .story-byline-time { font-style: italic; }
-
-    .story-featured-right { display: flex; flex-direction: column; }
-    .story-secondary { padding: 0 0 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); text-decoration: none; display: flex; gap: 12px; }
-    .story-secondary:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .story-headline-md { font-family: 'Libre Baskerville', serif; font-size: 1.15rem; font-weight: 700; line-height: 1.28; color: var(--text); margin-bottom: 8px; transition: color 0.15s; }
-    .story-secondary:hover .story-headline-md { color: var(--accent); }
-    .story-featured-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin-bottom: 16px; display: block; background: var(--surface); }
-    .story-secondary-img { width: 88px; height: 64px; object-fit: cover; border-radius: 3px; flex-shrink: 0; background: var(--surface); }
-    .story-secondary-text { flex: 1; min-width: 0; }
-
-    /* ─── MAGAZINE SECTION BLOCKS (render engine) ─── */
-    .mag-sec { margin: 34px 0 8px; }
-    .mag-head { display: flex; align-items: baseline; justify-content: space-between; border-top: 3px solid var(--text); padding-top: 10px; margin-bottom: 18px; gap: 12px; }
-    .mag-sec-title { font-family: 'Source Sans 3', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); display: flex; align-items: center; gap: 9px; }
-    .mag-dot { font-size: 0.85rem; line-height: 1; }
-    .mag-more { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; letter-spacing: 0.5px; }
-    .mag-more:hover { color: var(--accent); }
-
-    .mag-tier1 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; align-items: start; }
-    .mag-feature { text-decoration: none; display: block; }
-    .mag-feature-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; margin-bottom: 14px; display: block; background: var(--surface); }
-    .img-wrap { position: relative; display: block; }
-    .ai-tag { position: absolute; left: 8px; bottom: 8px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.56rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; pointer-events: none; }
-    .mag-feature-title { font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: var(--text); margin-bottom: 10px; letter-spacing: -0.3px; transition: color 0.15s; }
-    .mag-feature:hover .mag-feature-title { color: var(--accent); }
-    .mag-feature-perex { font-size: 0.92rem; color: var(--text2); line-height: 1.6; font-weight: 300; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .mag-side { display: flex; flex-direction: column; }
-    .mag-side-item { text-decoration: none; padding: 0 0 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border-light); display: block; }
-    .mag-side-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .mag-side-title { font-family: 'Libre Baskerville', serif; font-size: 1.02rem; font-weight: 700; line-height: 1.3; color: var(--text); margin-bottom: 5px; transition: color 0.15s; }
-    .mag-side-item:hover .mag-side-title { color: var(--accent); }
-
-    .mag-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
-    .mag-cell { text-decoration: none; padding: 12px 0; border-bottom: 1px solid var(--border-light); display: block; }
-    .mag-cell-title { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; line-height: 1.3; color: var(--text); margin-bottom: 5px; transition: color 0.15s; }
-    .mag-cell:hover .mag-cell-title { color: var(--accent); }
-
-    .news-meta { font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
-    .news-source { font-weight: 600; color: var(--text2); }
-    .news-time { font-style: italic; }
-
-    /* ─── KRYPTO ŠKOLA (edu blok) ─── */
-    .skola-section { margin: 34px 0 8px; }
-    .skola-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .skola-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.15s; }
-    .skola-card:hover { border-color: var(--cat-krypto-skola); }
-    .skola-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-    .skola-card-body { padding: 14px 16px; }
-    .skola-card-title { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; margin: 6px 0; }
-    .skola-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
-    @media (max-width: 900px) { .skola-grid { grid-template-columns: 1fr; } }
-
-    /* ─── ZÁHRADA (evergreen blok, sezónne rady — vlastná stránka zahrada.html) ─── */
-    .zahrada-section { margin: 34px 0 8px; }
-    /* auto-fit namiesto pevných 4 stĺpcov (rovnaký nález ako v zahrada.html,
-       6. 9.) — pri menej než 4 článkoch (dnes bežný stav) repeat(4,1fr)
-       necháva vpravo prázdny stĺpec. auto-fit ho zbalí, karty sa roztiahnu. */
-    .zahrada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-    .zahrada-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.15s; }
-    .zahrada-card:hover { border-color: var(--cat-zahrada); }
-    .zahrada-card.lead { grid-column: span 2; }
-    .zahrada-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-    .zahrada-card.lead .zahrada-card-img { aspect-ratio: 16/7.2; }
-    .zahrada-card-body { padding: 14px 16px; }
-    .zahrada-card-title { font-family: 'Libre Baskerville', serif; font-weight: 700; color: var(--text); line-height: 1.3; margin: 6px 0; }
-    .zahrada-card:not(.lead) .zahrada-card-title { font-size: 1rem; }
-    .zahrada-card.lead .zahrada-card-title { font-size: 1.3rem; }
-    .zahrada-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    @media (max-width: 480px) { .zahrada-card.lead { grid-column: span 1; } }
-
-    /* ─── HOROSKOP (1 položka/deň → jedna teaser karta, nie mriežka) ─── */
-    .horoskop-section { margin: 34px 0 8px; }
-    .horoskop-teaser { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); text-decoration: none; padding: 18px 20px; transition: border-color 0.15s; }
-    .horoskop-teaser:hover { border-color: var(--cat-horoskop); }
-    .horoskop-teaser-icon { font-size: 2.1rem; line-height: 1; flex-shrink: 0; }
-    .horoskop-teaser-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .horoskop-teaser-title { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 1.05rem; color: var(--text); line-height: 1.3; }
-    .horoskop-teaser-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .horoskop-teaser-cta { font-size: 0.78rem; color: var(--cat-horoskop); margin-top: 2px; }
-
-    /* ─── RECEPTY (evergreen blok, rovnaký vzor ako Záhrada — vlastná stránka
-       recepty.html) ─── */
-    /* Zámerne BEZ časového štítku (⏱ Xmin) na tomto teaseri, hoci ho
-       recepty.html má — fetch-rss dáva len perex, nie plné telo, z ktorého
-       sa čas parsuje (viď parseRecept() v recepty.html). Ťahať kvôli tomu
-       na hlavnej navyše celý CSV hárok (ako to robí recepty.html/horoskop.html)
-       by spomalilo načítanie domovskej stránky pre 4 karty, ktoré aj tak
-       vedú na plnú rubriku. */
-    .recepty-section { margin: 34px 0 8px; }
-    .recepty-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-    .recepty-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); text-decoration: none; transition: border-color 0.15s; }
-    .recepty-card:hover { border-color: var(--cat-recepty); }
-    .recepty-card.lead { grid-column: span 2; }
-    .recepty-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-    .recepty-card.lead .recepty-card-img { aspect-ratio: 16/7.2; }
-    .recepty-card-body { padding: 14px 16px; }
-    .recepty-card-title { font-family: 'Libre Baskerville', serif; font-weight: 700; color: var(--text); line-height: 1.3; margin: 6px 0; }
-    .recepty-card:not(.lead) .recepty-card-title { font-size: 1rem; }
-    .recepty-card.lead .recepty-card-title { font-size: 1.3rem; }
-    .recepty-card-perex { font-size: 0.82rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    @media (max-width: 480px) { .recepty-card.lead { grid-column: span 1; } }
-
-    /* ─── CHART SECTION (len v sekcii Krypto) ─── */
-    .market-section { margin-bottom: 36px; }
-    .tv-chart-wrap { height: 460px; border: 1px solid var(--border); background: var(--surface); }
-    .tv-overview-wrap { height: 400px; border: 1px solid var(--border); background: var(--surface); margin-top: 1px; }
-
-    /* ─── SECTION HEAD ─── */
-    .section-head { display: flex; align-items: center; gap: 12px; border-top: 3px solid var(--text); padding-top: 8px; margin: 32px 0 20px; }
-    .section-head-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); }
-    .section-head-count { font-size: 0.68rem; color: var(--muted); margin-left: auto; font-style: italic; }
-
-    /* ─── NEWS LIST (sekčný pohľad) ─── */
-    .news-list { display: flex; flex-direction: column; }
-    .news-row { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border-light); }
-    .news-item { padding: 16px 20px 16px 0; border-right: 1px solid var(--border-light); text-decoration: none; display: block; transition: background 0.1s; }
-    .news-item:last-child { border-right: none; padding-left: 20px; padding-right: 0; }
-    .news-item:hover .news-title { color: var(--accent); }
-    .news-title { font-family: 'Libre Baskerville', serif; font-size: 0.92rem; font-weight: 700; line-height: 1.35; color: var(--text); margin-bottom: 4px; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .news-item-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 3px; margin-bottom: 10px; display: block; background: var(--surface); }
-    .news-item-body { display: block; }
-
-    /* ─── DIGEST (tier 3: svet/ekonomika/šport) ─── */
-    .digest-grid { display: grid; gap: 0; }
-    .digest-col { padding: 0 16px; border-right: 1px solid var(--border-light); }
-    .digest-col:first-child { padding-left: 0; }
-    .digest-col:last-child { border-right: none; padding-right: 0; }
-    .digest-col-title { font-size: 0.62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--text); }
-    .digest-col-title a { color: inherit; text-decoration: none; }
-    .digest-item { display: block; text-decoration: none; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
-    .digest-item:last-child { border-bottom: none; }
-    .digest-item-title { font-size: 0.82rem; color: var(--text); line-height: 1.35; font-weight: 600; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .digest-item:hover .digest-item-title { color: var(--accent); }
-    .digest-item-time { font-size: 0.62rem; color: var(--muted); font-style: italic; margin-top: 3px; }
-
-    /* ─── SIDEBAR ─── */
-    .sidebar { position: sticky; top: 0; padding-top: 28px; }
-    .sidebar-block { margin-bottom: 28px; }
-    .sidebar-head { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text); border-top: 3px solid var(--text); padding-top: 8px; margin-bottom: 12px; }
-    .tv-mini-symbol { height: 220px; border: 1px solid var(--border); margin-bottom: 14px; background: var(--surface); }
-
-    /* ─── DNES (meniny) + POČASIE ─── */
-    .today-date { font-size: 0.8rem; color: var(--text2); margin-bottom: 8px; text-transform: capitalize; }
-    .today-meniny { font-family: 'Libre Baskerville', serif; font-size: 1.05rem; color: var(--text); line-height: 1.3; margin-bottom: 5px; }
-    .today-meniny strong { color: var(--accent); }
-    .today-tomorrow { font-size: 0.72rem; color: var(--muted); font-style: italic; }
-
-    /* ─── MINI HOROSKOP (pod meninami v bloku "Dnes"), striedanie znamení ─── */
-    .mini-horo { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
-    .mini-horo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .mini-horo-label { font-size: 0.64rem; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--cat-horoskop); }
-    .mini-horo-link { font-size: 0.68rem; color: var(--muted); text-decoration: none; }
-    .mini-horo-link:hover { color: var(--accent); }
-    .mini-horo-body { display: flex; gap: 10px; align-items: flex-start; min-height: 58px; }
-    .mini-horo-icon { font-size: 1.3rem; line-height: 1.2; flex-shrink: 0; }
-    .mini-horo-text { min-width: 0; }
-    .mini-horo-sign { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 0.86rem; color: var(--text); margin-bottom: 2px; }
-    .mini-horo-line { font-size: 0.78rem; color: var(--text2); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .wx-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-light); font-size: 0.86rem; }
-    .wx-row:last-child { border-bottom: none; }
-    .wx-ico { font-size: 1.1rem; width: 22px; text-align: center; }
-    .wx-city { flex: 1; color: var(--text2); }
-    .wx-temp { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
-    .wx-credit { font-size: 0.6rem; color: var(--muted); margin-top: 8px; font-style: italic; }
-
-    .trending-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border-light); text-decoration: none; cursor: pointer; }
-    .trending-item:last-child { border-bottom: none; }
-    .trending-item:hover .trending-text { color: var(--accent); }
-    .trending-num { font-family: 'Libre Baskerville', serif; font-size: 1.4rem; font-weight: 700; color: var(--border); flex-shrink: 0; width: 24px; line-height: 1; margin-top: 2px; }
-    .trending-item:nth-child(1) .trending-num { color: var(--gold); }
-    .trending-item:nth-child(2) .trending-num { color: #aaa; }
-    .trending-item:nth-child(3) .trending-num { color: #b87333; }
-    .trending-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; font-weight: 600; transition: color 0.15s; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .trending-source { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
-
-    /* ─── LOADING ─── */
-    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; gap: 16px; color: var(--muted); }
-    .loader { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin 0.8s linear infinite; }
-
-    /* ─── FOOTER ─── */
-    footer { border-top: 3px solid var(--text); margin-top: 48px; padding: 20px clamp(16px, 4vw, 48px); }
-    .footer-inner { max-width: 1300px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: space-between; }
-    .footer-logo { font-family: 'Libre Baskerville', serif; font-size: 1rem; font-weight: 700; color: var(--text); }
-    .footer-logo span { color: var(--gold); }
-    /* Evidenčné číslo vedľa loga v pätičke — tlmené, aby logo neprebíjalo. */
-    .footer-ev { font-size: 0.72rem; color: var(--text2); letter-spacing: 0.5px; white-space: nowrap; }
-    .footer-text { font-size: 0.72rem; color: var(--muted); font-style: italic; }
-
-    .fade-in { animation: fadeIn 0.35s ease forwards; opacity: 0; }
-    @keyframes fadeIn { to { opacity: 1; } }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 1100px) {
-      .page-layout { grid-template-columns: 1fr; }
-      .sidebar { position: static; padding-top: 0; }
-      .world-clock { display: none; }
-      .logo-tagline { display: none; }
-      .nav-filters { margin-left: 14px; }
-      .filter-btn { padding-inline: 12px; }
-    }
-    @media (max-width: 1000px) {
-      .nav-primary-ai { display: none; }
-      .nav-more-menu .more-ai { display: flex !important; }
-    }
-    @media (max-width: 900px) {
-      .nav-primary-ekonomika { display: none; }
-      .nav-more-menu .more-ekonomika { display: flex !important; }
-    }
-    @media (max-width: 800px) {
-      .story-featured { grid-template-columns: 1fr; gap: 24px; }
-      .story-featured-right { border-top: 1px solid var(--border); padding-top: 20px; }
-      .mag-tier1 { grid-template-columns: 1fr; gap: 20px; }
-      .mag-grid2 { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 600px) {
-      .story-headline-xl { font-size: clamp(1.58rem, 7vw, 1.75rem); }
-      .story-summary { font-size: 1rem; line-height: 1.58; -webkit-line-clamp: 3; }
-      .mag-feature-title { font-size: 1.3rem; }
-      .news-row { grid-template-columns: 1fr; }
-      .news-item { border-right: none; padding-left: 0; }
-      .digest-grid { grid-template-columns: 1fr !important; }
-      .digest-col { border-right: none; padding-left: 0; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; margin-bottom: 12px; }
-      .tv-chart-wrap { height: 320px; }
-      .nav-filters { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; height: calc(62px + env(safe-area-inset-bottom)); background: rgba(13,13,13,0.97); backdrop-filter: blur(14px); border-top: 1px solid #333; padding: 0 6px env(safe-area-inset-bottom); border-left: none; margin-left: 0; display: grid; grid-template-columns: repeat(5, 1fr); align-items: stretch; transition: transform .25s ease; }
-      .filter-btn { height: 62px; min-width: 0; padding: 0 4px; border: 0; flex-direction: column; font-size: 0.68rem; letter-spacing: 0.2px; }
-      .nav-primary-ekonomika, .nav-primary-ai { display: none; }
-      .nav-more { position: static; display: flex; }
-      .nav-more > summary { width: 100%; }
-      .nav-more-menu { position: fixed; top: auto; bottom: calc(70px + env(safe-area-inset-bottom)); left: 12px; right: 12px; width: auto; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; }
-      .nav-more-menu .filter-btn { height: 48px; align-items: flex-start; padding-inline: 14px; }
-      .mobile-only { display: flex !important; }
-      body.cookie-open .nav-filters { transform: translateY(110%); }
-      .page-layout { padding-bottom: 78px; }
-      footer { margin-bottom: 62px; }
-      .footer-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
-      .masthead-inner { height: 58px; }
-      .masthead-right { gap: 8px; }
-      .refresh-btn { display: none; }
-      /* Tagline sa na mobile SKRÝVAŤ NESMIE — od 2026-08-13 nesie oznámenie
-         o AI (Článok 50 AI Act) a väčšina čitateľov chodí z telefónu. Preto
-         sa len zmenší, nie schová. Predtým tu bolo display: none. */
-      .logo-tagline { display: block; font-size: 0.58rem; line-height: 1.25; letter-spacing: .8px; max-width: 92px; }
-      .world-clock { display: none; }
-      main { padding-top: 22px; }
-    }
-
-    /* ─── COOKIE BANNER ─── */
-    .cookie-banner { position: fixed; bottom: 24px; right: 24px; z-index: 9999; width: min(720px, calc(100vw - 48px)); background: var(--header-bg); color: #fff; padding: 18px 20px; border: 1px solid #343434; border-radius: 8px; box-shadow: 0 14px 42px rgba(0,0,0,0.32); transform: translateY(calc(100% + 40px)); transition: transform 0.35s ease; max-height: 85vh; overflow-y: auto; }
-    .cookie-banner.show { transform: translateY(0); }
-    .cookie-inner { display: flex; align-items: center; gap: 20px; }
-    .cookie-text { flex: 1; min-width: 260px; font-size: 0.84rem; line-height: 1.5; color: #cfccc6; }
-    .cookie-text strong { color: #fff; }
-    .cookie-text a { color: var(--gold); }
-    .cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
-    .cookie-btn { font-family: 'Source Sans 3', sans-serif; font-size: 0.82rem; font-weight: 700; min-height: 44px; padding: 10px 18px; border-radius: 4px; cursor: pointer; border: 1px solid #555; transition: all 0.15s; white-space: nowrap; }
-    .cookie-btn-reject { background: transparent; color: #cfccc6; }
-    .cookie-btn-reject:hover { border-color: #888; color: #fff; }
-    .cookie-btn-accept { background: var(--gold); color: #0d0d0d; border-color: var(--gold); }
-    .cookie-btn-accept:hover { filter: brightness(1.1); }
-    @media (max-width: 600px) {
-      .cookie-banner { bottom: 12px; left: 12px; right: 12px; width: auto; padding: 16px; }
-      .cookie-inner { display: block; }
-      .cookie-text { min-width: 0; font-size: 0.8rem; }
-      .cookie-actions { width: 100%; }
-      .cookie-btn { flex: 1; }
-    }
-
-    :where(a, button, summary):focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/portal.css">
 </head>
 <body>
 
-<!-- MASTHEAD -->
+<a class="skip-link" href="#main">Preskočiť na správy</a>
+<div class="utility-bar"><div class="portal-width utility-inner">
+  <span id="skNow" class="sk-now"></span>
+  <div class="utility-links"><a href="/archiv">Archív správ</a><a href="mailto:tipy@novinko.sk">Pošlite nám tip</a></div>
+</div></div>
 <header class="masthead">
-  <div class="masthead-inner">
-    <a href="/" class="logo-wrap">
+  <div class="portal-width masthead-inner">
+    <a href="/" class="logo-wrap" aria-label="Novinko – hlavná stránka">
       <span class="logo">novinko<span class="logo-dot">.</span></span>
       <span class="logo-tagline">Píše AI. Človek kontroluje.</span>
     </a>
-    <nav class="nav-filters">
-      <button class="filter-btn active" data-cat="all">Všetko</button>
-      <button class="filter-btn" data-cat="slovensko">Slovensko</button>
-      <button class="filter-btn" data-cat="svet">Svet</button>
-      <button class="filter-btn" data-cat="krypto">Krypto</button>
-      <button class="filter-btn nav-primary-ekonomika" data-cat="ekonomika">Ekonomika</button>
-      <button class="filter-btn nav-primary-ai" data-cat="ai">AI</button>
-      <details class="nav-more">
-        <summary class="filter-btn">Viac</summary>
-        <div class="nav-more-menu">
-          <button class="filter-btn mobile-only more-ekonomika" data-cat="ekonomika">Ekonomika</button>
-          <button class="filter-btn mobile-only more-ai" data-cat="ai">AI</button>
-          <button class="filter-btn" data-cat="sport">Šport</button>
-          <a href="/zahrada.html" class="filter-btn">Záhrada</a>
-          <!-- Recepty dočasne skryté z navigácie — rubrika je ešte prázdna,
-               žiadny recept ešte nebol publikovaný (viď redakcia/lib/flow/17-recepty.js).
-               renderRecepty() na hlavnej sa aj tak sama skryje, keď DATA['recepty']
-               nemá položky — toto len odstraňuje priamy odkaz na /recepty.html.
-               Vráť späť, hneď ako pribudne prvý publikovaný recept. -->
-          <a href="/horoskop.html" class="filter-btn">Horoskopy</a>
-          <a href="/zahady.html" class="filter-btn">Záhady a fenomény</a>
-        </div>
-      </details>
-    </nav>
+    <p class="masthead-promise">Svet sa mení.<br><strong>Buďte v obraze.</strong></p>
     <div class="masthead-right">
-      <div class="world-clock" id="worldClock"></div>
-      <div class="live-badge">Live</div>
+      <form class="portal-search" action="/archiv" role="search">
+        <label class="sr-only" for="portalSearch">Hľadať články</label>
+        <input id="portalSearch" name="q" type="search" placeholder="Hľadať na Novinku" maxlength="160">
+        <button type="submit" aria-label="Vyhľadať"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
+      </form>
       <button class="theme-btn" id="themeBtn" title="Tmavý režim" aria-label="Zapnúť tmavý režim" aria-pressed="false">
         <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 15.4A8.5 8.5 0 0 1 8.6 4a8.5 8.5 0 1 0 11.4 11.4Z"/></svg>
         <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2.2M12 19.8V22M4.93 4.93l1.55 1.55m11.04 11.04 1.55 1.55M2 12h2.2M19.8 12H22M4.93 19.07l1.55-1.55M17.52 6.48l1.55-1.55"/></svg>
@@ -489,10 +55,24 @@
       <button class="refresh-btn" id="refreshBtn" title="Obnoviť správy" aria-label="Obnoviť správy">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 5v6h-6"/></svg>
       </button>
+
     </div>
   </div>
 </header>
-
+<div class="navigation-shell">
+  <nav class="portal-width nav-filters" aria-label="Hlavné rubriky">
+    <a href="/" class="filter-btn active" data-cat="all" aria-current="page">Úvod</a>
+    <a href="/?rubrika=slovensko" class="filter-btn" data-cat="slovensko">Slovensko</a>
+    <a href="/?rubrika=svet" class="filter-btn" data-cat="svet">Svet</a>
+    <a href="/?rubrika=ekonomika" class="filter-btn" data-cat="ekonomika">Ekonomika</a>
+    <a href="/?rubrika=krypto" class="filter-btn" data-cat="krypto">Krypto</a>
+    <a href="/?rubrika=ai" class="filter-btn" data-cat="ai">Umelá inteligencia</a>
+    <a href="/?rubrika=sport" class="filter-btn" data-cat="sport">Šport</a>
+    <a href="/zahady.html" class="filter-btn nav-magazine">Záhady a fenomény</a>
+    <a href="/zahrada.html" class="filter-btn">Záhrada</a>
+    <a href="/horoskop.html" class="filter-btn">Horoskopy</a>
+  </nav>
+</div>
 <!-- TICKER: KRYPTO (len v sekcii Krypto) -->
 <div class="tv-ticker-wrap" id="tickerCrypto" style="display:none">
   <div class="tradingview-widget-container">
@@ -554,24 +134,18 @@
   </div>
 </div>
 
-<!-- SECTION NAV -->
-<div class="section-nav">
-  <div class="section-nav-inner">
-    <span class="edition-label">Neutrálne spravodajstvo z primárnych zdrojov</span>
-    <span class="section-nav-right">
-      <span class="sk-now" id="skNow"></span>
-      <span class="last-update" id="lastUpdate"></span>
-    </span>
-  </div>
+<div class="edition-bar portal-width">
+  <span class="edition-label"><span class="status-dot" aria-hidden="true"></span>Správy v súvislostiach</span>
+  <span class="last-update" id="lastUpdate">Slovensko · svet · technológie · život</span>
 </div>
 
 <!-- MAIN LAYOUT -->
 <div class="page-layout">
-  <main>
+  <main id="main">
     <!-- HERO / LEAD -->
     <div class="hero-section">
       <div class="hero-eyebrow">
-        <span class="hero-eyebrow-text">Hlavná správa</span>
+        <h1 class="hero-eyebrow-text">Dnešné správy</h1>
         <span class="hero-eyebrow-line"></span>
       </div>
       <div id="heroContent">
@@ -604,6 +178,8 @@
         </div>
       </div>
     </div>
+
+    <div id="zahadySection"></div>
 
     <!-- MAGAZÍNOVÉ SEKČNÉ BLOKY (domov) -->
     <div id="magSections"></div>
@@ -649,7 +225,13 @@
   </main>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" aria-label="Najnovšie správy a denný prehľad">
+    <div class="sidebar-block latest-block">
+      <div class="sidebar-head">Najnovšie správy</div>
+      <div id="trendingList">
+        <div class="loading" style="padding:20px 0"><div class="loader" style="width:24px;height:24px;border-width:1px"></div></div>
+      </div>
+    </div>
     <div class="sidebar-block" id="sbToday"></div>
     <div class="sidebar-block" id="sbWeather" style="display:none"></div>
 
@@ -700,12 +282,7 @@
       </div>
     </div>
 
-    <div class="sidebar-block">
-      <div class="sidebar-head">Najčítanejšie</div>
-      <div id="trendingList">
-        <div class="loading" style="padding:20px 0"><div class="loader" style="width:24px;height:24px;border-width:1px"></div></div>
-      </div>
-    </div>
+
   </aside>
 </div>
 
@@ -754,9 +331,10 @@
   // Rovnaký vzor ako ZAHRADA (mriežka kariet, nie teaser jednej položky —
   // recepty pribúdajú priebežne, nie 1/deň ako horoskop). Vlastná stránka
   // je recepty.html.
+  const ZAHADY = { id: 'zahady', label: 'Záhady a fenomény' };
   const RECEPTY = { id: 'recepty', label: 'Recepty' };
   const LEAD_SECTIONS = ['krypto', 'ai', 'slovensko'];  // z čoho sa vyberá hlavná správa (majú/budú mať obrázky)
-  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola', zahrada: 'Záhrada', horoskop: 'Horoskopy', recepty: 'Recepty' };
+  const CAT_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika', sport: 'Šport', krypto: 'Krypto', ai: 'AI', 'krypto-skola': 'Krypto škola', zahrada: 'Záhrada', horoskop: 'Horoskopy', recepty: 'Recepty', zahady: 'Záhady a fenomény' };
 
   let DATA = {};          // { cat: items[] }
   let currentView = 'all';
@@ -793,8 +371,9 @@
     const nacitanie = cls === 'story-featured-img' ? 'fetchpriority="high"' : 'loading="lazy"';
     const img = `<img src="${safeLink(i.image)}" alt="" class="${cls}" ${nacitanie}>`;
     // Štítok „AI ilustrácia" len na väčšie obrázky (na drobné náhľady by bol stiesnený).
-    const big = /mag-feature-img|story-featured-img|news-item-img|skola-card-img/.test(cls);
-    return big ? `<span class="img-wrap">${img}<span class="ai-tag">AI ilustrácia</span></span>` : img;
+    const big = !/story-secondary-img/.test(cls);
+    const isAi = i.category === 'zahady' ? i.mystery?.imageKind === 'ai' : !i.imageCredit || /^AI ilustrácia/i.test(i.imageCredit);
+    return `<span class="img-wrap">${img}${big && isAi ? '<span class="ai-tag">AI ilustrácia</span>' : ''}</span>`;
   }
   function metaHTML(i) {
     return `<div class="news-meta"><span class="news-source">${esc(i.source)}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
@@ -833,7 +412,7 @@
       ids.forEach((id, i) => { if (res[i]) { DATA[id] = res[i].slice().sort(byDateDesc); ok++; } });
       return ok;
     };
-    const doplnky = nacitaj([EDU.id, ZAHRADA.id, RECEPTY.id, HOROSKOP.id]);
+    const doplnky = nacitaj([EDU.id, ZAHRADA.id, RECEPTY.id, HOROSKOP.id, ZAHADY.id]);
     if (await nacitaj(DOMOV.map(s => s.id))) stampUpdate();
     onNews();
     await doplnky;
@@ -871,9 +450,9 @@
     const lbl = CAT_LABELS[f.category] || f.category || '';
     el.innerHTML = `<div class="story-featured fade-in">
       <div class="story-featured-left">
-        ${ownImg(f, 'story-featured-img')}
+        <a href="${safeLink(f.link)}" ${targetAttr(f.link)} tabindex="-1" aria-hidden="true">${ownImg(f, 'story-featured-img')}</a>
         <span class="story-label label-${esc(f.category)}">${esc(lbl)}</span>
-        <h1 class="story-headline-main"><a href="${safeLink(f.link)}" ${targetAttr(f.link)} class="story-headline-xl">${esc(f.title)}</a></h1>
+        <h2 class="story-headline-main"><a href="${safeLink(f.link)}" ${targetAttr(f.link)} class="story-headline-xl">${esc(f.title)}</a></h2>
         ${f.description ? `<div class="story-summary">${esc(f.description)}</div>` : ''}
         <div class="story-byline"><span class="story-byline-source">${esc(f.source)}</span><span class="story-byline-sep">—</span><span class="story-byline-time">${timeAgo(f.pubDate)}</span></div>
       </div>
@@ -882,8 +461,8 @@
           ${ownImg(i, 'story-secondary-img')}
           <div class="story-secondary-text">
             <span class="story-label label-${esc(i.category)}">${esc(CAT_LABELS[i.category] || i.category || '')}</span>
-            <h2 class="story-headline-md">${esc(i.title)}</h2>
-            <div class="story-byline"><span class="story-byline-time">${timeAgo(i.pubDate)}</span></div>
+            <h3 class="story-headline-md">${esc(i.title)}</h3>
+            ${metaHTML(i)}
           </div>
         </a>`).join('')}
       </div>
@@ -893,8 +472,8 @@
   // ─── RENDER ENGINE: sekčný blok podľa tier ───
   function magHead(s) {
     return `<div class="mag-head">
-      <h2 class="mag-sec-title"><span class="mag-dot label-${s.id}">▸</span>${s.label}</h2>
-      <a href="#" class="mag-more" data-cat="${s.id}">Zobraziť všetko →</a>
+      <h2 class="mag-sec-title"><span class="mag-dot label-${s.id}" aria-hidden="true"></span>${s.label}</h2>
+      <a href="/?rubrika=${s.id}" class="mag-more" data-cat="${s.id}">Zobraziť všetko →</a>
     </div>`;
   }
   function tier1Block(s, items) {
@@ -1028,11 +607,22 @@
       </a>`;
   }
 
+  function renderZahady() {
+    const el = document.getElementById('zahadySection');
+    const items = (DATA[ZAHADY.id] || []).slice(0, 3);
+    if (!items.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `<section class="discovery-section" aria-labelledby="discoveryTitle">
+      <div class="discovery-head"><div><span class="discovery-eyebrow">Objavujte s Novinkom</span><h2 id="discoveryTitle">Záhady a fenomény</h2></div><a href="/zahady.html">Vstúpiť do rubriky ↗</a></div>
+      <p class="discovery-intro">Fascinujúce príbehy. Overené fakty. Otvorené otázky.</p>
+      <div class="discovery-grid">${items.map(i => `<a href="${safeLink(i.link)}" class="discovery-card">${ownImg(i, 'discovery-img')}<h3>${esc(i.title)}</h3></a>`).join('')}</div>
+    </section>`;
+  }
+
   function renderTrending(items) {
     const el = document.getElementById('trendingList');
     if (!el) return;
     el.innerHTML = items.slice(0, 6).map((i, n) => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="trending-item">
-      <div class="trending-num">${n + 1}</div>
+      <time class="trending-num" datetime="${esc(i.pubDate)}">${Number.isFinite(Date.parse(i.pubDate)) ? new Date(i.pubDate).toLocaleTimeString('sk-SK', {hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava'}) : '—'}</time>
       <div><div class="trending-text">${esc(i.title)}</div><div class="trending-source">${esc(i.source)} · ${timeAgo(i.pubDate)}</div></div>
     </a>`).join('');
   }
@@ -1210,9 +800,16 @@
     currentView = 'all';
     const used = new Set();
     const lead = pickLead();
-    const leadItems = [lead, ...recentDistinct(allItems(), 3, new Set(lead ? [lead.link] : []))].filter(Boolean);
+    const secondary = [];
+    const seenCategories = new Set(lead ? [lead.category] : []);
+    for (const item of allItems()) {
+      if (item.link === lead?.link || seenCategories.has(item.category)) continue;
+      secondary.push(item); seenCategories.add(item.category);
+      if (secondary.length === 3) break;
+    }
+    const leadItems = [lead, ...secondary].filter(Boolean);
     leadItems.forEach(x => used.add(x.link));
-    setEyebrow('Hlavná správa');
+    setEyebrow('Dnešné správy');
     renderHero(leadItems);
     toggleCryptoWidgets(false);
     updateContext('all');
@@ -1221,13 +818,14 @@
     renderDoplnky();
     renderTrending(recentDistinct(allItems(), 6));
   }
-  function renderDoplnky() { renderSkola(); renderZahrada(); renderRecepty(); renderHoroskop(); }
+  function renderDoplnky() { renderZahady(); renderSkola(); renderZahrada(); renderRecepty(); renderHoroskop(); }
   function showSection(cat) {
     currentView = cat;
     const items = (DATA[cat] || []).slice();
     setEyebrow(CAT_LABELS[cat] || cat);
     renderHero(items);
     document.getElementById('magSections').innerHTML = '';
+    document.getElementById('zahadySection').innerHTML = '';
     document.getElementById('skolaSection').innerHTML = '';
     document.getElementById('zahradaSection').innerHTML = '';
     document.getElementById('receptySection').innerHTML = '';
@@ -1238,26 +836,38 @@
     renderTrending(items.length ? items.slice(0, 6) : recentDistinct(allItems(), 6));
   }
 
-  function go(cat) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
-    document.querySelectorAll('.nav-more[open]').forEach(menu => menu.removeAttribute('open'));
-    if (cat === 'all') showHome(); else showSection(cat);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  function selectedCategory() {
+    const cat = new URLSearchParams(location.search).get('rubrika') || 'all';
+    return ['all', ...DOMOV.map(s => s.id), EDU.id].includes(cat) ? cat : 'all';
   }
+  function go(cat, navigate = true) {
+    if (!['all', ...DOMOV.map(s => s.id), EDU.id].includes(cat)) cat = 'all';
+    document.querySelectorAll('.filter-btn[data-cat]').forEach(b => {
+      const active = b.dataset.cat === cat;
+      b.classList.toggle('active', active);
+      if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    if (navigate) {
+      const url = new URL(location.href);
+      if (cat === 'all') url.searchParams.delete('rubrika'); else url.searchParams.set('rubrika', cat);
+      if (url.href !== location.href) history.pushState({}, '', url);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (cat === 'all') showHome(); else showSection(cat);
+    document.title = cat === 'all' ? 'Novinko — správy, ktoré vás udržia v obraze' : `${CAT_LABELS[cat]} — Novinko`;
+  }
+  window.addEventListener('popstate', () => go(selectedCategory(), false));
 
-  // ─── UDALOSTI ───
-  // [data-cat] zámerne — odkaz na Záhradu (vlastná stránka, žiadny
-  // in-page filter) nemá data-cat, nech ho tento handler nechá normálne
-  // navigovať namiesto volania go(undefined).
-  document.querySelectorAll('.filter-btn[data-cat]').forEach(btn => {
-    btn.addEventListener('click', () => go(btn.dataset.cat));
-  });
   // delegácia pre dynamické odkazy „Zobraziť všetko →" a hlavičky digestu
   document.addEventListener('click', e => {
     const a = e.target.closest('a[data-cat]');
-    if (!a) return;
+    if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     go(a.dataset.cat);
+  });
+  document.querySelector('.portal-search').addEventListener('submit', e => {
+    const input = document.getElementById('portalSearch');
+    if (!input.value.trim()) { e.preventDefault(); input.focus(); }
   });
   function refreshView() { if (currentView === 'all') showHome(); else showSection(currentView); }
   async function obnov() { await loadAll(refreshView); loadMiniHoroskop(); }
@@ -1273,26 +883,6 @@
     if (!document.hidden && Date.now() - lastLoad >= OBNOVA_MS) obnov();
   });
 
-  // ─── WORLD CLOCK ───
-  const CLOCK_CITIES = [
-    { city: 'New York', tz: 'America/New_York', open: [9.5, 16] },
-    { city: 'Londýn', tz: 'Europe/London', open: [8, 16.5] },
-    { city: 'Tokio', tz: 'Asia/Tokyo', open: [9, 15] },
-  ];
-  function updateClock() {
-    const el = document.getElementById('worldClock'); if (!el) return;
-    el.innerHTML = CLOCK_CITIES.map(c => {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('sk-SK', { timeZone: c.tz, hour: '2-digit', minute: '2-digit' });
-      const hourStr = now.toLocaleTimeString('en-US', { timeZone: c.tz, hour12: false, hour: '2-digit', minute: '2-digit' });
-      const [h, m] = hourStr.split(':').map(Number);
-      const dec = h + m / 60;
-      const day = now.toLocaleDateString('en-US', { timeZone: c.tz, weekday: 'short' });
-      const isOpen = !['Sat', 'Sun'].includes(day) && dec >= c.open[0] && dec < c.open[1];
-      return `<div class="clock-item ${isOpen ? 'market-open' : ''}"><span class="clock-city">${c.city}</span><span class="clock-time">${timeStr}</span></div>`;
-    }).join('');
-  }
-  // ─── AKTUÁLNY SLOVENSKÝ ČAS (dátum + čas, Europe/Bratislava) ───
   function updateSkNow() {
     const el = document.getElementById('skNow'); if (!el) return;
     const now = new Date();
@@ -1300,8 +890,8 @@
     const t = now.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava' });
     el.textContent = `${d} · ${t}`;
   }
-  updateClock(); updateSkNow();
-  setInterval(() => { updateClock(); updateSkNow(); }, 30000);
+  updateSkNow();
+  setInterval(() => { updateSkNow(); }, 30000);
 
   // ─── THEME TOGGLE ───
   const themeBtn = document.getElementById('themeBtn');
@@ -1321,7 +911,7 @@
   renderToday();
   loadWeather();
   loadMiniHoroskop();
-  loadAll(() => go('all'));
+  loadAll(() => go(selectedCategory(), false));
 </script>
 
 <!-- COOKIE BANNER -->

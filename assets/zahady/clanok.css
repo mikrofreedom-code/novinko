@@ -20,6 +20,12 @@ header {
 .logo span {
   color:#c8a76b;
 }
+.logo {
+  color:#f7f5ef;
+}
+.back-btn {
+  color:#d8c59f;
+}
 .logo-tagline {
   color:#d8c59f;
   letter-spacing:1.2px;
