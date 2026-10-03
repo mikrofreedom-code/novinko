@@ -50,6 +50,9 @@ if [ -d assets ]; then
   cp -R -- assets "$OUT"/
 fi
 
+# Spoločný consent/GA tag len vo verejných HTML stránkach.
+node scripts/inject-public-analytics.mjs "$OUT"
+
 # CSP sa generuje AŽ TERAZ, keď sú HTML súbory na mieste — hashe inline
 # skriptov sa počítajú z ich reálneho obsahu, takže sa nemôžu rozísť s kódom.
 # Musí byť za kopírovaním VOLITELNE, aby prípadný _headers z repozitára

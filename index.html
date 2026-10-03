@@ -918,7 +918,7 @@
 <div class="cookie-banner" id="cookieBanner">
   <div class="cookie-inner">
     <div class="cookie-text">
-      <strong>Tento web používa cookies.</strong> Používame nevyhnutné cookies pre fungovanie stránky a so súhlasom aj cookies tretích strán (TradingView grafy, reklama). Viac v <a href="/sukromie.html">Zásadách ochrany súkromia</a>.
+      <strong>Tento web používa cookies.</strong> Nevyhnutné cookies slúžia na fungovanie stránky. So súhlasom používame Google Analytics na meranie návštevnosti. Viac v <a href="/sukromie.html">Zásadách ochrany súkromia</a>.
     </div>
     <div class="cookie-actions">
       <button class="cookie-btn cookie-btn-reject" id="cookieReject">Odmietnuť</button>
@@ -927,24 +927,6 @@
   </div>
 </div>
 
-<script>
-  (function() {
-    var banner = document.getElementById('cookieBanner');
-    if (!banner) return;
-    var consent = null;
-    try { consent = localStorage.getItem('novinko_cookie_consent'); } catch(e) {}
-    if (!consent) { setTimeout(function(){ banner.classList.add('show'); document.body.classList.add('cookie-open'); }, 800); }
-    function setConsent(val) {
-      try { localStorage.setItem('novinko_cookie_consent', val); } catch(e) {}
-      banner.classList.remove('show');
-      document.body.classList.remove('cookie-open');
-    }
-    var a = document.getElementById('cookieAccept');
-    var r = document.getElementById('cookieReject');
-    if (a) a.addEventListener('click', function(){ setConsent('accepted'); });
-    if (r) r.addEventListener('click', function(){ setConsent('rejected'); });
-  })();
-</script>
 <script src="/promo.js" defer></script>
 </body>
 </html>

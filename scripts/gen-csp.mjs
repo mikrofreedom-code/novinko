@@ -49,19 +49,19 @@ for (const file of readdirSync(OUT_DIR).filter((f) => f.endsWith(".html"))) {
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' https://s3.tradingview.com ${[...hashes].join(" ")}`,
+  `script-src 'self' https://s3.tradingview.com https://www.googletagmanager.com ${[...hashes].join(" ")}`,
   // 'unsafe-inline' pre štýly je nutné: každá stránka má <style> blok, v HTML
   // je 34 style="…" atribútov a TradingView si vkladá vlastné. Riziko je
   // rádovo nižšie než pri skriptoch — cez CSS sa kód nespustí.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: https://*.supabase.co",
+  "img-src 'self' data: https://*.supabase.co https://www.google-analytics.com",
   // docs.google.com: archiv.html a clanok.html si ťahajú publikovaný CSV hárku
   // priamo z prehliadača (nie cez našu funkciu). Bez tohto zostane archív aj
   // každý článok prázdny — overené v prehliadači, hlásilo to
   // „Chyba pri načítavaní archívu". googleusercontent.com je cieľ presmerovania,
   // na ktorý Google export CSV posiela.
-  "connect-src 'self' https://api.open-meteo.com https://docs.google.com https://*.googleusercontent.com",
+  "connect-src 'self' https://api.open-meteo.com https://docs.google.com https://*.googleusercontent.com https://www.google-analytics.com https://region1.google-analytics.com",
   // TradingView vykresľuje widgety do iframe na tradingview-widget.com (nie na
   // tradingview.com) — bez tejto domény zostanú grafy a tickery prázdne.
   // Zistené v prehliadači: „Please update your CSP rules to allow the

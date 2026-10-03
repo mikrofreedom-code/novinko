@@ -239,6 +239,8 @@ function obal({ title, description, canonical, image, date, telo, jsonLd, theme 
 ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date ? `  <meta property="article:published_time" content="${esc(date)}" />\n` : ""}  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?${fonts}&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/clanok.css" />
+  <link rel="stylesheet" href="/assets/consent.css" />
+  <script src="/assets/ga4-consent.js" defer></script>
   <script src="/share.js" defer></script>
 ${THEME_CSS[theme] ? `  ${THEME_CSS[theme]}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
