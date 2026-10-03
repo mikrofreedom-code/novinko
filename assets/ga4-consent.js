@@ -19,11 +19,44 @@
     ad_personalization: 'denied'
   });
 
+  // GA4 Enhanced Measurement v tejto property neposiela zmeny histórie.
+  // Sledujeme iba skutočnú navigáciu cez pushState a späť/vpred, nie
+  // replaceState používaný pri každom znaku hľadania v sekcii Záhady.
+  var previousPage = location.href;
+  function trackPageChange() {
+    var page = location.href;
+    if (page === previousPage) return;
+    var referrer = previousPage;
+    previousPage = page;
+    if (choice === 'accepted') {
+      window.gtag('event', 'page_view', {
+        send_to: measurementId,
+        page_location: page,
+        page_referrer: referrer,
+        page_title: document.title
+      });
+    }
+  }
+  function afterNavigation() { setTimeout(trackPageChange, 0); }
+  var originalPushState = history.pushState;
+  history.pushState = function () {
+    var result = originalPushState.apply(this, arguments);
+    afterNavigation();
+    return result;
+  };
+  var originalReplaceState = history.replaceState;
+  history.replaceState = function () {
+    var result = originalReplaceState.apply(this, arguments);
+    previousPage = location.href;
+    return result;
+  };
+  window.addEventListener('popstate', afterNavigation);
+
   function enableAnalytics() {
     if (document.getElementById('novinko-ga4')) return;
     window.gtag('consent', 'update', { analytics_storage: 'granted' });
     window.gtag('js', new Date());
-    // Jeden automatický page_view pri načítaní; zmeny histórie meria GA4 Enhanced Measurement.
+    // Jeden automatický page_view pri načítaní; klientsku navigáciu meriame vyššie.
     window.gtag('config', measurementId);
     var script = document.createElement('script');
     script.id = 'novinko-ga4';
