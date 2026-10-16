@@ -76,25 +76,19 @@ function roundRobin(lists) {
   return out;
 }
 
-// RSS agregácia (cudzie médiá) beží od 12. 9. LEN pre Slovensko a Šport —
-// jediné dve kategórie bez vlastného AI-písaného obsahu (žiadny generátor
-// pre ne v redakcii neexistuje, sú a ostávajú čisto agregačné). Ostatné
-// (krypto/ai/svet/ekonomika) majú od tohto dátumu ukazovať VÝHRADNE vlastnú
-// produkciu — na žiadosť používateľa, cudzie médiá tam už nechce.
-//
-// ZATIAĽ, ľahko vratné: zmaž 'sport' z množiny a/alebo celý tento riadok,
-// aby sa RSS vrátilo aj ostatným — merge bod je tu jediný, fetch (gatherRss
-// nižšie) sa nemení, takže návrat späť je jedna riadková úprava.
-const RSS_KATEGORIE = new Set(["slovensko", "sport"]);
+// RSS agregácia (cudzie médiá) je povolená pre Slovensko, Šport a Svet.
+// Svet na žiadosť používateľa opäť zobrazuje slovenské RSS zdroje
+// (Teraz.sk a SITA) popri vlastných článkoch. Krypto/AI/Ekonomika ostávajú
+// výhradne na vlastnej produkcii. Anglické RSS blokuje gatherRss vyššie.
+const RSS_KATEGORIE = new Set(["slovensko", "sport", "svet"]);
 
 // Poradie: čerstvé vlastné → RSS (len povolené kategórie) → (len ak by sekcia
 // bola tenká) staršie vlastné.
 //
 // Staršie vlastné idú AŽ NA KONIEC a len keď ich treba. Keby sa dopĺňali vždy a
 // navrch, tak v športe by nad dnešným RSS visel vlastný článok starý aj 100+ h
-// — overené pri teste 2026-08-10. Slovensko a Šport sa naplnia RSS samy, takže
-// sa ich poistka vôbec nedotkne; zachraňuje krypto/ai/svet/ekonomiku, ktoré
-// teraz stoja výhradne na vlastnej produkcii.
+// — overené pri teste 2026-08-10. Slovensko, Šport a Svet dopĺňajú RSS;
+// krypto/ai/ekonomika stoja výhradne na vlastnej produkcii.
 //
 // Súčasní volajúci sem "all" neposielajú (buildPayload aj buildAll idú po
 // kategóriách cez CAT_ORDER), takže hranica vychádza vždy per sekcia.
