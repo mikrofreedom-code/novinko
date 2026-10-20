@@ -42,6 +42,20 @@
       script.src = config.dataset.widgetSrc;
       script.async = true;
       script.textContent = config.textContent;
+      script.addEventListener('error', () => {
+        const host = config.parentElement;
+        if (!host || host.querySelector('.crypto-widget-error')) return;
+        const message = document.createElement('p');
+        message.className = 'crypto-empty crypto-widget-error';
+        message.textContent = 'Trhové údaje sa nepodarilo načítať. Obnovte stránku alebo otvorte ';
+        const link = document.createElement('a');
+        link.href = 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'prehľad na TradingView ↗';
+        message.appendChild(link);
+        host.prepend(message);
+      }, { once: true });
       config.parentElement.appendChild(script);
     });
   }
