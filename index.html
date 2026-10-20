@@ -27,6 +27,7 @@
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/portal.css">
+  <link rel="stylesheet" href="/assets/crypto.css">
 </head>
 <body>
 
@@ -77,7 +78,7 @@
 <div class="tv-ticker-wrap" id="tickerCrypto" style="display:none">
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
-    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+    <script type="application/json" data-widget-src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js">
     {
       "symbols": [
         { "proName": "BINANCE:BTCUSDT", "title": "Bitcoin" },
@@ -142,6 +143,7 @@
 <!-- MAIN LAYOUT -->
 <div class="page-layout">
   <main id="main">
+    <div id="cryptoPortal" hidden></div>
     <!-- HERO / LEAD -->
     <div class="hero-section">
       <div class="hero-eyebrow">
@@ -156,12 +158,12 @@
     <!-- CRYPTO CHART (len v sekcii Krypto) -->
     <div class="market-section" id="chartSection" style="display:none">
       <div class="section-head">
-        <span class="section-head-title">Trh naživo — Bitcoin</span>
+        <span class="section-head-title">Cenový graf</span>
       </div>
       <div class="tv-chart-wrap">
         <div class="tradingview-widget-container" style="height:100%;width:100%">
           <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+          <script type="application/json" data-widget-src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js">
           {
             "autosize": true,
             "symbol": "BINANCE:BTCUSDT",
@@ -199,7 +201,7 @@
       <div class="tv-overview-wrap">
         <div class="tradingview-widget-container" style="height:100%;width:100%">
           <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-mkt-screener.js" async>
+          <script type="application/json" data-widget-src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-mkt-screener.js">
           {
             "width": "100%",
             "height": "100%",
@@ -235,27 +237,7 @@
     <div class="sidebar-block" id="sbToday"></div>
     <div class="sidebar-block" id="sbWeather" style="display:none"></div>
 
-    <div class="sidebar-block" id="sbCrypto" style="display:none">
-      <div class="sidebar-head">Bitcoin</div>
-      <div class="tv-mini-symbol">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {
-            "symbol": "BINANCE:BTCUSDT",
-            "width": "100%",
-            "height": "100%",
-            "locale": "sk",
-            "dateRange": "1M",
-            "colorTheme": "light",
-            "isTransparent": true,
-            "autosize": true
-          }
-          </script>
-        </div>
-      </div>
-    </div>
-
+    <div id="cryptoAside" hidden></div>
     <!-- Vymenené 6. 9. na žiadosť používateľa — pôvodný "Trhy" widget
          (Komodity/Indexy ceny) nahradený ekonomickým kalendárom. Tematicky
          bližšie k tomu, o čom Ekonomika píše (rozhodnutia ECB/Fedu, CPI,
@@ -306,6 +288,7 @@
   </div>
 </footer>
 
+<script src="/assets/crypto.js"></script>
 <script>
   // ─── KONFIGURÁCIA SEKCIÍ (render engine sa riadi TÝMTO) ───
   // Pridať sekciu = pridať riadok. Povýšiť (napr. Slovensko) = zmeniť tier.
@@ -417,7 +400,7 @@
     onNews();
     await doplnky;
     if (currentView === 'all') renderDoplnky();
-    else if (!DOMOV.some(s => s.id === currentView)) showSection(currentView);
+    else if (currentView === 'krypto' || !DOMOV.some(s => s.id === currentView)) showSection(currentView);
   }
 
   function allItems() {
@@ -656,7 +639,7 @@
     const set = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
     set('tickerCrypto', view === 'krypto');
     set('tickerEkonomika', view === 'ekonomika');
-    set('sbCrypto', view === 'krypto');
+    NovinkoCrypto.setActive(view === 'krypto');
     set('sbEkonomika', view === 'ekonomika');
     set('sbWeather', view === 'all');   // počasie len na domovskej
   }
@@ -822,6 +805,11 @@
   function showSection(cat) {
     currentView = cat;
     const items = (DATA[cat] || []).slice();
+    if (cat === 'krypto') {
+      updateContext(cat);
+      NovinkoCrypto.render({ items, school: DATA[EDU.id] || [], loaded: Object.hasOwn(DATA, cat), esc, safeLink, ownImg });
+      return;
+    }
     setEyebrow(CAT_LABELS[cat] || cat);
     renderHero(items);
     document.getElementById('magSections').innerHTML = '';
@@ -849,12 +837,13 @@
     });
     if (navigate) {
       const url = new URL(location.href);
+      if (cat !== 'krypto') { url.searchParams.delete('pohlad'); url.searchParams.delete('tema'); }
       if (cat === 'all') url.searchParams.delete('rubrika'); else url.searchParams.set('rubrika', cat);
       if (url.href !== location.href) history.pushState({}, '', url);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     if (cat === 'all') showHome(); else showSection(cat);
-    document.title = cat === 'all' ? 'Novinko — správy, ktoré vás udržia v obraze' : `${CAT_LABELS[cat]} — Novinko`;
+    if (cat !== 'krypto') document.title = cat === 'all' ? 'Novinko — správy, ktoré vás udržia v obraze' : `${CAT_LABELS[cat]} — Novinko`;
   }
   window.addEventListener('popstate', () => go(selectedCategory(), false));
 
