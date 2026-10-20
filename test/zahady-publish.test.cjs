@@ -36,6 +36,11 @@ const base = {
   sources: [{ name: 'Archív', url: 'https://example.org/archiv' }],
 };
 const request = (body) => handler({ httpMethod: 'POST', headers: {}, body: JSON.stringify(body) });
+let imageResponse = { ok: true, url: base.imageUrl, headers: new Headers({ 'content-type': 'image/webp' }) };
+globalThis.fetch = async (_url, options) => {
+  assert.equal(options.method, 'HEAD');
+  return imageResponse;
+};
 
 test('ručný článok prejde do hárku s metadátami a registráciou témy', async () => {
   const res = await request(base);
@@ -76,4 +81,25 @@ test('nový redakčný uhol vyžaduje zapísaný dôvod', async () => {
   assert.equal(res.statusCode, 200);
   assert.equal(writes.length, 2);
   assert.match(JSON.parse(writes[1][9]).newAngleReason, /archívne dokumenty/);
+});
+
+test('neexistujúci obrázok nezverejní článok', async () => {
+  duplicate = null;
+  const previousWrites = writes.length;
+  imageResponse = { ok: false, url: base.imageUrl, headers: new Headers() };
+  const res = await request({ ...base, canonicalTopic: 'Stratená veža' });
+  assert.equal(res.statusCode, 400);
+  assert.match(JSON.parse(res.body).error, /Odkaz na obrázok nefunguje/);
+  assert.equal(writes.length, previousWrites);
+});
+
+test('ručná Krypto škola sa uloží do vlastnej rubriky namiesto bežných správ', async () => {
+  const previousWrites = writes.length;
+  const res = await request({ password: 'test-secret', category: 'krypto-skola',
+    headline: 'Ako bezpečne uchovávať kryptomeny', perex: 'Základy peňaženiek.',
+    text: 'Prvý odsek.\nDruhý odsek.', source: 'Dokumentácia', sourceUrl: 'https://example.org/wallet' });
+  assert.equal(res.statusCode, 200);
+  assert.equal(writes.length, previousWrites + 1);
+  assert.equal(writes.at(-1)[6], 'krypto-skola');
+  assert.equal(writes.at(-1)[1], 'Ako bezpečne uchovávať kryptomeny');
 });

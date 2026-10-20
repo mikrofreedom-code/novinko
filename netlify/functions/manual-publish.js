@@ -13,13 +13,9 @@ const { generateImage, uploadUserImage } = require("../lib/images");
 // Netlify má strop na telo požiadavky ~6 MB a base64 nafúkne dáta o ~37 %.
 // Kontroluje sa aj na strane formulára, ale tam sa to dá obísť — tu je to isté.
 // Kategórie, do ktorých sa smie ručne publikovať. Podmnožina CATS z
-// netlify/lib/config.js — 'all' a 'krypto-skola' sem nepatria ('all' je
-// zbernica, krypto-skola má vlastný evergreen mechanizmus). 'zahrada' MÁ
-// zmysel tu byť (na rozdiel od krypto-skoly) — BIBLIA-ZAHRADA.md kapitola 8:
-// keď článok stojí na tom, že čitateľ niečo rozpozná (škodca, odroda), AI
-// obrázok tam nepatrí a ide sa cez vlastnú fotku práve týmto formulárom.
-// 'recepty' rovnako — vlastný recept s reálnou fotkou jedla.
-const POVOLENE_KATEGORIE = ["krypto", "ai", "slovensko", "svet", "ekonomika", "sport", "zahrada", "recepty", "zahady"];
+// netlify/lib/config.js; 'all' je iba zbernica. Krypto škola používa rovnaký
+// zápis do hárku ako správy, pri čítaní sa jej obsah uchováva ako evergreen.
+const POVOLENE_KATEGORIE = ["krypto", "krypto-skola", "ai", "slovensko", "svet", "ekonomika", "sport", "zahrada", "recepty", "zahady"];
 
 const MAX_FOTO_MB = 4;
 const POVOLENE_TYPY = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
@@ -185,6 +181,18 @@ exports.handler = async (event) => {
         statusCode: 400,
         body: JSON.stringify({ error: "Použi obrázok zo Supabase, pripravený obrázok Novinka alebo pole na nahratie fotky." }),
       };
+    }
+    if (mystery) {
+      let response;
+      try {
+        response = await fetch(u, { method: 'HEAD', signal: AbortSignal.timeout(8000) });
+      } catch {
+        return { statusCode: 503, body: JSON.stringify({ error: 'Obrázok sa teraz nepodarilo overiť. Skús to znova alebo nahraj súbor priamo.' }) };
+      }
+      if (!response.ok || !validArticleImageUrl(response.url || u)
+          || !/^image\/(?:jpeg|png|webp|gif|avif)(?:;|$)/i.test(response.headers.get('content-type') || '')) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Odkaz na obrázok nefunguje alebo nevracia podporovaný obrázok. Nahraj súbor priamo alebo oprav odkaz.' }) };
+      }
     }
     article.image_url = u;
   } else if (generateAiImage || (imagePrompt && imagePrompt.trim())) {
