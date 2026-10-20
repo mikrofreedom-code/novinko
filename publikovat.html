@@ -21,7 +21,16 @@
   #zahadyFields legend { padding: 0 6px; font-weight: 700; }
   #preview { display: none; margin: 24px 0; padding: 18px; background: #f8f6f1; border: 1px solid #d8d0c1; line-height: 1.6; }
   #preview h2 { font-family: Georgia, serif; font-size: 1.5rem; margin: 8px 0; }
+  #preview figure { margin: 12px 0; }
+  #preview img { display: block; width: 100%; max-height: 360px; object-fit: cover; border-radius: 4px; }
+  #preview figcaption { margin-top: 5px; font-size: .82rem; color: #666; }
   .secondary { background: #eee; color: #111; margin-right: 8px; }
+  .article-link-button { margin-top: 8px; padding: 8px 12px; }
+  #articleLinkDialog { width: min(440px, calc(100% - 48px)); border: 1px solid #ccc; border-radius: 8px; padding: 20px; }
+  #articleLinkDialog::backdrop { background: rgba(0,0,0,.4); }
+  #articleLinkDialog h2 { margin: 0; font-size: 1.2rem; }
+  #articleLinkError { color: #8a1a1a; }
+  #preview a { overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -58,6 +67,8 @@
     <textarea name="text" id="textField" required></textarea>
     <small>Odseky oddeľuj Enterom — stačí raz, prázdny riadok funguje tiež.</small>
   </label>
+  <button type="button" id="insertLinkBtn" class="secondary article-link-button">Vložiť odkaz</button>
+  <small>Označ slová v texte a vlož k nim odkaz. Klikateľné budú aj priamo vložené adresy https://…</small>
 
   <label>Kategória
     <select name="category" id="categorySelect">
@@ -195,6 +206,22 @@
 <div id="preview" aria-live="polite"></div>
 <div id="status"></div>
 
+<dialog id="articleLinkDialog" aria-labelledby="articleLinkTitle">
+  <form id="articleLinkForm">
+    <h2 id="articleLinkTitle">Vložiť odkaz</h2>
+    <label>Text odkazu
+      <input type="text" id="articleLinkLabel" placeholder="Napríklad: pôvodná štúdia">
+    </label>
+    <label>Webová adresa
+      <input type="url" id="articleLinkUrl" placeholder="https://…" required>
+    </label>
+    <p id="articleLinkError" role="alert"></p>
+    <button type="submit">Vložiť do textu</button>
+    <button type="button" id="articleLinkCancel" class="secondary">Zrušiť</button>
+  </form>
+</dialog>
+<script src="/assets/article-links.js"></script>
+<script src="/assets/article-links-editor.js" defer></script>
 <script>
 // Zmenšenie fotky ešte v prehliadači. Bez neho išiel súbor do úložiska 1:1
 // taký, aký vyšiel z fotoaparátu — ručne nahrané fotky mali priemer 1,1 MB,
@@ -279,14 +306,26 @@ document.getElementById('loadArticleBtn').addEventListener('click', async () => 
 });
 
 function esc(s) { return String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-document.getElementById('previewBtn').addEventListener('click', () => {
+document.getElementById('previewBtn').addEventListener('click', async () => {
   const f = document.getElementById('f');
   const d = Object.fromEntries(new FormData(f));
   const box = document.getElementById('preview');
   const body = d.category === 'recepty' ? poskladajReceptText(d) : d.text;
+  const selectedImage = document.getElementById('imageFile').files[0];
+  const imageSrc = selectedImage ? await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(selectedImage);
+  }) : d.imageUrl;
+  const imagePreview = imageSrc ? `<figure><img src="${esc(imageSrc)}" alt=""><figcaption>${esc(d.imageKind === 'ai' ? 'AI ilustrácia' : d.imageCredit || '')}</figcaption></figure>` : '';
   box.innerHTML = `<small>${esc(d.category === 'zahady' ? d.subcategory + ' · ' + d.contentType : d.category)}</small>`
-    + `<h2>${esc(d.headline)}</h2><p><strong>${esc(d.perex)}</strong></p>`
-    + String(body || '').split(/\n+/).filter(Boolean).map((p) => d.category === 'zahady' && /^## [^\n]{1,120}$/.test(p) ? `<h3>${esc(p.slice(3))}</h3>` : `<p>${esc(p)}</p>`).join('');
+    + `<h2>${esc(d.headline)}</h2>${imagePreview}<p><strong>${esc(d.perex)}</strong></p>`
+    + String(body || '').split(/\n+/).filter(Boolean).map((p) => d.category === 'zahady' && /^## [^\n]{1,120}$/.test(p) ? `<h3>${NovinkoLinks.renderInline(p.slice(3))}</h3>` : `<p>${NovinkoLinks.renderInline(p)}</p>`).join('');
+  const previewImage = box.querySelector('img');
+  if (previewImage) previewImage.addEventListener('error', () => {
+    previewImage.replaceWith(document.createTextNode('Obrázok sa v náhľade nenačítal. Skontroluj odkaz.'));
+  });
   box.style.display = 'block';
   box.scrollIntoView({ behavior: 'smooth' });
 });

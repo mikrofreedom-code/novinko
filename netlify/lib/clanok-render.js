@@ -18,6 +18,7 @@
 
 const { PARAGRAPH_DELIM } = require("./config");
 const { SUBCATEGORIES, CONTENT_TYPES, SERIES } = require("./zahady");
+const { renderInline } = require("../../assets/article-links");
 
 const SITE = "https://novinko.sk";
 
@@ -44,7 +45,7 @@ function odseky(content, headings = false) {
     .split(new RegExp(`\\s*${PARAGRAPH_DELIM}\\s*|\\n\\n`))
     .map((p) => p.trim()).filter(Boolean)
     .map((p) => headings && /^## [^\n]{1,120}$/.test(p)
-      ? `<h2>${esc(p.slice(3))}</h2>` : `<p>${esc(p)}</p>`).join("\n        ");
+      ? `<h2>${renderInline(p.slice(3))}</h2>` : `<p>${renderInline(p)}</p>`).join("\n        ");
 }
 
 // Rovnaká logika ako v clanok.html: priečinok v ceste nesie pôvod obrázka.
@@ -99,13 +100,13 @@ function receptTelo(r) {
   if (r.prep != null) badge.push(`<span class="recept-meta-item">⏱ Príprava ${r.prep} min</span>`);
   if (r.cook) badge.push(`<span class="recept-meta-item">🔥 Varenie ${r.cook} min</span>`);
   if (r.servings != null) badge.push(`<span class="recept-meta-item">🍽 ${r.servings} porcie</span>`);
-  return `${r.intro ? `<p class="recept-intro">${esc(r.intro)}</p>\n  ` : ""}${badge.length ? `<div class="recept-meta">${badge.join("")}</div>\n  ` : ""}<h2 class="recept-h2">Suroviny</h2>
+  return `${r.intro ? `<p class="recept-intro">${renderInline(r.intro)}</p>\n  ` : ""}${badge.length ? `<div class="recept-meta">${badge.join("")}</div>\n  ` : ""}<h2 class="recept-h2">Suroviny</h2>
   <ul class="recept-ingredients">
-    ${r.ingredients.map((i) => `<li>${esc(i)}</li>`).join("\n    ")}
+    ${r.ingredients.map((i) => `<li>${renderInline(i)}</li>`).join("\n    ")}
   </ul>
   <h2 class="recept-h2">Postup</h2>
   <ol class="recept-steps">
-    ${r.steps.map((s) => `<li>${esc(s)}</li>`).join("\n    ")}
+    ${r.steps.map((s) => `<li>${renderInline(s)}</li>`).join("\n    ")}
   </ol>`;
 }
 

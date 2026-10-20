@@ -107,6 +107,7 @@ header {
 .article-figure .article-img { margin: 0 0 6px; }
 .img-credit { font-size: 0.78rem; color: var(--muted); font-style: italic; }
 .article-content {
+  overflow-wrap: anywhere;
   font-family: 'Libre Baskerville', serif; font-size: 1.02rem; line-height: 1.85; color: var(--text);
 }
 
