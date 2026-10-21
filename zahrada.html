@@ -160,6 +160,7 @@
 
 </div>
 
+<script src="/assets/article-date.js"></script>
 <script>
   (function () {
     var root = document.documentElement;
@@ -194,9 +195,7 @@
   document.getElementById('currentMonth').textContent = MESIACE[new Date().getMonth()];
 
   function dateStr(iso) {
-    var d = new Date(iso);
-    if (isNaN(d)) return '';
-    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+    return formatArticleDate(iso);
   }
 
   function seasonCard(i, lead) {

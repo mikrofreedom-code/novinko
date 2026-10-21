@@ -22,7 +22,8 @@
 
 const { SHEET_CSV_URL, CATS } = require("../lib/config");
 const { parseCSVLine, splitCSVRecords } = require("../lib/csv");
-const { renderArchiv, renderNenajdene } = require("../lib/clanok-render");
+const { renderArchiv, renderSearch, renderUnavailable } = require("../lib/clanok-render");
+const { searchArticles, cleanQuery } = require("../lib/article-search");
 const { parseMeta } = require("../lib/zahady");
 
 const HTML = { "Content-Type": "text/html; charset=utf-8" };
@@ -30,7 +31,9 @@ const HTML = { "Content-Type": "text/html; charset=utf-8" };
 // by oddialil objavenie nových článkov — a práve kvôli tomu tá stránka je.
 const CACHE = "public, max-age=300, s-maxage=600, stale-while-revalidate=3600";
 
-exports.handler = async () => {
+exports.handler = async (event = {}) => {
+  const params = event.queryStringParameters || {};
+  const query = cleanQuery(params.q);
   let riadky;
   try {
     const res = await fetch(SHEET_CSV_URL);
@@ -39,7 +42,7 @@ exports.handler = async () => {
   } catch (e) {
     console.error("[archiv] hárok sa nedá načítať:", e.message);
     // 503 a nie 404 — pri 404 Google adresu z indexu vyhodí, pri 503 sa vráti.
-    return { statusCode: 503, headers: { ...HTML, "Retry-After": "300" }, body: renderNenajdene() };
+    return { statusCode: 503, headers: { ...HTML, "Retry-After": "300", "Cache-Control": "no-store" }, body: renderUnavailable(query) };
   }
 
   const clanky = riadky.map((line) => {
@@ -50,12 +53,12 @@ exports.handler = async () => {
   }).filter(Boolean);
 
   if (!clanky.length) {
-    return { statusCode: 503, headers: { ...HTML, "Retry-After": "300" }, body: renderNenajdene() };
+    return { statusCode: 503, headers: { ...HTML, "Retry-After": "300", "Cache-Control": "no-store" }, body: renderUnavailable(query) };
   }
 
   return {
     statusCode: 200,
-    headers: { ...HTML, "Cache-Control": CACHE },
-    body: renderArchiv(clanky, CATS),
+    headers: { ...HTML, "Cache-Control": query ? "private, no-store" : CACHE },
+    body: query ? renderSearch(searchArticles(clanky, query, params.strana)) : renderArchiv(clanky, CATS),
   };
 };

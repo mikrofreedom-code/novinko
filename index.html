@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="/assets/portal.css">
   <link rel="stylesheet" href="/assets/crypto.css">
   <link rel="stylesheet" href="/assets/economy.css">
+<link rel="stylesheet" href="/assets/consent.css">
 </head>
 <body>
 
@@ -291,6 +292,8 @@
   </div>
 </footer>
 
+<script src="/assets/article-date.js"></script>
+<script src="/assets/image-credit.js"></script>
 <script src="/assets/market-widgets.js"></script>
 <script src="/assets/crypto.js"></script>
 <script src="/assets/economy.js"></script>
@@ -328,13 +331,8 @@
   let currentView = 'all';
 
   // ─── HELPERY ───
-  function timeAgo(iso) {
-    const diff = (Date.now() - new Date(iso)) / 1000;
-    if (isNaN(diff)) return '';
-    if (diff < 60) return 'práve teraz';
-    if (diff < 3600) return `${Math.floor(diff/60)} min`;
-    if (diff < 86400) return `${Math.floor(diff/3600)} hod`;
-    return `${Math.floor(diff/86400)} d`;
+  function formatPublicationDate(iso) {
+    return formatArticleDate(iso);
   }
   // ─── BEZPEČNOSTNÉ HELPERY ───
   // Titulky, perexy a odkazy pochádzajú z cudzích RSS feedov a vkladajú sa cez
@@ -360,11 +358,11 @@
     const img = `<img src="${safeLink(i.image)}" alt="" class="${cls}" ${nacitanie}>`;
     // Štítok „AI ilustrácia" len na väčšie obrázky (na drobné náhľady by bol stiesnený).
     const big = !/story-secondary-img/.test(cls);
-    const isAi = i.category === 'zahady' ? i.mystery?.imageKind === 'ai' : !i.imageCredit || /^AI ilustrácia/i.test(i.imageCredit);
+    const isAi = NovinkoImages.describeImage(i.image, i.imageCredit, i.mystery?.imageKind).type === 'ai';
     return `<span class="img-wrap">${img}${big && isAi ? '<span class="ai-tag">AI ilustrácia</span>' : ''}</span>`;
   }
   function metaHTML(i) {
-    return `<div class="news-meta"><span class="news-source">${esc(i.source)}</span><span>·</span><span class="news-time">${timeAgo(i.pubDate)}</span></div>`;
+    return `<div class="news-meta"><span class="news-source">${esc(i.source)}</span><span>·</span><span class="news-time">${formatPublicationDate(i.pubDate)}</span></div>`;
   }
   function byDateDesc(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }
 
@@ -438,11 +436,11 @@
     const lbl = CAT_LABELS[f.category] || f.category || '';
     el.innerHTML = `<div class="story-featured fade-in">
       <div class="story-featured-left">
-        <a href="${safeLink(f.link)}" ${targetAttr(f.link)} tabindex="-1" aria-hidden="true">${ownImg(f, 'story-featured-img')}</a>
+        <a class="story-featured-image-link" href="${safeLink(f.link)}" ${targetAttr(f.link)} tabindex="-1" aria-hidden="true">${ownImg(f, 'story-featured-img')}</a>
         <span class="story-label label-${esc(f.category)}">${esc(lbl)}</span>
         <h2 class="story-headline-main"><a href="${safeLink(f.link)}" ${targetAttr(f.link)} class="story-headline-xl">${esc(f.title)}</a></h2>
         ${f.description ? `<div class="story-summary">${esc(f.description)}</div>` : ''}
-        <div class="story-byline"><span class="story-byline-source">${esc(f.source)}</span><span class="story-byline-sep">—</span><span class="story-byline-time">${timeAgo(f.pubDate)}</span></div>
+        <div class="story-byline"><span class="story-byline-source">${esc(f.source)}</span><span class="story-byline-sep">—</span><span class="story-byline-time">${formatPublicationDate(f.pubDate)}</span></div>
       </div>
       <div class="story-featured-right">
         ${sec.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="story-secondary">
@@ -500,7 +498,7 @@
         <div class="digest-col-title label-${s.id}"><a href="#" data-cat="${s.id}">${s.label} →</a></div>
         ${items.map(i => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="digest-item">
           <div class="digest-item-title">${esc(i.title)}</div>
-          <div class="digest-item-time">${esc(i.source)} · ${timeAgo(i.pubDate)}</div>
+          <div class="digest-item-time">${esc(i.source)} · ${formatPublicationDate(i.pubDate)}</div>
         </a>`).join('')}
       </div>`;
     }).filter(Boolean).join('');
@@ -610,8 +608,8 @@
     const el = document.getElementById('trendingList');
     if (!el) return;
     el.innerHTML = items.slice(0, 6).map((i, n) => `<a href="${safeLink(i.link)}" ${targetAttr(i.link)} class="trending-item">
-      <time class="trending-num" datetime="${esc(i.pubDate)}">${Number.isFinite(Date.parse(i.pubDate)) ? new Date(i.pubDate).toLocaleTimeString('sk-SK', {hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava'}) : '—'}</time>
-      <div><div class="trending-text">${esc(i.title)}</div><div class="trending-source">${esc(i.source)} · ${timeAgo(i.pubDate)}</div></div>
+      <span class="trending-num" aria-hidden="true">${n + 1}</span>
+      <div><div class="trending-text">${esc(i.title)}</div><div class="trending-source">${esc(i.source)} · ${formatPublicationDate(i.pubDate)}</div></div>
     </a>`).join('');
   }
 
@@ -785,7 +783,7 @@
     } catch (e) { el.innerHTML = ''; }
   }
   function stampUpdate() {
-    document.getElementById('lastUpdate').textContent = 'Aktualizované ' + new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('lastUpdate').textContent = 'Prehľad obnovený ' + new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava' });
   }
 
   // ─── POHĽADY ───
@@ -917,19 +915,6 @@
   loadMiniHoroskop();
   loadAll(() => go(selectedCategory(), false));
 </script>
-
-<!-- COOKIE BANNER -->
-<div class="cookie-banner" id="cookieBanner">
-  <div class="cookie-inner">
-    <div class="cookie-text">
-      <strong>Tento web používa cookies.</strong> Nevyhnutné cookies slúžia na fungovanie stránky. So súhlasom používame Google Analytics na meranie návštevnosti. Viac v <a href="/sukromie.html">Zásadách ochrany súkromia</a>.
-    </div>
-    <div class="cookie-actions">
-      <button class="cookie-btn cookie-btn-reject" id="cookieReject">Odmietnuť</button>
-      <button class="cookie-btn cookie-btn-accept" id="cookieAccept">Prijať všetko</button>
-    </div>
-  </div>
-</div>
 
 <script src="/promo.js" defer></script>
 </body>

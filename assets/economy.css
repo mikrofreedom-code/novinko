@@ -18,9 +18,7 @@
 #economyCalendarSlot .sidebar-head { font:700 22px/1.4 var(--serif); text-transform:none; letter-spacing:0; border-bottom:0; }
 #economyCalendarSlot .tv-mini-symbol { height:480px !important; }
 @media(max-width:640px) {
-  .economy-mast h1 { font-size:30px; }
-  #economyLead .crypto-lead-card .crypto-story-link { display:flex; flex-direction:column; }
-  #economyLead .crypto-lead-card .crypto-story-copy { order:-1; margin-bottom:18px; }
+  .economy-mast h1 { font-size:27px; }
   .economy-reading-note { padding:22px 18px; }
   .economy-reading-note h2 { font-size:21px; }
   #economyCalendarSlot .tv-mini-symbol { height:440px !important; }

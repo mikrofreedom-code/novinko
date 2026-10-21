@@ -1121,64 +1121,6 @@ footer {
   color:var(--muted);
 }
 
-.cookie-banner {
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  z-index:9999;
-  width:min(620px,calc(100% - 40px));
-  background:var(--surface);
-  color:var(--text);
-  padding:22px;
-  border:1px solid var(--border);
-  box-shadow:0 8px 40px #0002;
-  transform:translateY(calc(100% + 40px));
-  transition:transform .25s;
-  max-height:85vh;
-  overflow:auto;
-}
-
-.cookie-banner.show {
-  transform:translateY(0);
-}
-
-.cookie-inner {
-  display:flex;
-  flex-wrap:wrap;
-  gap:18px;
-}
-
-.cookie-text {
-  font-size:.83rem;
-  color:var(--text2);
-  line-height:1.55;
-}
-
-.cookie-text a {
-  text-decoration:underline;
-}
-
-.cookie-actions {
-  display:flex;
-  gap:10px;
-}
-
-.cookie-btn {
-  min-height:42px;
-  padding:8px 17px;
-  font-size:.8rem;
-  font-weight:600;
-  border:1px solid var(--border);
-  background:var(--surface);
-  color:var(--text);
-}
-
-.cookie-btn-accept {
-  background:var(--text);
-  color:var(--bg);
-  border-color:var(--text);
-}
-
 @media(min-width:1600px) {
   .story-headline-xl {
     font-size:2.25rem;
@@ -1279,10 +1221,10 @@ footer {
     display:none;
   }
   .masthead-inner {
-    min-height:103px;
+    min-height:80px;
     gap:12px;
     flex-wrap:wrap;
-    padding-block:14px;
+    padding-block:10px;
   }
   .logo {
     font-size:2.55rem;
@@ -1336,7 +1278,10 @@ footer {
     padding-inline:13px;
   }
   .edition-bar {
-    min-height:43px;
+    min-height:36px;
+    flex-wrap:wrap;
+    gap:4px 10px;
+    padding-block:7px;
     font-size:.68rem;
   }
   .last-update {
@@ -1349,12 +1294,16 @@ footer {
     font-size:1.24rem;
   }
   main {
-    padding-top:23px;
+    padding-top:16px;
   }
   .story-featured {
     grid-template-columns:1fr;
     gap:24px;
   }
+  .story-featured-left { display:flex; flex-direction:column; }
+  .story-featured-image-link { order:3; margin-top:16px; }
+  .story-featured-left .story-byline { order:1; margin-top:10px; }
+  .story-featured-left .story-summary { order:2; margin-top:12px; }
   .story-headline-xl {
     font-size:1.72rem;
     line-height:1.28;
@@ -1500,18 +1449,6 @@ footer {
   }
   .mini-horo-body {
     min-height:0;
-  }
-  .cookie-banner {
-    bottom:12px;
-    right:12px;
-    width:calc(100% - 24px);
-    padding:18px;
-  }
-  .cookie-actions {
-    width:100%;
-  }
-  .cookie-btn {
-    flex:1;
   }
   .footer-inner {
     gap:14px;

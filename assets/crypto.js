@@ -86,6 +86,7 @@
   }
   function setActive(active) {
     document.body.classList.toggle('crypto-active', active);
+    if (!active) document.body.classList.remove('crypto-market-active');
     $('cryptoPortal').hidden = !active;
     $('cryptoAside').hidden = !active;
     if (!active && promo && promoPosition) promoPosition.after(promo);
@@ -97,6 +98,7 @@
     if (promo) $('cryptoPromoSlot').appendChild(promo);
     const { items, school, loaded, esc, safeLink, ownImg } = ctx;
     const { view, topic } = state(location.search);
+    document.body.classList.toggle('crypto-market-active', view === 'trh');
     $('cryptoNav').innerHTML = [['spravy', 'Správy'], ['trh', 'Trh'], ['skola', 'Krypto škola']].map(([key, name]) =>
       `<a href="${url(key)}" data-crypto-view="${key}" ${view === key ? 'aria-current="page"' : ''}>${name}${key === 'trh' ? ' <span aria-hidden="true">↗</span>' : ''}</a>`).join('');
     $('cryptoNews').hidden = view !== 'spravy';
@@ -106,7 +108,7 @@
     const topicName = item => topics.find(t => t[0] !== 'all' && matches(item, t[0]))?.[1] || 'Krypto';
     const date = item => {
       const d = new Date(item.pubDate);
-      return Number.isFinite(d.getTime()) ? `<time datetime="${esc(d.toISOString())}">${esc(d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'short', timeZone: 'Europe/Bratislava' }))} · ${esc(d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bratislava' }))}</time>` : '';
+      return Number.isFinite(d.getTime()) ? `<time datetime="${esc(d.toISOString())}">${esc(root.formatArticleDate(item.pubDate))}</time>` : '';
     };
     const card = (item, lead = false) => `<article class="${lead ? 'crypto-lead-card' : 'crypto-story'}">
       <a href="${safeLink(item.link)}" class="crypto-story-link">

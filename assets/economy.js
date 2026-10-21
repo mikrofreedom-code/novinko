@@ -32,7 +32,7 @@
     $('economyPortal').innerHTML = `
       <header class="crypto-mast economy-mast">
         <p class="crypto-kicker">NOVINKO / EKONOMIKA</p>
-        <h1>Ekonomika, ktorá sa<br>dotýka vás<span>.</span></h1>
+        <h1>Ekonomika, ktorá sa <br>dotýka vás<span>.</span></h1>
         <p class="crypto-intro">Od rozhodnutí centrálnych bánk po každodenné výdavky. Správy, čísla a ich súvislosti.</p>
         <nav id="economyNav" class="crypto-nav" aria-label="Pohľady rubriky Ekonomika"></nav>
       </header>
@@ -77,6 +77,7 @@
   }
   function setActive(active) {
     document.body.classList.toggle('economy-active', active);
+    if (!active) document.body.classList.remove('economy-market-active');
     $('economyPortal').hidden = !active;
     $('economyAside').hidden = !active;
     if (!active && promo && promoPosition) promoPosition.after(promo);
@@ -87,13 +88,14 @@
     if (promo) $('economyPromoSlot').appendChild(promo);
     const { items, loaded, esc, safeLink, ownImg } = ctx;
     const { view, topic } = state(location.search);
+    document.body.classList.toggle('economy-market-active', view === 'trhy');
     $('economyNav').innerHTML = [['spravy','Správy'],['trhy','Trhy a kalendár']].map(([key,label]) => `<a href="${url(key)}" data-economy-view="${key}" ${view === key ? 'aria-current="page"' : ''}>${label}</a>`).join('');
     $('economyNews').hidden = view !== 'spravy'; $('economyMarket').hidden = view !== 'trhy';
     document.title = `${view === 'trhy' ? 'Trhy a ekonomický kalendár' : 'Ekonomika'} — Novinko`;
     const label = item => topics.find(t => t[0] !== 'all' && matches(item,t[0]))?.[1] || 'Ekonomika';
     const date = item => {
       const d = new Date(item.pubDate);
-      return Number.isFinite(d.getTime()) ? `<time datetime="${esc(d.toISOString())}">${esc(d.toLocaleString('sk-SK',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Bratislava'}))}</time>` : '';
+      return Number.isFinite(d.getTime()) ? `<time datetime="${esc(d.toISOString())}">${esc(root.formatArticleDate(item.pubDate))}</time>` : '';
     };
     const card = (item, lead = false) => `<article class="${lead ? 'crypto-lead-card' : 'crypto-story'}"><a href="${safeLink(item.link)}" class="crypto-story-link">${ownImg(item,lead ? 'story-featured-img' : 'news-item-img')}<div class="crypto-story-copy"><span class="crypto-story-topic">${esc(label(item))}</span><h${lead ? '2' : '3'}>${esc(item.title)}</h${lead ? '2' : '3'}>${item.description ? `<p class="crypto-perex">${esc(item.description)}</p>` : ''}<div class="crypto-story-meta">${esc(item.source || 'Novinko')} <span aria-hidden="true">·</span> ${date(item)}</div></div></a></article>`;
     const lead = topic === 'all' ? items.slice(0,4) : [];

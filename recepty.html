@@ -138,6 +138,7 @@
 
 </div>
 
+<script src="/assets/article-date.js"></script>
 <script>
   (function () {
     var root = document.documentElement;
@@ -167,9 +168,7 @@
     } catch (e) { return '#'; }
   }
   function dateStr(iso) {
-    var d = new Date(iso);
-    if (isNaN(d)) return '';
-    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+    return formatArticleDate(iso);
   }
 
   var KATEGORIE = ['Hlavné jedlá', 'Polievky', 'Dezerty', 'Bezmäsité a fit'];

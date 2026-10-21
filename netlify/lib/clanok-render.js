@@ -1,3 +1,5 @@
+const { formatArticleDate } = require("../../assets/article-date");
+const { describeImage } = require("../../assets/image-credit");
 // Skladá HTML stránky článku NA SERVERI — pre vyhľadávače a pre návštevníkov,
 // ktorí prídu z Googlu.
 //
@@ -21,6 +23,10 @@ const { SUBCATEGORIES, CONTENT_TYPES, SERIES } = require("./zahady");
 const { renderInline } = require("../../assets/article-links");
 
 const SITE = "https://novinko.sk";
+const CATEGORY_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika',
+  krypto: 'Krypto', 'krypto-skola': 'Krypto škola', ai: 'Umelá inteligencia', sport: 'Šport',
+  zahrada: 'Záhrada', recepty: 'Recepty', horoskop: 'Horoskopy', zahady: 'Záhady a fenomény' };
+const categoryLabel = category => CATEGORY_LABELS[category] || category || 'Správy';
 
 const esc = (s) => String(s ?? "")
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -48,26 +54,14 @@ function odseky(content, headings = false) {
       ? `<h2>${renderInline(p.slice(3))}</h2>` : `<p>${renderInline(p)}</p>`).join("\n        ");
 }
 
-// Rovnaká logika ako v clanok.html: priečinok v ceste nesie pôvod obrázka.
-// manual/ = fotka od človeka, krypto|ai|evergreen = AI. Popisok o AI sa preto
-// zobrazí len pri ilustrácii; pod skutočnou fotkou by bol nepravdivý. Zadaný
-// zdroj má prednosť — atribúcia je právna povinnosť, popisok o AI informatívny.
+// Shared with the legacy browser renderer and homepage cards.
 function popisObrazka(imageUrl, imageCredit, imageKind) {
-  if (imageKind === 'ai') return '<figcaption class="img-credit">AI ilustrácia — nezobrazuje skutočnú udalosť</figcaption>';
-  if (imageKind === 'illustration') return `<figcaption class="img-credit">Ilustrácia${imageCredit ? `: ${esc(imageCredit)}` : ''}</figcaption>`;
-  if (imageCredit) return `<figcaption class="img-credit">Foto: ${esc(imageCredit)}</figcaption>`;
-  if (/\/manual\//.test(imageUrl)) return "";
-  return `<figcaption class="img-credit">Ilustračný obrázok vytvorený umelou inteligenciou</figcaption>`;
+  const { text } = describeImage(imageUrl, imageCredit, imageKind);
+  return text ? `<figcaption class="img-credit">${esc(text)}</figcaption>` : '';
 }
 
 function datumSk(iso) {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString("sk-SK", {
-    timeZone: "Europe/Bratislava",
-    day: "numeric", month: "long", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
+  return formatArticleDate(iso);
 }
 
 // Rozbor tela receptu na intro/meta/suroviny/postup — presne ten istý formát,
@@ -142,7 +136,7 @@ function hlavicka(theme) {
     <a href="${domov}" class="logo">novinko<span>.</span></a>
     <span class="logo-tagline">${theme === 'zahady' ? 'Záhady a fenomény' : 'Píše AI. Človek kontroluje.'}</span>
   </div>
-${THEME_HOME[theme] ? '' : '<nav class="article-nav" aria-label="Rubriky Novinka"><a href="/">Úvod</a><a href="/?rubrika=slovensko">Slovensko</a><a href="/?rubrika=svet">Svet</a><a href="/?rubrika=ekonomika">Ekonomika</a><a href="/?rubrika=krypto">Krypto</a><a href="/?rubrika=ai">Umelá inteligencia</a><a href="/zahady.html">Záhady a fenomény</a><a href="/archiv">Archív</a></nav>'}
+${THEME_HOME[theme] ? '' : '<nav class="article-nav" aria-label="Rubriky Novinka"><a href="/">Úvod</a><a href="/?rubrika=slovensko">Slovensko</a><a href="/?rubrika=svet">Svet</a><a href="/?rubrika=ekonomika">Ekonomika</a><a href="/?rubrika=krypto">Krypto</a><a href="/?rubrika=ai">Umelá inteligencia</a><a href="/?rubrika=sport">Šport</a><a href="/zahady.html">Záhady a fenomény</a><a href="/zahrada.html">Záhrada</a><a href="/horoskop.html">Horoskopy</a><a href="/archiv">Hľadať a archív</a></nav>'}
 </header>`;
 }
 
@@ -218,7 +212,7 @@ function reklama(theme) {
   </aside>`;
 }
 
-function obal({ title, description, canonical, image, date, telo, jsonLd, theme }) {
+function obal({ title, description, canonical, image, date, telo, jsonLd, theme, noindex = false }) {
   const fonts = "family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700";
   return `<!DOCTYPE html>
 <html lang="sk">
@@ -230,7 +224,7 @@ function obal({ title, description, canonical, image, date, telo, jsonLd, theme 
   <!-- Bez max-image-preview:large ukáže Google vo výsledkoch len malý štvorcový
        náhľad a hlavne NEZARADÍ stránku do Discoveru — toho kanála, ktorý sype
        články ľuďom do telefónu. Je to podmienka, nie odporúčanie. -->
-  <meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="robots" content="${noindex ? 'noindex, follow' : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'}" />
   <link rel="canonical" href="${esc(canonical)}" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="${esc(title)}" />
@@ -240,13 +234,16 @@ function obal({ title, description, canonical, image, date, telo, jsonLd, theme 
 ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date ? `  <meta property="article:published_time" content="${esc(date)}" />\n` : ""}  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?${fonts}&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/clanok.css" />
+  <link rel="stylesheet" href="/assets/article-search.css" />
   <link rel="stylesheet" href="/assets/consent.css" />
   <script src="/assets/ga4-consent.js" defer></script>
   <script src="/share.js" defer></script>
 ${THEME_CSS[theme] ? `  ${THEME_CSS[theme]}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
 ${hlavicka(theme)}
+<main id="main-content">
 ${telo}
+</main>
 <footer>novinko &mdash; všetky aktuálne správy na jednom mieste<span style="display:block;margin-top:8px"><a href="/archiv" style="color:var(--text2)">Archív článkov</a> &middot; <a href="mailto:tipy@novinko.sk" style="color:var(--text2)">Máte tip?</a></span><span style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:10px"><a href="https://www.tiktok.com/@novinko.sk" target="_blank" rel="noopener me" aria-label="Novinko na TikToku" title="Novinko na TikToku" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a><a href="https://x.com/novinkosk" target="_blank" rel="noopener me" aria-label="Novinko na X" title="Novinko na X" style="color:var(--text2);display:inline-flex;align-items:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></span></footer>
 </body>
 </html>
@@ -263,7 +260,7 @@ function renderClanok(article, dalsie = []) {
   const { title, perex, content, source, date, category, imageUrl, imageCredit } = article;
   const mystery = category === 'zahady' ? (article.mystery || {}) : {};
   const theme = THEME_CSS[category] ? category : null;
-  const label = THEME_LABEL[category] ?? { home: "/", back: "← Všetky správy", dalsie: "Ďalšie správy" };
+  const label = THEME_LABEL[category] ?? { home: "/", back: "← Všetky správy", dalsie: "Pokračujte v čítaní" };
   const sourceParts = String(source || "").split("|");
   const sourceName = (sourceParts[0] || "").trim();
   const sourceLink = (sourceParts[1] || "").trim();
@@ -297,25 +294,26 @@ function renderClanok(article, dalsie = []) {
   </div>
   <h1 class="article-title">${esc(title)}</h1>
   ${mysteryContext}
-  ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" loading="lazy">${popisObrazka(imageUrl, imageCredit, mystery.imageKind)}</figure>` : ""}
   ${!recept && perex ? `<div class="article-perex">${esc(perex)}</div>` : ""}
+  ${imageUrl ? `<figure class="article-figure"><img src="${esc(imageUrl)}" alt="" class="article-img" width="1600" height="900" fetchpriority="high">${popisObrazka(imageUrl, imageCredit, mystery.imageKind)}</figure>` : ""}
   ${interpretationNote}
   <div class="article-content">
         ${recept ? receptTelo(recept) : odseky(content, category === 'zahady')}
   </div>
   ${tagsHtml}
-  ${shareBar(title, clanokUrl(article))}
-${reklama(theme)}
   <div class="article-footer">
     ${sourcesHtml}
     <a href="${label.home}" class="back-link">${label.back}</a>
   </div>
-${dalsie.length ? `  <nav class="dalsie-clanky">
+  <p class="article-editorial"><a href="/impressum.html">O redakcii a používaní AI</a><a href="/pravo-na-opravu.html">Upozorniť na chybu</a></p>
+  ${shareBar(title, clanokUrl(article))}
+${dalsie.length ? `  <nav class="dalsie-clanky" aria-label="Ďalšie čítanie">
     <h2>${label.dalsie}</h2>
     <ul>
-      ${dalsie.map((d) => `<li><a href="${esc(d.url)}">${esc(d.title)}</a></li>`).join("\n      ")}
+      ${dalsie.map((d) => `<li>${d.category ? `<span class="related-category">${esc(categoryLabel(d.category))}</span>` : ''}<a href="${esc(d.url)}">${esc(d.title)}</a>${datumSk(d.date) ? `<time datetime="${esc(d.date)}">${esc(datumSk(d.date))}</time>` : ''}</li>`).join("\n      ")}
     </ul>
   </nav>` : ""}
+${reklama(theme)}
 </div>`;
 
   return obal({
@@ -402,6 +400,44 @@ function recipeJsonLd(article, popis, recept) {
 // Táto stránka je serverová a obsahuje VŠETKY články ako <a href>, zoskupené
 // po kategóriách. Z ktorejkoľvek stránky webu sa tak dá dôjsť ku každému
 // článku bez spusteného JavaScriptu.
+function searchForm(query = '') {
+  return `<form class="archive-search" action="/archiv" method="get" role="search">
+    <label for="archiveQuery">Hľadať v článkoch Novinka</label>
+    <div class="archive-search-controls"><input id="archiveQuery" name="q" type="search" value="${esc(query)}" maxlength="160" placeholder="Téma, meno alebo kľúčové slovo"><button type="submit">Hľadať</button></div>
+    <p>Hľadáme v titulkoch, úvodoch aj texte článkov. Môžete písať bez diakritiky.</p>
+  </form>`;
+}
+
+function searchUrl(query, page = 1) {
+  const params = new URLSearchParams({ q: query });
+  if (page > 1) params.set('strana', page);
+  return `/archiv?${params}`;
+}
+
+function renderSearch({ query, total, page, pages, pageSize, items }) {
+  const count = total === 1 ? 'výsledok' : total >= 2 && total <= 4 ? 'výsledky' : 'výsledkov';
+  const results = items.map(article => `<li class="search-result">
+    <div class="search-result-meta"><span>${esc(categoryLabel(article.category))}</span>${datumSk(article.date) ? `<time datetime="${esc(article.date)}">${esc(datumSk(article.date))}</time>` : ''}</div>
+    <h2><a href="${esc(clanokUrl(article))}">${esc(article.title)}</a></h2>
+    ${article.perex ? `<p>${esc(String(article.perex).slice(0, 260))}${article.perex.length > 260 ? '…' : ''}</p>` : ''}
+  </li>`).join('');
+  return obal({ title: `Hľadanie: ${query} — Novinko`, description: `Výsledky hľadania pre ${query}.`,
+    canonical: SITE + searchUrl(query, page), noindex: true,
+    telo: `<div class="article-wrap search-page"><h1 class="article-title">Hľadať na Novinku</h1>
+      ${searchForm(query)}
+      <p class="search-count">${total} ${count} pre <strong>„${esc(query)}“</strong>${total ? ` · Zobrazené ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)}` : ''}</p>
+      ${total ? `<ul class="search-results">${results}</ul>` : '<div class="search-empty"><h2>Nenašli sme žiadne články.</h2><p>Skúste kratší výraz, iné slovo alebo skontrolujte preklep.</p><a href="/archiv">Prejsť do celého archívu →</a></div>'}
+      ${pages > 1 ? `<nav class="search-pagination" aria-label="Stránky výsledkov">${page > 1 ? `<a rel="prev" href="${esc(searchUrl(query, page - 1))}">← Predchádzajúca</a>` : '<span></span>'}<span>Strana ${page} z ${pages}</span>${page < pages ? `<a rel="next" href="${esc(searchUrl(query, page + 1))}">Nasledujúca →</a>` : '<span></span>'}</nav>` : ''}
+      <p class="search-archive-link"><a href="/archiv">Celý archív článkov</a></p>
+    </div>` });
+}
+
+function renderUnavailable(query = '') {
+  return obal({ title: 'Články sa nepodarilo načítať — Novinko', description: 'Dočasne nedostupný prehľad článkov.',
+    canonical: SITE + '/archiv', noindex: true,
+    telo: `<div class="article-wrap"><h1 class="article-title">Články sa nepodarilo načítať.</h1><p>Skúste to, prosím, o chvíľu znova.</p>${searchForm(query)}</div>` });
+}
+
 function renderArchiv(clanky, kategorie) {
   const podlaKat = new Map();
   for (const c of clanky) {
@@ -422,7 +458,7 @@ function renderArchiv(clanky, kategorie) {
         + `<time datetime="${esc(c.date)}">${esc(datumSk(c.date))}</time></li>`)
       .join("\n");
     return `  <section class="archiv-sekcia">
-    <h2>${esc(k)} <span class="archiv-pocet">${podlaKat.get(k).length}</span></h2>
+    <h2>${esc(categoryLabel(k))} <span class="archiv-pocet">${podlaKat.get(k).length}</span></h2>
     <ul class="archiv-zoznam">
 ${zoznam}
     </ul>
@@ -435,6 +471,7 @@ ${zoznam}
     canonical: `${SITE}/archiv`,
     telo: `<div class="article-wrap">
   <h1 class="article-title">Archív článkov</h1>
+  ${searchForm()}
   <div class="article-perex">Všetkých ${clanky.length} článkov, zoradených podľa sekcií a dátumu.</div>
 ${sekcie}
   <div class="article-footer"><a href="/" class="back-link">← Všetky správy</a></div>
@@ -465,4 +502,4 @@ function renderNenajdene() {
   });
 }
 
-module.exports = { renderClanok, renderArchiv, renderNenajdene, clanokUrl, slugify, esc, SITE };
+module.exports = { renderClanok, renderArchiv, renderSearch, renderUnavailable, renderNenajdene, clanokUrl, slugify, esc, SITE };

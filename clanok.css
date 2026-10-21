@@ -91,7 +91,7 @@ header {
 .article-perex {
   font-size: 1.12rem; font-weight: 400; line-height: 1.7;
   color: var(--text2);
-  padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
 }
 
 /* AD SLOT */
@@ -102,13 +102,13 @@ header {
   min-height: 90px; display: flex; align-items: center; justify-content: center;
 }
 
-.article-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 5px; margin: 0 0 22px; display: block; background: var(--surface); }
+.article-img { width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: 5px; margin: 0 0 22px; display: block; background: var(--surface); }
 .article-figure { margin: 0 0 22px; }
 .article-figure .article-img { margin: 0 0 6px; }
 .img-credit { font-size: 0.78rem; color: var(--muted); font-style: italic; }
 .article-content {
   overflow-wrap: anywhere;
-  font-family: 'Libre Baskerville', serif; font-size: 1.02rem; line-height: 1.85; color: var(--text);
+  font-family: 'Libre Baskerville', serif; font-size: 1.08rem; line-height: 1.85; color: var(--text);
 }
 
 .article-content p {
@@ -148,7 +148,29 @@ header {
   font-size: 0.8rem; color: var(--muted);
 }
 
-.source-link a { color: var(--accent); }
+.source-link a { color: var(--accent); overflow-wrap:anywhere; }
+
+.article-footer { flex-wrap:wrap; gap:18px; }
+.article-editorial { display:flex; flex-wrap:wrap; gap:12px 24px; margin:20px 0; font-size:14px; }
+.article-editorial a { color:var(--text2); text-underline-offset:4px; padding-block:8px; }
+.dalsie-clanky { margin-top:32px; border-top:3px solid var(--text); padding-top:22px; }
+.dalsie-clanky h2 { font:700 24px/1.4 'Libre Baskerville',serif; margin-bottom:18px; }
+.dalsie-clanky ul { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; list-style:none; }
+.dalsie-clanky li { min-width:0; }
+.related-category { display:block; font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px; }
+.dalsie-clanky li a { display:block; color:var(--text); text-decoration:none; font:700 16px/1.55 'Libre Baskerville',serif; overflow-wrap:anywhere; }
+.dalsie-clanky li a:hover { color:var(--accent); text-decoration:underline; text-underline-offset:4px; }
+.dalsie-clanky time { display:block; color:var(--text2); font-size:12px; margin-top:10px; }
+@media(max-width:600px) {
+  .article-meta { gap:8px 12px; margin-bottom:16px; }
+  .article-date { margin-left:0; }
+  .article-title { font-size:1.8rem; line-height:1.23; overflow-wrap:anywhere; }
+  .article-perex { font-size:1.05rem; line-height:1.65; }
+  .article-content { font-size:1rem; line-height:1.85; }
+  .dalsie-clanky h2 { font-size:22px; }
+  .dalsie-clanky ul { grid-template-columns:1fr; gap:0; }
+  .dalsie-clanky li { padding:18px 0; border-bottom:1px solid var(--border); }
+}
 
 .back-link {
   font-size: 0.85rem; font-weight: 700;

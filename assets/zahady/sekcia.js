@@ -38,13 +38,13 @@
     history.replaceState(null, '', location.pathname + (p.size ? '?' + p : '') + location.hash);
   }
   function imageCaption(item) {
-    return item.mystery?.imageKind === 'ai' || /AI ilustrácia/i.test(item.imageCredit || '') ? 'AI ilustrácia' : '';
+    return NovinkoImages.describeImage(item.image, item.imageCredit, item.mystery?.imageKind).type === 'ai' ? 'AI ilustrácia' : '';
   }
   function card(item) {
     const m = item.mystery || {};
     const image = imageLink(item.image);
     const date = new Date(item.pubDate);
-    const dateHTML = Number.isNaN(date.getTime()) ? '' : `<time datetime="${date.toISOString()}">${date.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' })}</time>`;
+    const dateHTML = Number.isNaN(date.getTime()) ? '' : `<time datetime="${date.toISOString()}">${formatArticleDate(item.pubDate)}</time>`;
     const label = labels[mainTopic(m.subcategory)] || 'Záhady a fenomény';
     return `<article class="story"><a href="${esc(articleLink(item.link))}"><span class="story-media">${image ? `<img src="${esc(image)}" alt="" width="640" height="400" loading="lazy">${imageCaption(item) ? '<span class="image-credit">AI ilustrácia</span>' : ''}` : '<span class="story-media story-placeholder" aria-hidden="true">N.</span>'}</span><div class="story-body"><div class="story-meta"><span class="story-category">${esc(label)}</span>${types[m.contentType] ? `<span class="story-type">${esc(types[m.contentType])}</span>` : ''}</div><h3>${esc(item.title)}</h3><p>${esc(item.description || '')}</p>${dateHTML}</div></a></article>`;
   }

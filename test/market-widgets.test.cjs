@@ -15,7 +15,7 @@ test('widget mounts once, reports a slow request and recovers when it loads', ()
   const host = new Element();
   const config = { dataset: { widgetSrc: 'https://s3.tradingview.com/test.js', widgetFallback: 'https://www.tradingview.com/symbols/EURUSD/' }, textContent: '{"symbol":"FX:EURUSD"}', parentElement: host };
   const timers = new Map(); let timerId = 0;
-  const context = { window: {}, document: { createElement: () => new Element() },
+  const context = { window: { NovinkoConsent: { allows: () => true }, addEventListener() {} }, document: { createElement: () => new Element() },
     setTimeout: fn => { timers.set(++timerId, fn); return timerId; }, clearTimeout: id => timers.delete(id) };
   vm.runInNewContext(fs.readFileSync(require.resolve('../assets/market-widgets'), 'utf8'), context);
   const container = { querySelectorAll: () => [config] };

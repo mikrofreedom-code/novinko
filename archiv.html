@@ -81,7 +81,9 @@
       .logo-tagline { order: 3; flex-basis: 100%; }
       .back { font-size: .75rem; }
       .arch-cat { width: 60px; font-size: 0.55rem; }
-      .arch-date { display: none; }
+      .arch-item { flex-wrap: wrap; gap: 8px 12px; }
+      .arch-body { flex-basis: calc(100% - 160px); }
+      .arch-date { margin-left: 72px; }
       .arch-perex { display: none; }
     }
   </style>
@@ -129,6 +131,7 @@
 </footer>
 
 <script src="/assets/csv-records.js"></script>
+<script src="/assets/article-date.js"></script>
 <script>
   const SHEET_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZoj1iM9WKbX_S-0Zsu-3ZU3vZGro3UFcWyGuuBY4e8sR474C9X0xf33N1Cok0YSqoLDVPn_dCVFXW/pub?output=csv";
   const PAGE_SIZE = 50;
@@ -178,9 +181,7 @@
   }
 
   function fmtDate(iso) {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'short', year: 'numeric' });
+    return formatArticleDate(iso);
   }
 
   function applyFilters() {

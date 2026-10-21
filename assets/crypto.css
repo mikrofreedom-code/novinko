@@ -74,10 +74,19 @@
   :is(#cryptoAside,#economyAside) { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
 }
 @media(max-width:640px) {
-  .crypto-mast h1 { letter-spacing:-1px; }
-  .crypto-intro { font-size:15px; }
-  .crypto-nav { gap:25px; }
+  .crypto-active:not(.crypto-market-active) #tickerCrypto,
+  .economy-active:not(.economy-market-active) #tickerEkonomika { display:none !important; }
+  .crypto-mast { padding:0 0 20px; }
+  .crypto-mast > .crypto-kicker { display:none; }
+  .crypto-mast h1 { font-size:27px; letter-spacing:-.8px; margin:4px 0 10px; }
+  .crypto-mast h1 br { display:none; }
+  .crypto-intro { font-size:14px; line-height:1.5; }
+  .crypto-nav { gap:20px; margin-top:14px; }
+  .crypto-nav a { font-size:14px; min-height:44px; }
   .crypto-lead-grid { grid-template-columns:1fr; gap:24px; }
+  .crypto-lead-card .crypto-story-link { display:flex; flex-direction:column; }
+  .crypto-lead-card .crypto-story-copy { order:-1; margin-bottom:16px; }
+  .crypto-lead-card .img-wrap { width:100%; margin-bottom:0; }
   .crypto-lead-side { border-left:0; border-top:1px solid var(--border); padding:20px 0 0; }
   .crypto-lead-side .crypto-story h3 { font-size:18px; }
   .crypto-feed-head h2 { font-size:20px; }

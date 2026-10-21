@@ -144,6 +144,7 @@
 
 </div>
 
+<script src="/assets/article-date.js"></script>
 <script>
   // Rovnaké bezpečnostné helpery ako index.html/zahrada.html/archiv.html.
   function esc(s) {
@@ -244,7 +245,7 @@
   function archiveItem(a) {
     return '<a href="/clanok/' + slugify(a.title) + '-' + encodeURIComponent(a.id) + '" class="arch-item">' +
       '<span class="arch-title">' + esc(a.title) + '</span>' +
-      '<span class="arch-date">' + esc(dateStr(a.date)) + '</span>' +
+      '<span class="arch-date">' + esc(formatArticleDate(a.date)) + '</span>' +
       '</a>';
   }
 

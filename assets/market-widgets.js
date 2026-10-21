@@ -4,6 +4,23 @@
   function mount(container, fallbackUrl = 'https://www.tradingview.com/') {
     container.querySelectorAll('script[data-widget-src]').forEach(config => {
       if (config.dataset.mounted) return;
+      if (!root.NovinkoConsent?.allows('external')) {
+        if (!config.parentElement.querySelector('.widget-consent')) {
+          const notice = document.createElement('div');
+          notice.className = 'widget-consent';
+          notice.textContent = 'Externé grafy TradingView sú vypnuté podľa nastavenia súkromia.';
+          const settings = document.createElement('button');
+          settings.type = 'button'; settings.textContent = 'Nastaviť externé grafy';
+          settings.setAttribute('data-cookie-settings', '');
+          notice.appendChild(settings);
+          const link = document.createElement('a');
+          link.href = config.dataset.widgetFallback || fallbackUrl;
+          link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Otvoriť TradingView ↗';
+          notice.appendChild(link); config.parentElement.prepend(notice);
+        }
+        return;
+      }
+      config.parentElement.querySelector('.widget-consent')?.remove();
       config.dataset.mounted = 'true';
       const script = document.createElement('script');
       script.src = config.dataset.widgetSrc;
@@ -36,5 +53,10 @@
       config.parentElement.appendChild(script);
     });
   }
+  root.addEventListener('novinko:consent-change', function () {
+    document.querySelectorAll('.widget-consent').forEach(notice => {
+      if (notice.parentElement) mount(notice.parentElement);
+    });
+  });
   root.NovinkoWidgets = { mount };
 })(window);
