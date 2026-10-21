@@ -1,0 +1,27 @@
+/* Economy shares editorial cards with Krypto and the site's light/dark tokens. */
+.economy-active #main > :not(#economyPortal),
+.economy-active .sidebar > :not(#economyAside) { display:none !important; }
+#economyPortal { --crypto-accent:var(--cat-eko); overflow-wrap:anywhere; }
+#economyFilters a { min-height:44px; display:inline-flex; align-items:center; }
+#economyFilters, #economyNav { scroll-margin-top:24px; }
+#economyAside a { min-height:44px; }
+.economy-mast h1 { font-size:clamp(30px,3.7vw,48px); line-height:1.25; }
+.economy-mast h1 > span { color:var(--cat-eko); }
+#economyNav a[aria-current] { border-color:var(--cat-eko); }
+.economy-reading-note { margin-top:38px; padding:28px; border-top:3px solid var(--cat-eko); background:var(--soft); }
+.economy-reading-note h2 { font:700 24px/1.4 var(--serif); margin:12px 0; }
+.economy-reading-note p { font-size:16px; line-height:1.7; color:var(--text2); margin-bottom:16px; }
+.economy-glossary { margin:20px 0 0; }
+.economy-glossary dt { font-size:15px; font-weight:700; margin-top:20px; }
+.economy-glossary dd { margin:6px 0 0; font-size:14px; line-height:1.65; color:var(--text2); }
+#economyCalendarSlot #sbEkonomika { padding:0; margin:32px 0 0; }
+#economyCalendarSlot .sidebar-head { font:700 22px/1.4 var(--serif); text-transform:none; letter-spacing:0; border-bottom:0; }
+#economyCalendarSlot .tv-mini-symbol { height:480px !important; }
+@media(max-width:640px) {
+  .economy-mast h1 { font-size:30px; }
+  #economyLead .crypto-lead-card .crypto-story-link { display:flex; flex-direction:column; }
+  #economyLead .crypto-lead-card .crypto-story-copy { order:-1; margin-bottom:18px; }
+  .economy-reading-note { padding:22px 18px; }
+  .economy-reading-note h2 { font-size:21px; }
+  #economyCalendarSlot .tv-mini-symbol { height:440px !important; }
+}

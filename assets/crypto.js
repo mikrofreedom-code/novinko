@@ -34,31 +34,6 @@
   const url = (view, topic = 'all') => `/?rubrika=krypto${view === 'spravy' ? '' : '&pohlad=' + view}${topic === 'all' ? '' : '&tema=' + topic}`;
   const arrow = '<span aria-hidden="true">↗</span>';
 
-  function mountWidgets(container) {
-    container.querySelectorAll('script[data-widget-src]').forEach(config => {
-      if (config.dataset.mounted) return;
-      config.dataset.mounted = 'true';
-      const script = document.createElement('script');
-      script.src = config.dataset.widgetSrc;
-      script.async = true;
-      script.textContent = config.textContent;
-      script.addEventListener('error', () => {
-        const host = config.parentElement;
-        if (!host || host.querySelector('.crypto-widget-error')) return;
-        const message = document.createElement('p');
-        message.className = 'crypto-empty crypto-widget-error';
-        message.textContent = 'Trhové údaje sa nepodarilo načítať. Obnovte stránku alebo otvorte ';
-        const link = document.createElement('a');
-        link.href = 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = 'prehľad na TradingView ↗';
-        message.appendChild(link);
-        host.prepend(message);
-      }, { once: true });
-      config.parentElement.appendChild(script);
-    });
-  }
   function init() {
     if (initialized) return;
     initialized = true;
@@ -156,9 +131,9 @@
     if (view === 'trh') {
       $('chartSection').style.display = '';
       $('screenerSection').style.display = '';
-      mountWidgets($('cryptoMarket'));
+      NovinkoWidgets.mount($('cryptoMarket'), 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/');
     }
-    mountWidgets($('tickerCrypto'));
+    NovinkoWidgets.mount($('tickerCrypto'), 'https://www.tradingview.com/markets/cryptocurrencies/prices-all/');
   }
   root.NovinkoCrypto = { render, setActive };
 })(typeof window !== 'undefined' ? window : globalThis);

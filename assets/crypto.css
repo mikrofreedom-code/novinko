@@ -1,9 +1,9 @@
-/* Scoped to Krypto. Shared typography, colour tokens and dark mode stay intact. */
+/* Editorial cards shared by Krypto and Ekonomika. Shared typography, colour tokens and dark mode stay intact. */
 [hidden] { display:none !important; }
-.crypto-active #main > :not(#cryptoPortal),
-.crypto-active .sidebar > :not(#cryptoAside) { display:none !important; }
+.crypto-active #main > :not(:is(#cryptoPortal,#economyPortal)),
+.crypto-active .sidebar > :not(:is(#cryptoAside,#economyAside)) { display:none !important; }
 .crypto-active .sidebar { border-left:1px solid var(--border); }
-#cryptoPortal { --crypto-accent:var(--cat-krypto); }
+:is(#cryptoPortal,#economyPortal) { --crypto-accent:var(--cat-krypto); }
 .crypto-mast { padding:4px 0 30px; }
 .crypto-kicker { display:block; font:700 11px/1.5 var(--sans); letter-spacing:1.8px; color:var(--muted); }
 .crypto-mast h1 { font:700 clamp(30px,4vw,51px)/1.18 var(--serif); letter-spacing:-1.9px; margin:16px 0; }
@@ -36,11 +36,11 @@
 .crypto-filters a[aria-current] { background:var(--text); color:var(--bg); border-color:var(--text); }
 .crypto-filters a:hover { border-color:var(--text); }
 .crypto-count { color:var(--muted); font-size:13px; margin-bottom:8px; }
-#cryptoFeed .crypto-story,#cryptoMarketNews .crypto-story { padding:24px 0; border-bottom:1px solid var(--border-light); }
-#cryptoFeed .crypto-story-link,#cryptoMarketNews .crypto-story-link { display:flex; flex-direction:row-reverse; align-items:flex-start; gap:24px; }
+:is(#cryptoFeed,#economyFeed) .crypto-story,:is(#cryptoMarketNews,#economyMarketNews) .crypto-story { padding:24px 0; border-bottom:1px solid var(--border-light); }
+:is(#cryptoFeed,#economyFeed) .crypto-story-link,:is(#cryptoMarketNews,#economyMarketNews) .crypto-story-link { display:flex; flex-direction:row-reverse; align-items:flex-start; gap:24px; }
 .crypto-story-copy { min-width:0; flex:1; }
-#cryptoFeed .img-wrap,#cryptoMarketNews .img-wrap { flex:0 0 170px; }
-#cryptoFeed .news-item-img,#cryptoMarketNews .news-item-img { width:170px; height:112px; object-fit:cover; }
+:is(#cryptoFeed,#economyFeed) .img-wrap,:is(#cryptoMarketNews,#economyMarketNews) .img-wrap { flex:0 0 170px; }
+:is(#cryptoFeed,#economyFeed) .news-item-img,:is(#cryptoMarketNews,#economyMarketNews) .news-item-img { width:170px; height:112px; object-fit:cover; }
 .crypto-school-teaser { margin-top:40px; padding:30px; background:var(--soft); border-top:3px solid var(--cat-krypto-skola); }
 .crypto-school-teaser h2 { font:700 25px/1.4 var(--serif); margin:12px 0; }
 .crypto-school-teaser p { color:var(--text2); line-height:1.6; }
@@ -66,10 +66,12 @@
 .crypto-trust h2 { font-family:var(--sans); font-size:16px; }
 .crypto-trust p { font-size:13px; }
 .crypto-empty { padding:30px 20px; margin:20px 0; background:var(--soft); color:var(--text2); line-height:1.7; }
-#cryptoPortal a:focus-visible,#cryptoAside a:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+.tv-ticker-wrap .crypto-widget-error { margin:0; padding:10px 18px; background:var(--header-bg); color:#e8eaed; font-size:12px; }
+.tv-ticker-wrap .crypto-widget-error a { color:inherit; text-underline-offset:3px; }
+:is(#cryptoPortal,#economyPortal) a:focus-visible,:is(#cryptoAside,#economyAside) a:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
 @media(max-width:1000px) {
   .crypto-active .sidebar { border-left:0; }
-  #cryptoAside { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+  :is(#cryptoAside,#economyAside) { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
 }
 @media(max-width:640px) {
   .crypto-mast h1 { letter-spacing:-1px; }
@@ -80,16 +82,16 @@
   .crypto-lead-side .crypto-story h3 { font-size:18px; }
   .crypto-feed-head h2 { font-size:20px; }
   .crypto-feed-head a { font-size:12px; }
-  #cryptoFeed .crypto-story-link,#cryptoMarketNews .crypto-story-link { gap:14px; }
-  #cryptoFeed .img-wrap,#cryptoMarketNews .img-wrap { flex-basis:92px; }
-  #cryptoFeed .news-item-img,#cryptoMarketNews .news-item-img { width:92px; height:76px; }
-  #cryptoFeed .ai-tag,#cryptoMarketNews .ai-tag { display:none; }
+  :is(#cryptoFeed,#economyFeed) .crypto-story-link,:is(#cryptoMarketNews,#economyMarketNews) .crypto-story-link { gap:14px; }
+  :is(#cryptoFeed,#economyFeed) .img-wrap,:is(#cryptoMarketNews,#economyMarketNews) .img-wrap { flex-basis:92px; }
+  :is(#cryptoFeed,#economyFeed) .news-item-img,:is(#cryptoMarketNews,#economyMarketNews) .news-item-img { width:92px; height:76px; }
+  :is(#cryptoFeed,#economyFeed) .ai-tag,:is(#cryptoMarketNews,#economyMarketNews) .ai-tag { display:none; }
   .crypto-story h3 { font-size:17px; }
-  #cryptoFeed .crypto-perex,#cryptoMarketNews .crypto-perex { display:none; }
+  :is(#cryptoFeed,#economyFeed) .crypto-perex,:is(#cryptoMarketNews,#economyMarketNews) .crypto-perex { display:none; }
   .crypto-school-teaser { padding:24px 20px; }
   .crypto-school-teaser h2 { font-size:22px; }
   .crypto-panel-head h2 { font-size:24px; }
   .crypto-lesson { gap:15px; }
   .crypto-lesson h3 { font-size:18px; }
-  #cryptoAside { display:block; }
+  :is(#cryptoAside,#economyAside) { display:block; }
 }
