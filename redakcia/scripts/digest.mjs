@@ -3,10 +3,10 @@
 //   node --env-file=.env scripts/digest.mjs [--lookback=24] [--dry]
 //
 // ČO ROBÍ: stiahne zdroje z lib/_shared/digest-feeds.js — RSS/Atom feedy
-// (DIGEST_FEEDS) aj weby bez RSS sledované cez sitemap (DIGEST_SITEMAP_SOURCES,
-// doplnené 16. 9. — Anthropic news, Claude blog, xAI, ElevenLabs, Cohere,
-// Scale AI, darioamodei.com, Ledger, OFAC, Fortune Crypto, DL News; ich
-// čerstvosť riadi NOVOSŤ ADRESY, nie dátum, viď lib/_shared/digest-sitemap.js).
+// (DIGEST_FEEDS) a prípadné weby sledované cez sitemap (DIGEST_SITEMAP_SOURCES).
+// Aktuálny výber je výhradne v tomto zozname; prázdny sitemap zoznam znamená,
+// že sa weby bez RSS nesledujú. Čerstvosť sitemap riadi novosť adresy,
+// nie dátum, viď lib/_shared/digest-sitemap.js.
 // Vynechá položky staršie než lookback okno a tie, ktoré už v minulom behu
 // UKÁZAL (nie len stiahol — viď nižšie), zvyšok rozdelí po sekciách a pošle
 // ako SAMOSTATNÉ správy do TELEGRAM_DIGEST_BOT_TOKEN/CHAT_ID — iný bot než
@@ -113,8 +113,8 @@ const LOOKBACK_H = Number((ARGS.find((a) => a.startsWith('--lookback=')) ?? '').
 const DRY = ARGS.includes('--dry');
 // Poistka (nájdené 15. 9.: arXiv cs.AI samo tvorilo 71 % AI sekcie, kým sme
 // ho nevyradili) — žiadny JEDEN zdroj nesmie v jednom behu zaplaviť sekciu.
-// arXiv je preto vonku úplne (viď digest-feeds.js), toto je poistka pre
-// prípad, že sa nabudúce pridá iný rovnako plodný zdroj.
+// arXiv je na žiadosť používateľa opäť zaradený ako P3 (2026-10-16),
+// takže dopĺňa len voľné miesta po P1/P2; platí preň aj tento strop.
 const MAX_PER_FEED = Number(process.env.DIGEST_MAX_PER_FEED ?? 25);
 // Rozhodnuté 15. 9.: P1 (primárny zdroj) sa ukáže VŽDY celé, bez orezania —
 // P2/P3 dopĺňajú zvyšok do tohto stropu. Svet má len 5 P1 zdrojov a tie
