@@ -21,6 +21,7 @@ const { describeImage } = require("../../assets/image-credit");
 const { PARAGRAPH_DELIM } = require("./config");
 const { SUBCATEGORIES, CONTENT_TYPES, SERIES } = require("./zahady");
 const { renderInline } = require("../../assets/article-links");
+const { publisher, siteIdentityJsonLd } = require('./site-identity');
 
 const SITE = "https://novinko.sk";
 const CATEGORY_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika',
@@ -238,6 +239,7 @@ ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date
   <link rel="stylesheet" href="/assets/consent.css" />
   <script src="/assets/ga4-consent.js" defer></script>
   <script src="/share.js" defer></script>
+  <script type="application/ld+json">${siteIdentityJsonLd()}</script>
 ${THEME_CSS[theme] ? `  ${THEME_CSS[theme]}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
 ${hlavicka(theme)}
@@ -349,8 +351,8 @@ function newsArticleJsonLd(article, popis) {
     datePublished: date,
     dateModified: article.mystery?.updatedAt || date,
     mainEntityOfPage: { "@type": "WebPage", "@id": clanokUrl(article) },
-    author: { "@type": "Organization", name: "Novinko", url: SITE },
-    publisher: { "@type": "Organization", name: "Novinko", url: SITE },
+    author: { "@id": publisher['@id'], "@type": "Organization", name: "Novinko", url: SITE },
+    publisher: { "@id": publisher['@id'], "@type": "NewsMediaOrganization", name: "Novinko", url: SITE },
     inLanguage: "sk-SK",
   };
   if (imageUrl) data.image = [imageUrl];
