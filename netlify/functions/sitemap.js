@@ -3,7 +3,7 @@
 // (15 kreditov za deploy). Takto je zoznam vždy aktuálny a stojí zlomok kreditu:
 // sitemap si stiahne crawler rádovo raz za deň a CDN ju medzitým cachuje.
 //
-// Do zoznamu ide len hlavná stránka a články. archiv, impressum, podmienky,
+// Do zoznamu ide hlavná stránka, indexovateľný /archiv a články. impressum, podmienky,
 // sukromie, dsa a pravo-na-opravu majú v HTML noindex — ponúkať ich Googlu
 // a vzápätí mu povedať „neindexuj" je rozporuplný signál a míňa crawl budget.
 
@@ -43,6 +43,7 @@ exports.handler = async () => {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${SITE}/</loc><lastmod>${dnes}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
   <url><loc>${SITE}/zahady.html</loc><lastmod>${dnes}</lastmod></url>
+  <url><loc>${SITE}/archiv</loc></url>
 ${clanky.map((c) => `  <url><loc>${esc(clanokUrl(c))}</loc><lastmod>${den(c.date)}</lastmod></url>`).join("\n")}
 </urlset>
 `;
