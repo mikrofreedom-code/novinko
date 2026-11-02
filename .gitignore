@@ -27,6 +27,7 @@ redakcia/web/
 
 # Výstup buildu webu (skladá ho scripts/build-site.sh)
 _site/
+netlify/lib/home-template.cjs
 
 # Pôvodné bannery od používateľa (3× ~1,9 MB PNG). Do gitu idú len zmenšené
 # WebP verzie v assets/reklama/, ktoré build zverejňuje — rovnaký prístup ako

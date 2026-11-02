@@ -10,7 +10,7 @@ exports.handler = async (event) => {
   try {
     const all = await buildAll();
     let saved = 0;
-    for (const cat of CATS) {
+    for (const cat of [...CATS, 'discovery']) {
       if (all[cat]) {
         await saveNews(cat, all[cat]);
         saved += 1;
