@@ -32,7 +32,8 @@ skutočný nový riadok by rozbil CSV.
 
 | kde | čo |
 |---|---|
-| `index.html` | hlavná stránka, celý render engine v inline JS |
+| `index.html` | šablóna hlavnej stránky, interaktívny render engine v inline JS |
+| `netlify/functions/home.mjs` | hlavná stránka: 20 najnovších vlastných článkov v HTML, potom prehliadač doplní prehľad |
 | `clanok.html` | stránka článku skladaná v prehliadači — **má noindex** |
 | `clanok.css` | štýly článku, zdieľa ich `clanok.html` aj serverová verzia |
 | `netlify/functions/clanok.js` | indexovateľná stránka článku (`/clanok/<slug>-<id>`) |
@@ -678,3 +679,19 @@ rozpočtové obmedzenia, prevádzkové pasce Websupport + Netlify, editorské pr
 - Pred nevratným krokom (mazanie obsahu, prepis hárku) urob zálohu a ukáž, čo sa stane.
 - Overuj naživo, nie predpokladom. `curl`, `dig`, priame volanie funkcie — a povedz,
   čo si overil a čo nie.
+
+## Objavovanie nových článkov (2. 11. 2026)
+
+- `/` aj `/index.html` prepisuje funkcia `home.mjs`. Šablónu a presnú CSP
+  zabalí build cez `scripts/bundle-home-template.cjs` do ignorovaného
+  `netlify/lib/home-template.cjs`. Nečíta súbory za behu a nerobí build pri publikovaní.
+- Hlavná stránka číta malý snapshot `discovery` z Blobs, ktorý pripraví existujúci
+  10-minútový refresh (najviac 20 článkov na rubriku). Pri prvom nasadení vie
+  použiť existujúcu cache `all`. CSV je až posledná záchrana.
+- `discovery-articles.js` číta publikovaný CSV hárok pre obe sitemapy.
+  CDN cache je 120 s; nedostupný/prázdny/neplatný export vracia 503 + no-store,
+  nie úspešnú odpoveď s vymazanými článkami. News sitemap má najviac 1 000
+  publikovaných článkov za 48 h a nezahŕňa budúce dátumy.
+- Testy: `npm test` (najskôr pripraví šablónu a CSP, potom spustí webové testy).
+- Tieto úpravy pomáhajú objaveniu adries, nezaručujú indexovanie. Presný dôvod
+  nezaradenia konkrétnej URL treba overiť cez Kontrolu adresy URL v Search Console.

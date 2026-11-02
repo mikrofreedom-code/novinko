@@ -59,6 +59,7 @@ node scripts/inject-site-identity.cjs "$OUT"
 # Musí byť za kopírovaním VOLITELNE, aby prípadný _headers z repozitára
 # neprepísal ten vygenerovaný.
 node scripts/gen-csp.mjs "$OUT"
+node scripts/bundle-home-template.cjs "$OUT"
 
 echo "web poskladaný do $OUT/ — $(find "$OUT" -type f | wc -l) súborov:"
 find "$OUT" -type f -printf '  %f\n' | sort

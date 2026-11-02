@@ -123,6 +123,20 @@ async function buildAll() {
   const now = new Date().toISOString();
   const out = {};
 
+  // Prepare small homepage HTML data during the existing refresh. Reading the
+  // multi-megabyte CSV must not delay every uncached homepage request.
+  const discoveryCounts = new Map();
+  const discovery = ownAll.slice().sort((a, b) => Date.parse(b.pubDate) - Date.parse(a.pubDate))
+    .filter(item => {
+      const count = discoveryCounts.get(item.category) || 0;
+      if (count >= 20) return false;
+      discoveryCounts.set(item.category, count + 1);
+      return true;
+    }).map(item => ({ id: item.id, title: item.title, perex: item.description,
+      date: item.pubDate, category: item.category, imageUrl: item.image,
+      imageCredit: item.imageCredit, mystery: item.mystery || {} }));
+  out.discovery = { items: discovery, fetched: now };
+
   const perCat = {};
   for (const cat of CAT_ORDER) {
     const list = combineCategory(rssAll, ownAll, cat);

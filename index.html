@@ -154,7 +154,9 @@
         <span class="hero-eyebrow-line"></span>
       </div>
       <div id="heroContent">
+        <!-- server:hero -->
         <div class="loading"><div class="loader"></div><span>Načítavam správy…</span></div>
+        <!-- /server:hero -->
       </div>
     </div>
 
@@ -187,7 +189,7 @@
     <div id="zahadySection"></div>
 
     <!-- MAGAZÍNOVÉ SEKČNÉ BLOKY (domov) -->
-    <div id="magSections"></div>
+    <div id="magSections"><!-- server:latest --><!-- /server:latest --></div>
 
 
     <!-- Reklama: jediný zoznam bannerov je v /promo.js, ten toto miesto vyplní. -->
@@ -399,8 +401,10 @@
       return ok;
     };
     const doplnky = nacitaj([EDU.id, ZAHRADA.id, RECEPTY.id, HOROSKOP.id, ZAHADY.id]);
-    if (await nacitaj(DOMOV.map(s => s.id))) stampUpdate();
-    onNews();
+    const loaded = await nacitaj(DOMOV.map(s => s.id));
+    if (loaded) stampUpdate();
+    // A failed first browser fetch must not erase the server-rendered articles.
+    if (loaded || Object.keys(DATA).some(id => DOMOV.some(s => s.id === id))) onNews();
     await doplnky;
     if (currentView === 'all') renderDoplnky();
     else if (currentView === 'krypto' || !DOMOV.some(s => s.id === currentView)) showSection(currentView);

@@ -40,6 +40,19 @@
   status = 301
   force = true
 
+# ─── HLAVNÁ STRÁNKA S ODKAZMI AJ BEZ JAVASCRIPTU ───
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/home"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/index.html"
+  to = "/.netlify/functions/home"
+  status = 200
+  force = true
+
 # ─── INDEXOVATEĽNÉ STRÁNKY ČLÁNKOV ───
 # status 200 = PREPIS, nie presmerovanie: adresa v prehliadači ostáva
 # /clanok/<slug>-<id> a obsah dodá funkcia. Vyhľadávač tak dostane hotové HTML
@@ -74,7 +87,7 @@
   status = 200
 
 # Google News sitemap — len články za posledných 48 h. Google ju číta oveľa
-# častejšie než bežnú, takže nový článok je v indexe v desiatkach minút.
+# častejšie než bežnú. Pomáha objaveniu; zaradenie do indexu nie je zaručené.
 [[redirects]]
   from = "/news-sitemap.xml"
   to = "/.netlify/functions/news-sitemap"
