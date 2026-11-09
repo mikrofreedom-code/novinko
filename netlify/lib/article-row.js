@@ -19,7 +19,10 @@ const PARAGRAPH_DELIM = "¶¶";
 // a jednoduché zalomenia vnútri odseku sa správne zlepia. Až keď žiadny
 // prázdny riadok nie je, berieme jednoduché zalomenie ako koniec odseku.
 function paragraphsToCell(body) {
-  const text = String(body || "");
+  const text = String(body || "").replace(/\r\n?/g, "\n");
+  if (/^\s*\|.*\|\s*$/m.test(text)) {
+    return text.split("\n").map(line => line.trim()).filter(Boolean).join(` ${PARAGRAPH_DELIM} `);
+  }
   const oddelovac = /\n{2,}/.test(text) ? /\n{2,}/ : /\n+/;
   return text
     .split(oddelovac).map((p) => p.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean)

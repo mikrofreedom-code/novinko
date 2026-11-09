@@ -37,12 +37,7 @@ function clean(value, max = 200) {
   return String(value ?? '').trim().slice(0, max);
 }
 
-function validHttpUrl(value) {
-  try {
-    const u = new URL(value);
-    return (u.protocol === 'https:' || u.protocol === 'http:') && !u.username && !u.password;
-  } catch { return false; }
-}
+const { validUrl: validHttpUrl } = require('../../assets/zahady/sources');
 
 function validArticleImageUrl(value) {
   try {
@@ -103,6 +98,11 @@ function validateMystery(data) {
   }
   const rawSources = Array.isArray(data.sources) ? data.sources : [];
   if (rawSources.length < 1 || rawSources.length > 12) throw new Error('Zadaj 1 až 12 zdrojov.');
+  if (rawSources.some(source => typeof source?.name !== 'string' || typeof source?.url !== 'string'
+    || !source.name.trim() || source.name.trim().length > 160 || source.url.trim().length > 1000
+    || !validHttpUrl(source.url.trim()))) {
+    throw new Error('Každý zdroj potrebuje názov (najviac 160 znakov) a jeden platný odkaz (najviac 1 000 znakov). Viaceré URL zadaj ako samostatné zdroje.');
+  }
   const sources = rawSources.map((source) => ({
     name: clean(source?.name, 160), url: clean(source?.url, 1000),
   }));

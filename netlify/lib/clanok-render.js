@@ -1,5 +1,6 @@
 const { formatArticleDate } = require("../../assets/article-date");
 const { describeImage } = require("../../assets/image-credit");
+const { normalize: normalizeSources } = require("../../assets/zahady/sources");
 // Skladá HTML stránky článku NA SERVERI — pre vyhľadávače a pre návštevníkov,
 // ktorí prídu z Googlu.
 //
@@ -20,8 +21,7 @@ const { describeImage } = require("../../assets/image-credit");
 
 const { PARAGRAPH_DELIM } = require("./config");
 const { SUBCATEGORIES, CONTENT_TYPES, SERIES } = require("./zahady");
-const { renderInline } = require("../../assets/article-links");
-const { publisher, siteIdentityJsonLd } = require('./site-identity');
+const { renderInline, renderBlocks } = require("../../assets/article-links");
 
 const SITE = "https://novinko.sk";
 const CATEGORY_LABELS = { slovensko: 'Slovensko', svet: 'Svet', ekonomika: 'Ekonomika',
@@ -48,11 +48,7 @@ function clanokUrl({ title, id, mystery }) {
 }
 
 function odseky(content, headings = false) {
-  return String(content ?? "")
-    .split(new RegExp(`\\s*${PARAGRAPH_DELIM}\\s*|\\n\\n`))
-    .map((p) => p.trim()).filter(Boolean)
-    .map((p) => headings && /^## [^\n]{1,120}$/.test(p)
-      ? `<h2>${renderInline(p.slice(3))}</h2>` : `<p>${renderInline(p)}</p>`).join("\n        ");
+  return renderBlocks(content, headings);
 }
 
 // Shared with the legacy browser renderer and homepage cards.
@@ -239,7 +235,6 @@ ${image ? `  <meta property="og:image" content="${esc(image)}" />\n` : ""}${date
   <link rel="stylesheet" href="/assets/consent.css" />
   <script src="/assets/ga4-consent.js" defer></script>
   <script src="/share.js" defer></script>
-  <script type="application/ld+json">${siteIdentityJsonLd()}</script>
 ${THEME_CSS[theme] ? `  ${THEME_CSS[theme]}\n` : ""}${jsonLd ? `  <script type="application/ld+json">${jsonLd}</script>\n` : ""}</head>
 <body>
 ${hlavicka(theme)}
@@ -267,7 +262,7 @@ function renderClanok(article, dalsie = []) {
   const sourceName = (sourceParts[0] || "").trim();
   const sourceLink = (sourceParts[1] || "").trim();
   const popis = (mystery.metaDescription || perex || String(content || "").slice(0, 200)).replace(/\s+/g, " ").trim().slice(0, 300);
-  const mysterySources = Array.isArray(mystery.sources) ? mystery.sources : [];
+  const mysterySources = normalizeSources(mystery.sources);
   const mysteryLabel = SUBCATEGORIES[mystery.subcategory] || 'Záhady a fenomény';
   const mysteryContext = category === 'zahady'
     ? `<div class="mystery-context"><span>${esc(CONTENT_TYPES[mystery.contentType] || 'Magazínový článok')}</span>${mystery.series && SERIES[mystery.series] ? `<span>${esc(SERIES[mystery.series])}</span>` : ''}</div>`
@@ -351,8 +346,8 @@ function newsArticleJsonLd(article, popis) {
     datePublished: date,
     dateModified: article.mystery?.updatedAt || date,
     mainEntityOfPage: { "@type": "WebPage", "@id": clanokUrl(article) },
-    author: { "@id": publisher['@id'], "@type": "Organization", name: "Novinko", url: SITE },
-    publisher: { "@id": publisher['@id'], "@type": "NewsMediaOrganization", name: "Novinko", url: SITE },
+    author: { "@type": "Organization", name: "Novinko", url: SITE },
+    publisher: { "@type": "Organization", name: "Novinko", url: SITE },
     inLanguage: "sk-SK",
   };
   if (imageUrl) data.image = [imageUrl];

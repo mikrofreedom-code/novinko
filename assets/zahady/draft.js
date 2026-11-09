@@ -30,7 +30,7 @@
       // Reset clears an old article ID, scheduled time, photo and AI-generation settings.
       form.reset();
       for (const key of fields) if (form.elements[key]) form.elements[key].value = draft[key] || '';
-      form.elements.sourcesText.value = draft.sources.map((s) => `${s.name} | ${s.url}`).join('\n');
+      NovinkoSources.fill(form, draft.sources);
       form.elements.source.value = draft.sources[0]?.name || '';
       form.elements.sourceUrl.value = draft.sources[0]?.url || '';
       form.elements.category.dispatchEvent(new Event('change', { bubbles: true }));

@@ -58,5 +58,31 @@
     return html + esc(text.slice(end));
   }
 
-  return { renderInline, linkMarkup, normalizeUrl };
+  function renderBlocks(value, headings = false) {
+    const lines = String(value ?? '').replace(/\r\n?/g, '\n').replace(/\s*¶¶\s*/g, '\n\n').split('\n');
+    const cells = line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map(cell => cell.trim().replace(/\\\|/g, '|'));
+    const row = line => /^\s*\|.*\|\s*$/.test(line);
+    const output = []; let paragraph = [];
+    function flush() {
+      const text = paragraph.join(' ').trim(); paragraph = [];
+      if (text) output.push(headings && /^## [^\n]{1,120}$/.test(text) ? `<h2>${renderInline(text.slice(3))}</h2>` : `<p>${renderInline(text)}</p>`);
+    }
+    for (let i = 0; i < lines.length; i++) {
+      let next = i + 1;
+      while (next < lines.length && !lines[next].trim()) next++;
+      if (row(lines[i]) && row(lines[next] || '') && cells(lines[next]).length === cells(lines[i]).length && cells(lines[next]).every(cell => /^:?-{3,}:?$/.test(cell))) {
+        flush();
+        const header = cells(lines[i]); const body = []; i = next;
+        while (true) {
+          let j = i + 1; while (j < lines.length && !lines[j].trim()) j++;
+          if (!row(lines[j] || '') || cells(lines[j]).length !== header.length) break;
+          body.push(cells(lines[j])); i = j;
+        }
+        output.push('<div class="article-table" role="region" aria-label="Tabuľka v článku" tabindex="0"><table><thead><tr>' + header.map(cell => `<th scope="col">${renderInline(cell)}</th>`).join('') + '</tr></thead><tbody>' + body.map(cells => '<tr>' + cells.map(cell => `<td>${renderInline(cell)}</td>`).join('') + '</tr>').join('') + '</tbody></table></div>');
+      } else if (!lines[i].trim()) flush();
+      else paragraph.push(lines[i]);
+    }
+    flush(); return output.join('\n');
+  }
+  return { renderInline, renderBlocks, linkMarkup, normalizeUrl };
 });

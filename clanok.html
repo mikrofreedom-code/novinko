@@ -144,12 +144,7 @@
       const sourceLink = (sourceParts[1] || "").trim();
 
       // odseky: rozdeľ podľa oddeľovača (¶¶) aj podľa prípadných \n\n
-      const contentHTML = String(content || "")
-        .split(new RegExp(`\\s*${PARAGRAPH_DELIM}\\s*|\\n\\n`))
-        .map(p => p.trim())
-        .filter(Boolean)
-        .map(p => `<p>${NovinkoLinks.renderInline(p)}</p>`)
-        .join("");
+      const contentHTML = NovinkoLinks.renderBlocks(content);
 
       document.getElementById("articleWrap").innerHTML = `
         <div class="article-meta">

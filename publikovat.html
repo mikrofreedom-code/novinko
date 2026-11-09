@@ -31,6 +31,11 @@
   #articleLinkDialog h2 { margin: 0; font-size: 1.2rem; }
   #articleLinkError { color: #8a1a1a; }
   #preview a { overflow-wrap: anywhere; }
+
+.article-table { width:100%; overflow-x:auto; margin:24px 0; }
+.article-table table { border-collapse:collapse; min-width:100%; font-size:0.95em; line-height:1.5; }
+.article-table th,.article-table td { border:1px solid #ccc; padding:10px 14px; text-align:left; min-width:120px; vertical-align:top; }
+.article-table th { background:#f0f0f0; color:#171717; font-weight:700; }
 </style>
 </head>
 <body>
@@ -48,6 +53,7 @@
   <label>Heslo
     <input type="password" name="password" required>
   </label>
+
 
   <label>Aktualizovať existujúci článok <small>(voliteľné, iba Záhady a fenomény)</small>
     <input type="text" name="articleId" inputmode="numeric" placeholder="ID článku">
@@ -153,7 +159,13 @@
     <input type="hidden" name="historicalPeriod" value="">
     <input type="hidden" name="persons" value="">
     <input type="hidden" name="mainEntities" value="">
-    <input type="hidden" name="sourcesText" value="">
+    <label>Zdroje (názvy)
+      <textarea name="sourceNames" placeholder="[1] FBI — D. B. Cooper Hijacking&#10;[2] Thomas G. Kaye a Mark Meltzer — Scientific Reports" style="min-height:110px"></textarea>
+    </label>
+    <label>URL zdrojov
+      <textarea name="sourceUrls" placeholder="[1] https://www.fbi.gov/history/cases-and-criminals/db-cooper-hijacking&#10;[2] https://example.org/studia" style="min-height:110px"></textarea>
+      <small>Jeden názov a jedna URL na riadok, v rovnakom poradí. Môžeš skopírovať aj číslovanie [1], [2]. Najviac 12 zdrojov. Všetky odkazy uvidíš v Náhľade.</small>
+    </label>
     <input type="hidden" name="imageKind" value="photo">
     <input type="hidden" name="seoTitle" value="">
     <input type="hidden" name="metaDescription" value="">
@@ -223,6 +235,7 @@
 </dialog>
 <script src="/assets/article-links.js"></script>
 <script src="/assets/article-links-editor.js" defer></script>
+<script src="/assets/zahady/sources.js"></script>
 <script>
 // Zmenšenie fotky ešte v prehliadači. Bez neho išiel súbor do úložiska 1:1
 // taký, aký vyšiel z fotoaparátu — ručne nahrané fotky mali priemer 1,1 MB,
@@ -272,6 +285,10 @@ function toggleReceptFields() {
   const suZahady = categorySelect.value === 'zahady';
   receptFields.style.display = jeRecept ? 'block' : 'none';
   zahadyFields.style.display = suZahady ? 'block' : 'none';
+  document.querySelectorAll('.standardSource').forEach(label => {
+    label.style.display = suZahady ? 'none' : 'block';
+    label.querySelector('input').disabled = suZahady;
+  });
   textField.closest('label').style.display = jeRecept ? 'none' : 'block';
   textField.required = !jeRecept;
 }
@@ -296,7 +313,7 @@ document.getElementById('loadArticleBtn').addEventListener('click', async () => 
     }
     f.elements.topicAliases.value = (article.aliases || []).join(', ');
     for (const key of ['persons','mainEntities','secondaryKeywords','tags']) f.elements[key].value = (article[key] || []).join(', ');
-    f.elements.sourcesText.value = (article.sources || []).map((s) => `${s.name} | ${s.url}`).join('\n');
+    NovinkoSources.fill(f, article.sources);
     if (article.sources?.[0]) {
       f.elements.source.value = article.sources[0].name || '';
       f.elements.sourceUrl.value = article.sources[0].url || '';
@@ -311,6 +328,15 @@ document.getElementById('previewBtn').addEventListener('click', async () => {
   const f = document.getElementById('f');
   const d = Object.fromEntries(new FormData(f));
   const box = document.getElementById('preview');
+  if (d.category === 'zahady') {
+    try { doplnZahadyMetadata(d); }
+    catch (error) {
+      const status = document.getElementById('status');
+      status.className = 'err'; status.textContent = error.message;
+      box.style.display = 'none';
+      return;
+    }
+  }
   const body = d.category === 'recepty' ? poskladajReceptText(d) : d.text;
   const selectedImage = document.getElementById('imageFile').files[0];
   const imageSrc = selectedImage ? await new Promise((resolve) => {
@@ -322,7 +348,8 @@ document.getElementById('previewBtn').addEventListener('click', async () => {
   const imagePreview = imageSrc ? `<figure><img src="${esc(imageSrc)}" alt=""><figcaption>${esc(d.imageKind === 'ai' ? 'AI ilustrácia' : d.imageCredit || '')}</figcaption></figure>` : '';
   box.innerHTML = `<small>${esc(d.category === 'zahady' ? d.subcategory + ' · ' + d.contentType : d.category)}</small>`
     + `<h2>${esc(d.headline)}</h2>${imagePreview}<p><strong>${esc(d.perex)}</strong></p>`
-    + String(body || '').split(/\n+/).filter(Boolean).map((p) => d.category === 'zahady' && /^## [^\n]{1,120}$/.test(p) ? `<h3>${NovinkoLinks.renderInline(p.slice(3))}</h3>` : `<p>${NovinkoLinks.renderInline(p)}</p>`).join('');
+    + NovinkoLinks.renderBlocks(body, d.category === 'zahady')
+    + (d.category === 'zahady' ? `<h3>Pramene a zdroje</h3><ol>${d.sources.map(source => `<li><a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(source.name)}</a></li>`).join('')}</ol>` : '');
   const previewImage = box.querySelector('img');
   if (previewImage) previewImage.addEventListener('error', () => {
     previewImage.replaceWith(document.createTextNode('Obrázok sa v náhľade nenačítal. Skontroluj odkaz.'));
@@ -365,14 +392,6 @@ function poskladajReceptText(data) {
   ].join('\n\n');
 }
 
-function nazovZdrojaZUrl(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-}
-
 function doplnZahadyMetadata(data) {
   data.canonicalTopic = String(data.canonicalTopic || data.headline || '').trim();
   data.contentType = data.contentType || {
@@ -387,22 +406,7 @@ function doplnZahadyMetadata(data) {
     data.imageKind = data.imageKind || 'photo';
   }
 
-  const zdrojeZKonceptu = String(data.sourcesText || '').split('\n').map((line) => {
-    const cut = line.indexOf('|');
-    if (cut < 1) return null;
-    return { name: line.slice(0, cut).trim(), url: line.slice(cut + 1).trim() };
-  }).filter(Boolean);
-  if (zdrojeZKonceptu.length) {
-    data.sources = zdrojeZKonceptu;
-    return;
-  }
-
-  const url = String(data.sourceUrl || '').trim();
-  if (!url) throw new Error('Pri Záhadách zadaj aj odkaz na zdroj.');
-  data.sources = [{
-    name: String(data.source || '').trim() || nazovZdrojaZUrl(url) || 'Zdroj',
-    url,
-  }];
+  data.sources = NovinkoSources.parse(data.sourceNames, data.sourceUrls);
 }
 
 document.getElementById('f').addEventListener('submit', async (e) => {
@@ -426,7 +430,8 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     if (data.category === 'zahady') {
       doplnZahadyMetadata(data);
     }
-    delete data.sourcesText;
+    delete data.sourceNames;
+    delete data.sourceUrls;
     // Pomocné polia manual-publish.js nepozná — nemá zmysel ich posielať
     // (a keby náhodou nemal server whitelist tvrdý, len by to bola zbytočná
     // dátová záťaž navyše).
